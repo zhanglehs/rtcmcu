@@ -1,0 +1,21 @@
+syntax = "proto2";
+enum LCdnStreamTransportType {
+    LCdnStreamTransportFlv = 1;
+    LCdnStreamTransportRtp = 2;
+}
+
+message f2t_register_req_v4
+{
+    optional uint32 ip                  =1;
+    optional uint32 asn                 =2;
+    optional uint32 region              =3;
+    optional uint32 backend_port        =4;
+    optional uint32 player_port         =5;
+    repeated uint32 public_ip           =6;
+    repeated uint32 private_ip          =7;
+    optional uint32 uploader_port       =8;
+    optional uint32 rtp_backend_port    =9;
+    optional uint32 rtp_player_port     =10;
+    optional uint32 rtp_uploader_port   =11;
+    optional LCdnStreamTransportType transport_type =12;
+}

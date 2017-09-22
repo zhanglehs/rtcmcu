@@ -1,0 +1,10 @@
+syntax = "proto3";
+package live_stream_sdk;
+
+message RtpU2rExtension {
+     string deviceID        = 1;
+}
+
+message RtpD2pExtension {
+     string deviceID        = 1;
+}

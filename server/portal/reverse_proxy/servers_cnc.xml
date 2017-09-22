@@ -1,0 +1,5 @@
+<config>
+  <net>
+    <host name="cnc1" ip="220.181.185.95" port="443"/>
+  </net>
+</config>

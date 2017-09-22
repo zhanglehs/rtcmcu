@@ -1,0 +1,29 @@
+#directory definations 
+
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+current_dir := $(patsubst %/,%,$(dir $(mkfile_path)))
+source_dir  := $(current_dir)/..
+
+ifeq    ($(strip $(XM_SERVER_LIB_SOURCE_PATH)),)
+    XM_SERVER_LIB_SOURCE_PATH = $(source_dir)/lib
+endif        
+
+
+#DIR_LIBRARY             =$(XM_SERVER_LIB_SOURCE_PATH)
+
+#DIR_LIB_XSOCKET        = $(DIR_LIBRARY)/xsocket
+#DIR_LIB_XTHREAD         = $(DIR_LIBRARY)/xthread
+#DIR_LIB_APPFRAME        = $(DIR_LIBRARY)/appframe
+
+#INC_BJ_SERVER_LIB      = -I$(DIR_LIBRARY)
+#INC_XSOCKET            = -I$(DIR_LIBRARY)/xsocket
+#INC_XTHREAD             = -I$(DIR_LIBRARY)/xthread
+#INC_APPFRAME            = -I$(DIR_LIBRARY)/appframe
+
+#include $(source_dir)/makefile.incl
+
+INCLUDES    += $(INC_SERVER_LIB) $(INC_LOG4CPP)
+#CXXFLAGS    = $(INCLUDES) $(EXTRAFLAGS)
+CXXFLAGS    = $(INCLUDES) -DLOGGER
+
+

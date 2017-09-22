@@ -1,0 +1,45 @@
+﻿<?xml version="1.0" encoding="UTF-8" ?>
+<lup_sche>
+    <common>
+        <listen host='eth0' bin_port='443' http_port='80' />
+        <log log_level='10' log_mode='FILE' log_server_ip='10.10.72.175' log_server_port='2112' log_path='/opt/logs/lup_sche_log'/>
+        <rpt local_fifo_pipe='/tmp/rpt.pip'/>
+    </common>
+
+    <secret>
+        <up_sche_secret private_key="wheretofindTheBestKey.Idonotknown." token_timeout='86400' />
+        <upload_secret private_key="hereyoucanfindTheBetterKey.Ijustknownthat." token_timeout='86400'  backdoor_token='98765'/>
+    </secret>
+
+    <bitrate_video SMOONTH='400k' SD='800k' HD='1200k' />
+
+    <receiver_list>
+        <receiver ip = "103.41.143.103" uploader_port="80" sdp_port="81" asn="1" region="11"/>
+        <!--receiver ip = "10.10.69.124" uploader_port="7080" asn="1" region="11"/-->
+    </receiver_list>
+
+    <receiver_rtp_list>
+        <receiver ip = "103.41.143.103" uploader_port="80" sdp_port="81" asn="1" region="11"/>
+    </receiver_rtp_list>
+
+    <receiver_ex_list>
+        <receiver_ex ip = "103.41.143.103" uploader_port="80" sdp_port="81" player_port="8080" asn="1" region="11"/>
+    </receiver_ex_list>
+
+    <receiver_ex_rtp_list>
+        <receiver_ex ip = "103.41.143.103" uploader_port="80" sdp_port="81" player_port="8080" asn="1" region="11"/>
+    </receiver_ex_rtp_list>
+
+
+    <ants_list>
+        <ants ip = "10.10.69.121" port="2009" asn="1" region="11"/>
+        <ants ip = "10.111.20.11" port="2009" asn="1" region="11"/>
+    </ants_list>
+
+    <rtmp_server_list>
+        <!--rtmp_server ip = "10.10.72.173" port="1935" asn="1" region="11"/-->
+        <rtmp_server ip = "10.10.69.121" port="1935" asn="1" region="11"/>
+        <rtmp_server ip = "111.206.107.128" port="1935" asn="1" region="11"/>
+    </rtmp_server_list>
+
+</lup_sche>

@@ -1,0 +1,253 @@
+<config>
+  <!-- CDN Configs -->
+  <cdn>
+    <rule desc="Redirect office Telecom to Zhaowei">
+      <asn>23724</asn>
+      <area>11</area>
+      <ketama>office</ketama>
+    </rule>
+    <rule desc="Redirect default to Beijing CNC">
+      <asn>0</asn>
+      <area>0</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+    <rule desc="Redirect North_China CNC to Beijing CNC">
+      <asn>4808</asn>
+      <asn>4837</asn>
+      <asn>9810</asn>
+      <asn>9929</asn>
+      <asn>17431</asn>
+      <asn>17490</asn>
+      <asn>17621</asn>
+      <asn>17622</asn>
+      <asn>17623</asn>
+      <asn>17816</asn>
+      <asn>18022</asn>
+      <asn>18242</asn>
+      <asn>23851</asn>
+      <asn>24139</asn>
+      <asn>24141</asn>
+      <asn>45083</asn>
+      <asn>45084</asn>
+      <asn>45087</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+    <rule desc="Redirect North_China Tel to Beijing CNC">
+      <asn>4134</asn>
+      <asn>4809</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45102</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+    <rule desc="Redirect South_China Tel to Dongguan Tel">
+      <asn>4134</asn>
+      <asn>4809</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45102</asn>
+      <area>31</area>
+      <area>32</area>
+      <area>33</area>
+      <area>34</area>
+      <area>35</area>
+      <area>36</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+    <rule desc="Redirect South-China CNC to Beijing CNC">
+      <asn>4808</asn>
+      <asn>4837</asn>
+      <asn>9810</asn>
+      <asn>9929</asn>
+      <asn>17431</asn>
+      <asn>17490</asn>
+      <asn>17621</asn>
+      <asn>17622</asn>
+      <asn>17623</asn>
+      <asn>17816</asn>
+      <asn>18022</asn>
+      <asn>18242</asn>
+      <asn>23851</asn>
+      <asn>24139</asn>
+      <asn>24141</asn>
+      <asn>45083</asn>
+      <asn>45084</asn>
+      <asn>45087</asn>
+      <area>31</area>
+      <area>32</area>
+      <area>33</area>
+      <area>34</area>
+      <area>35</area>
+      <area>36</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+    <rule desc="Redirect China Mobile to Beijing CNC">
+      <asn>9808</asn>
+      <asn>24311</asn>
+      <asn>24400</asn>
+      <asn>24422</asn>
+      <asn>24444</asn>
+      <asn>24445</asn>
+      <asn>24547</asn>
+      <asn>38019</asn>
+      <asn>56040</asn>
+      <asn>56041</asn>
+      <asn>56042</asn>
+      <asn>56046</asn>
+      <asn>56047</asn>
+      <asn>56048</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <area>31</area>
+      <area>32</area>
+      <area>33</area>
+      <area>34</area>
+      <area>35</area>
+      <area>36</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+    <rule desc="Redirect Tietong to Beijing CNC">
+      <asn>9394</asn>
+      <asn>24138</asn>
+      <asn>45077</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <area>31</area>
+      <area>32</area>
+      <area>33</area>
+      <area>34</area>
+      <area>35</area>
+      <area>36</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+      <ketama>beijing_cnc</ketama>
+    </rule>
+  </cdn>
+
+  <net>
+    <ketama desc="office" name="office" >
+      <host name="office_1000" weight="100" ip="180.96.9.240" port="443"/>
+    </ketama>
+    <ketama desc="beijing_cnc" name="beijing_cnc" >
+      <host name="beijing_cnc_1000" weight="100" ip="103.41.143.107" port="443"/>
+    </ketama>
+    <ketama desc="shanghai_tel" name="shanghai_tel" >
+      <host name="shanghai_tel_1000" weight="100" ip="101.226.245.178" port="443"/>
+    </ketama>
+    <ketama desc="dongguan_tel" name="dongguan_tel" >
+      <host name="dongguan_tel_1000" weight="100" ip="119.147.103.15" port="443"/>
+      <host name="dongguan_tel_1001" weight="100" ip="119.147.103.53" port="443"/>
+      <host name="dongguan_tel_1002" weight="100" ip="119.147.103.12" port="443"/>
+      <host name="dongguan_tel_1003" weight="100" ip="119.147.103.52" port="443"/>
+      <host name="dongguan_tel_1004" weight="100" ip="119.147.103.22" port="443"/>
+    </ketama>
+  </net>
+</config>

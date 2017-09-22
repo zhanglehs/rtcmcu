@@ -1,0 +1,1246 @@
+<config>
+  <!-- CDN Configs -->
+  <cdn>
+    <rule desc="Redirect office Telecom to Zhaowei">
+      <asn>23724</asn>
+      <area>11</area>
+	  <!--<ketama>office</ketama>-->
+      <ketama>beijingtel</ketama>
+    </rule>
+    <rule desc="Redirect default to Shanghai tel">
+      <asn>0</asn>
+      <area>0</area>
+	  <!--<ketama>beijing_cnc</ketama>-->
+      <ketama>shanghaitel</ketama>
+    </rule>
+    <rule desc="Redirect Other to other">
+      <asn>18245</asn>
+      <asn>24151</asn>
+      <asn>24406</asn>
+      <asn>24409</asn>
+      <asn>24420</asn>
+      <asn>37944</asn>
+      <asn>38345</asn>
+      <asn>45081</asn>
+      <asn>7497</asn>
+      <asn>17430</asn>
+      <asn>17964</asn>
+      <asn>56012</asn>
+      <asn>56013</asn>
+      <asn>9395</asn>
+      <asn>132437</asn>
+      <asn>133478</asn>
+      <asn>133527</asn>
+      <asn>17457</asn>
+      <asn>24424</asn>
+      <asn>37965</asn>
+      <asn>38057</asn>
+      <asn>45101</asn>
+      <asn>55958</asn>
+      <asn>56006</asn>
+      <asn>58850</asn>
+      <asn>9805</asn>
+      <asn>10212</asn>
+      <asn>131320</asn>
+      <asn>132366</asn>
+      <asn>132719</asn>
+      <asn>133194</asn>
+      <asn>133219</asn>
+      <asn>17429</asn>
+      <asn>17442</asn>
+      <asn>17772</asn>
+      <asn>17773</asn>
+      <asn>17775</asn>
+      <asn>17781</asn>
+      <asn>17962</asn>
+      <asn>17968</asn>
+      <asn>17969</asn>
+      <asn>18118</asn>
+      <asn>18239</asn>
+      <asn>18241</asn>
+      <asn>18243</asn>
+      <asn>23771</asn>
+      <asn>23841</asn>
+      <asn>23842</asn>
+      <asn>23844</asn>
+      <asn>23848</asn>
+      <asn>23853</asn>
+      <asn>24134</asn>
+      <asn>24137</asn>
+      <asn>24143</asn>
+      <asn>24147</asn>
+      <asn>24149</asn>
+      <asn>24403</asn>
+      <asn>24404</asn>
+      <asn>24413</asn>
+      <asn>24427</asn>
+      <asn>24495</asn>
+      <asn>37941</asn>
+      <asn>37957</asn>
+      <asn>37963</asn>
+      <asn>37970</asn>
+      <asn>38208</asn>
+      <asn>38342</asn>
+      <asn>38356</asn>
+      <asn>38361</asn>
+      <asn>38363</asn>
+      <asn>38364</asn>
+      <asn>38365</asn>
+      <asn>38367</asn>
+      <asn>38372</asn>
+      <asn>38375</asn>
+      <asn>38379</asn>
+      <asn>38380</asn>
+      <asn>38381</asn>
+      <asn>38564</asn>
+      <asn>38585</asn>
+      <asn>38834</asn>
+      <asn>45062</asn>
+      <asn>45071</asn>
+      <asn>45075</asn>
+      <asn>45076</asn>
+      <asn>45079</asn>
+      <asn>45080</asn>
+      <asn>45086</asn>
+      <asn>45093</asn>
+      <asn>45095</asn>
+      <asn>45096</asn>
+      <asn>45100</asn>
+      <asn>45110</asn>
+      <asn>45113</asn>
+      <asn>45114</asn>
+      <asn>45275</asn>
+      <asn>45866</asn>
+      <asn>45888</asn>
+      <asn>55439</asn>
+      <asn>55466</asn>
+      <asn>55468</asn>
+      <asn>55515</asn>
+      <asn>55743</asn>
+      <asn>55786</asn>
+      <asn>55883</asn>
+      <asn>55956</asn>
+      <asn>55960</asn>
+      <asn>55966</asn>
+      <asn>55967</asn>
+      <asn>55973</asn>
+      <asn>55981</asn>
+      <asn>55982</asn>
+      <asn>55986</asn>
+      <asn>55998</asn>
+      <asn>56000</asn>
+      <asn>56001</asn>
+      <asn>56002</asn>
+      <asn>56003</asn>
+      <asn>56005</asn>
+      <asn>56008</asn>
+      <asn>56015</asn>
+      <asn>56292</asn>
+      <asn>58841</asn>
+      <asn>58865</asn>
+      <asn>58866</asn>
+      <asn>58879</asn>
+      <asn>58908</asn>
+      <asn>58962</asn>
+      <asn>61223</asn>
+      <asn>7576</asn>
+      <asn>7638</asn>
+      <asn>7640</asn>
+      <asn>7641</asn>
+      <asn>9298</asn>
+      <asn>9306</asn>
+      <asn>9389</asn>
+      <asn>9391</asn>
+      <asn>9406</asn>
+      <asn>9535</asn>
+      <asn>9801</asn>
+      <asn>9803</asn>
+      <asn>9809</asn>
+      <asn>9812</asn>
+      <asn>9814</asn>
+      <asn>9939</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+	  <!--<ketama>other</ketama>-->
+      <ketama>beijingcnc</ketama>
+    </rule>
+    <rule desc="Redirect China Mobile to other">
+      <asn>132510</asn>
+      <asn>24059</asn>
+      <asn>24311</asn>
+      <asn>24400</asn>
+      <asn>24422</asn>
+      <asn>24444</asn>
+      <asn>24445</asn>
+      <asn>24547</asn>
+      <asn>38019</asn>
+      <asn>56040</asn>
+      <asn>56041</asn>
+      <asn>56042</asn>
+      <asn>56046</asn>
+      <asn>56047</asn>
+      <asn>56048</asn>
+      <asn>9808</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+	  <!--<ketama>other</ketama>-->
+      <ketama>beijingcnc</ketama>
+    </rule>
+    <rule desc="Redirect Tietong to Beijing CNC">
+      <asn>24138</asn>
+      <asn>24425</asn>
+      <asn>37981</asn>
+      <asn>38341</asn>
+      <asn>38346</asn>
+      <asn>38357</asn>
+      <asn>38370</asn>
+      <asn>45057</asn>
+      <asn>45058</asn>
+      <asn>45069</asn>
+      <asn>45070</asn>
+      <asn>45077</asn>
+      <asn>9394</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <area>37</area>
+      <area>41</area>
+      <area>42</area>
+      <area>43</area>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+	  <!--<ketama>beijing_cnc</ketama>-->
+      <ketama>beijingcnc</ketama>
+    </rule>
+
+    <rule desc="Redirect North tel and cnc to Beijing CNC">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <asn>133118</asn>
+      <asn>133119</asn>
+      <asn>17431</asn>
+      <asn>17490</asn>
+      <asn>17621</asn>
+      <asn>17622</asn>
+      <asn>17623</asn>
+      <asn>17816</asn>
+      <asn>18022</asn>
+      <asn>18240</asn>
+      <asn>18242</asn>
+      <asn>18244</asn>
+      <asn>23851</asn>
+      <asn>24139</asn>
+      <asn>24141</asn>
+      <asn>24416</asn>
+      <asn>45083</asn>
+      <asn>45084</asn>
+      <asn>45087</asn>
+      <asn>4808</asn>
+      <asn>4837</asn>
+      <asn>9800</asn>
+      <asn>9810</asn>
+      <asn>9929</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+	  <!--<ketama>beijing_cnc</ketama>-->
+      <ketama>beijingcnc</ketama>
+    </rule>
+    <rule desc="Redirect North tel and cnc to Beijing CNC">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <asn>133118</asn>
+      <asn>133119</asn>
+      <asn>17431</asn>
+      <asn>17490</asn>
+      <asn>17621</asn>
+      <asn>17622</asn>
+      <asn>17623</asn>
+      <asn>17816</asn>
+      <asn>18022</asn>
+      <asn>18240</asn>
+      <asn>18242</asn>
+      <asn>18244</asn>
+      <asn>23851</asn>
+      <asn>24139</asn>
+      <asn>24141</asn>
+      <asn>24416</asn>
+      <asn>45083</asn>
+      <asn>45084</asn>
+      <asn>45087</asn>
+      <asn>4808</asn>
+      <asn>4837</asn>
+      <asn>9800</asn>
+      <asn>9810</asn>
+      <asn>9929</asn>
+      <area>11</area>
+      <area>12</area>
+      <area>13</area>
+      <area>14</area>
+      <area>15</area>
+      <area>21</area>
+      <area>22</area>
+      <area>23</area>
+      <!--<ketama>beijing_cnc</ketama>-->
+      <ketama>beijingcnc</ketama>
+    </rule>	
+
+    <rule desc="Redirect 31,33 tel to Shanghai Tel">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <area>31</area>
+      <area>33</area>
+      <!--<ketama>shanghai_tel</ketama>-->
+      <ketama>shanghaitel</ketama>
+    </rule>
+    <rule desc="Redirect 44-46 tel to Dongguan Tel">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <area>44</area>
+      <area>45</area>
+      <area>46</area>
+      <!--<ketama>shanghai_tel</ketama>-->
+      <ketama>shanghaitel</ketama>
+    </rule>
+    <rule desc="Redirect 32,34 tel to Nanjing Tel">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <area>32</area>
+      <area>34</area>
+      <!--<ketama>shanghai_tel</ketama>-->
+      <ketama>shanghaitel</ketama>
+    </rule>
+    <rule desc="Redirect 35,36 tel to Quanzhou Tel">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <area>35</area>
+      <area>36</area>
+      <!--<ketama>shanghai_tel</ketama>-->
+      <ketama>shanghaitel</ketama>
+    </rule>
+    <rule desc="Redirect 37,41 cnc to Qingdao Cnc">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>133118</asn>
+      <asn>133119</asn>
+      <asn>17431</asn>
+      <asn>17490</asn>
+      <asn>17621</asn>
+      <asn>17622</asn>
+      <asn>17623</asn>
+      <asn>17816</asn>
+      <asn>18022</asn>
+      <asn>18240</asn>
+      <asn>18242</asn>
+      <asn>18244</asn>
+      <asn>23851</asn>
+      <asn>24139</asn>
+      <asn>24141</asn>
+      <asn>24416</asn>
+      <asn>45083</asn>
+      <asn>45084</asn>
+      <asn>45087</asn>
+      <asn>4808</asn>
+      <asn>4837</asn>
+      <asn>9800</asn>
+      <asn>9810</asn>
+      <asn>9929</asn>
+      <area>37</area>
+      <area>41</area>
+      <!--<ketama>beijing_cnc</ketama>-->
+      <ketama>beijingcnc</ketama>
+    </rule>	
+    <rule desc="Redirect 42,43,50-52 tel to Changsha Tel">
+      <asn>17428</asn>
+      <asn>55971</asn>
+      <asn>9308</asn>
+      <asn>9802</asn>
+      <asn>17780</asn>
+      <asn>18011</asn>
+      <asn>23910</asn>
+      <asn>23911</asn>
+      <asn>23912</asn>
+      <asn>24348</asn>
+      <asn>24349</asn>
+      <asn>24350</asn>
+      <asn>24352</asn>
+      <asn>24357</asn>
+      <asn>24362</asn>
+      <asn>24364</asn>
+      <asn>24367</asn>
+      <asn>24489</asn>
+      <asn>24490</asn>
+      <asn>24575</asn>
+      <asn>38027</asn>
+      <asn>38587</asn>
+      <asn>4538</asn>
+      <asn>45576</asn>
+      <asn>45587</asn>
+      <asn>4789</asn>
+      <asn>4839</asn>
+      <asn>4840</asn>
+      <asn>4843</asn>
+      <asn>9401</asn>
+      <asn>37958</asn>
+      <asn>58856</asn>
+      <asn>24430</asn>
+      <asn>37937</asn>
+      <asn>37942</asn>
+      <asn>38358</asn>
+      <asn>4859</asn>
+      <asn>55963</asn>
+      <asn>58448</asn>
+      <asn>58536</asn>
+      <asn>58811</asn>
+      <asn>7549</asn>
+      <asn>9807</asn>
+      <asn>9811</asn>
+      <asn>132203</asn>
+      <asn>17633</asn>
+      <asn>17638</asn>
+      <asn>17672</asn>
+      <asn>17739</asn>
+      <asn>17785</asn>
+      <asn>17883</asn>
+      <asn>17897</asn>
+      <asn>17923</asn>
+      <asn>17966</asn>
+      <asn>18344</asn>
+      <asn>23650</asn>
+      <asn>23724</asn>
+      <asn>23839</asn>
+      <asn>23840</asn>
+      <asn>37943</asn>
+      <asn>38283</asn>
+      <asn>38378</asn>
+      <asn>4134</asn>
+      <asn>45061</asn>
+      <asn>45090</asn>
+      <asn>45091</asn>
+      <asn>4809</asn>
+      <asn>4811</asn>
+      <asn>4812</asn>
+      <asn>4813</asn>
+      <asn>4815</asn>
+      <asn>4816</asn>
+      <asn>4835</asn>
+      <asn>4847</asn>
+      <asn>56019</asn>
+      <asn>58461</asn>
+      <asn>58517</asn>
+      <asn>58518</asn>
+      <asn>58519</asn>
+      <asn>58520</asn>
+      <asn>58539</asn>
+      <asn>59265</asn>
+      <asn>45102</asn>
+      <area>42</area>
+      <area>43</area>
+      <area>50</area>
+      <area>51</area>
+      <area>52</area>
+	  <!--<ketama>shanghai_tel</ketama>-->
+      <ketama>shanghaitel</ketama>
+    </rule>
+  </cdn>
+
+  <net>
+  <!--
+    <ketama desc="other" name="other" tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="other3001" weight="100" ip="103.41.143.105" port="443"/>
+      <host name="other3001" weight="100" ip="103.41.143.106" port="443"/>
+      <host name="other3001" weight="100" ip="103.41.143.107" port="443"/>
+    </ketama>
+    <ketama desc="china_cmcc" name="china_cmcc"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="cmcc3001" weight="100" ip="112.25.61.62" port="443"/>
+      <host name="cmcc3001" weight="100" ip="112.25.61.63" port="443"/>
+    </ketama>
+    <ketama desc="office" name="office"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="tel3001" weight="100" ip="180.96.9.240" port="443"/>
+    </ketama>
+    <ketama desc="beijing_cnc" name="beijing_cnc"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="cnc1001" weight="100" ip="123.126.98.18" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.16" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.13" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.12" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.14" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.11" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.15" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.17" port="443"/>
+      <host name="cnc1001" weight="100" ip="123.126.98.20" port="443"/>
+      <host name="cnc1001" weight="100" ip="111.206.107.131" port="443"/>
+      <host name="cnc1001" weight="100" ip="111.206.107.132" port="443"/>
+    </ketama>
+    <ketama desc="shanghai_tel" name="shanghai_tel"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="101.226.245.178" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.171" port="443"/>
+      <host name="tel1001" weight="100" ip="117.135.153.71" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.172" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.173" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.174" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.175" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.176" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.177" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.179" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.180" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.181" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.182" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.183" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.184" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.185" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.201" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.202" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.203" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.204" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.205" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.206" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.207" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.208" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.209" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.210" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.211" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.212" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.213" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.214" port="443"/>
+      <host name="tel1001" weight="100" ip="101.226.245.215" port="443"/>
+      <host name="tel1001" weight="100" ip="101.227.11.64" port="443"/>
+      <host name="tel1001" weight="100" ip="101.227.11.65" port="443"/>
+      <host name="tel1001" weight="100" ip="101.227.11.66" port="443"/>
+      <host name="tel1001" weight="100" ip="101.227.11.67" port="443"/>
+    </ketama>
+    <ketama desc="dongguan_tel" name="dongguan_tel"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="119.147.103.15" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.53" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.12" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.52" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.22" port="443"/>
+
+      <host name="tel1001" weight="100" ip="119.147.103.11" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.13" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.14" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.16" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.17" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.18" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.19" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.20" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.21" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.23" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.24" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.25" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.41" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.42" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.43" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.44" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.45" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.46" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.47" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.48" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.49" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.50" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.51" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.54" port="443"/>
+      <host name="tel1001" weight="100" ip="119.147.103.55" port="443"/>
+    </ketama>
+
+   <ketama desc="nanjing_tel" name="nanjing_tel"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="180.96.9.231" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.232" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.233" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.234" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.235" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.236" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.237" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.238" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.239" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.240" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.241" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.242" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.243" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.244" port="443"/>
+      <host name="tel1001" weight="100" ip="180.96.9.245" port="443"/>
+   </ketama>
+
+   <ketama desc="quanzhou_tel" name="quanzhou_tel"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="120.37.140.11" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.12" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.13" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.14" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.15" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.16" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.17" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.18" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.19" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.20" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.21" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.22" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.23" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.24" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.25" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.41" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.42" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.43" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.44" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.45" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.46" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.47" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.48" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.49" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.50" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.51" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.52" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.53" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.54" port="443"/>
+      <host name="tel1001" weight="100" ip="120.37.140.55" port="443"/>
+   </ketama>
+
+   <ketama desc="qingdao_cnc" name="qingdao_cnc"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="cnc1001" weight="100" ip="119.167.152.11" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.12" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.13" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.14" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.15" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.16" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.17" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.18" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.19" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.20" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.21" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.22" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.23" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.24" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.152.25" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.11" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.12" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.13" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.14" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.15" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.16" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.17" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.18" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.19" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.20" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.21" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.22" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.23" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.24" port="443"/>
+      <host name="cnc1001" weight="100" ip="119.167.129.25" port="443"/>
+   </ketama>
+
+   <ketama desc="changsha_tel" name="changsha_tel"  tip="10.100.16.156" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="124.232.159.41" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.42" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.43" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.44" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.45" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.46" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.47" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.48" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.49" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.50" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.51" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.52" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.53" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.54" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.55" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.17" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.24" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.79" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.102" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.103" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.106" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.107" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.108" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.109" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.111" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.113" port="443"/>
+      <host name="tel1001" weight="100" ip="124.232.159.114" port="443"/>
+   </ketama>
+   -->
+    <ketama desc="beijingcnc" name="beijingcnc" tip="10.201.4.11" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="124.232.159.114" port="443"/>
+    </ketama>
+
+    <ketama desc="beijingtel" name="beijingtel" tip="10.201.4.11" tport="8888" group_id="3000">
+      <host name="tel1001" weight="100" ip="124.232.159.114" port="443"/>
+    </ketama>
+
+    <ketama desc="shanghaitel" name="shanghaitel" tip="10.201.4.11" tport="8888" group_id="1000">
+      <host name="tel1001" weight="100" ip="124.232.159.114" port="443"/>
+    </ketama>
+
+  </net>
+</config>

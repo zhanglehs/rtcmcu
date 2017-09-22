@@ -1,0 +1,103 @@
+<interlive>
+    <common log_level='INF'
+        enable_uploader='1'
+        media_buffer_size='10'
+        log_cut_size_MB='300'
+        access_cut_size_MB='300'
+        remote_logger_path='@10.106.20.22:2111'
+        logger_mode='NET'
+        logdir='/opt/logs/interlive/receiver/'
+        stream_idle_sec='60'
+        enable_idle_stream_collect='FALSE'>
+        <cache_manager save_stream_dir='dump_stream' live_push_timeout_sec='10' live_req_timeout_sec='-1'>
+            <ts_segment_generator target_duration_sec='8' duration_offset_sec='5' />
+            <flv_block_live_cache buffer_duration_sec='60'/>
+            <flv_fragment_cache>
+                <live_cache buffer_duration_sec='60'/>
+                <timeshift_cache buffer_total_size='30' save_fragment_file_flag='false'/>
+            </flv_fragment_cache>
+            <hls_cache>
+                <m3u8_live_cache max_segment_num='3' real_segment_num='3' />
+                <ts_live_cache buffer_duration_sec='120' />
+            </hls_cache>
+        </cache_manager>
+    </common>
+    <uploader listen_host='0.0.0.0'
+        listen_port='80'
+        buffer_max='2097152'
+        timeout='30'
+        private_key='hereyoucanfindTheBetterKey.Ijustknownthat.'
+        super_key='98765'
+        check_point_block_cnt_min='27'
+        check_point_dura='3'
+        rpt_dura='60'>
+    </uploader>
+    <rtp_uploader listen_port='80'>
+        <rtp_trans session_timeout='10000'
+            rtt_detect_interval='10'
+            sr_rr_interval='5000'
+            max_packet_age='450'
+            max_nacklst_size='250'
+            nack_interval='10'
+            max_nack_bandwidth_limit='8388608'  />
+    </rtp_uploader>
+
+    <portal remote_host='10.105.20.66' remote_port='9091'/>
+    <player listen_host='0.0.0.0'
+        listen_port='8080'
+        buffer_max='2097152'
+        max_players='4000'
+        timeout_second='30'
+        always_generate_hls="false"
+        ts_target_duration='8'
+        ts_segment_cnt='10'
+        private_key='01234567890123456789012345678901'
+        super_key='98765'
+        normal_offset='0'
+        latency_offset='6'
+        stuck_long_duration='60'
+        crossdomain_path='crossdomain.xml'
+        socket_send_buffer_size='32768' >
+    </player>
+    <rtp_player listen_port='8080'>
+        <rtp_trans session_timeout='10000'
+            rtt_detect_interval='10'
+            sr_rr_interval='5000'
+            max_packet_age='450'
+            max_nacklst_size='250'
+            nack_interval='10'
+            max_nack_bandwidth_limit='8388608'  />
+    </rtp_player>
+
+    <backend backend_listen_ip='eth0'
+        backend_listen_port='2935'
+        backend_asn='1'
+        backend_region='11'
+        stream_timeout="5"
+        forward_server_max_session_num='1000'
+        fs_big_session_num='20'
+        fs_big_session_size='8388608'
+        fs_connection_buffer_size='31457280'
+        forward_client_capability='500'
+        forward_client_receive_buf_max_len='10485760'>
+    </backend>
+    <rtp_backend>
+        <rtp_trans session_timeout='10000'
+            rtt_detect_interval='10'
+            sr_rr_interval='5000'
+            max_packet_age='900'
+            max_nacklst_size='500'
+            nack_interval='10'
+            max_nack_bandwidth_limit='0'  />
+        <fsrtp client_max='1000' listen_port='2935' client_timeout='120' />
+        <fcrtp listen_port='2936' />
+    </rtp_backend>
+    <http listen_port='2080' />
+    <http_server 
+        listen_port = '81' 
+        timeout_second = '30' 
+        max_conns = '1000' 
+        buffer_max = '1048576' />
+    <tracker tracker_ip='10.105.20.76' tracker_port='1841' 
+        tracker_backup_ip='10.105.20.77' tracker_backup_port='1841' />
+</interlive>

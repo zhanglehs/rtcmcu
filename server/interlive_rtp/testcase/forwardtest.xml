@@ -1,0 +1,6 @@
+<forwardtestconfig>
+    <uploader listen_host='eth0' listen_port='10510' timeout='60' private_key='01234567890123456789012345678901' super_key='wuhahawuhahawuhahaluha'/>
+    <player listen_host='eth0' listen_port='10520' expire_time_s='30' max_players='100' max_ts_latency='1000' min_ts_latency='500' private_key='01234567890123456789012345678901' super_key='wuhahawuhahawuhahaluha'/>
+    <portal remote_host='10.11.11.67' remote_port='9091'/>
+    <backend backend_listen_ip='0.0.0.0' backend_listen_port='1840' tracker_ip='10.11.11.67' tracker_port='1841' />
+</forwardtestconfig>

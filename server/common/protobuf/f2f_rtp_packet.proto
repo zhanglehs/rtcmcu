@@ -1,0 +1,7 @@
+syntax = "proto2";
+message f2f_rtp_packet
+{
+    required string    f2f_rtp_sid            = 1;
+    optional int32     f2f_rtp_cmd            = 2;
+    optional uint32    f2f_rtp_param          = 3;
+}

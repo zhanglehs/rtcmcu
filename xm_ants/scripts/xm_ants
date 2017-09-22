@@ -1,0 +1,141 @@
+#!/bin/sh
+#
+# xm_ants - this script starts and stops the xm_ants daemin
+#
+# chkconfig:   - 85 15 
+# description: xm_ants receive network stream and sent it to receiver
+# processname: xm_ants
+# config:      /opt/interlive/xm_ants/xm_ants.conf 
+# pidfile:     /opt/interlive/xm_ants/xm_ants.pid
+
+# Source function library.
+#. /etc/rc.d/init.d/functions
+
+# Source networking configuration.
+#. /etc/sysconfig/network
+
+# Check that networking is up.
+#[ "$NETWORKING" = "no" ] && exit 0
+
+role=xm_ants
+basepath=/opt/interlive/$role
+program=${basepath}/$role
+pidfile=${basepath}/$role.pid
+configfile=${basepath}/$role.conf
+pid=0
+
+checkpid() {
+    if [ -e $pidfile ] ;then
+        pid=`cat $pidfile`
+        cnt=`ps -aef | grep -v grep | grep "$pid" | wc -l`
+        if [ $cnt -lt 1 ]
+        then
+            pid=-1
+        fi
+    else
+        pid=-1
+    fi
+}
+
+checkpid
+
+start() {
+    if [ $pid -ne -1 ] ;then
+        echo "$program is already started"
+        return 0
+    fi
+#    if [ -e $program ] ;then
+#        echo "$program not found"
+#        exit 4
+#    fi
+    if [ ! -x $program ] ;then
+        echo "$program not found or not executable"
+        exit 5
+    fi
+    if [ ! -e $configfile ] ;then
+        echo "$configfile not found"
+        exit 6
+    fi
+    echo -n "Starting $program "
+    cd $basepath
+    sh $program.sh
+    retval=$?
+    if [ $retval -eq 0 ] ;then
+        echo "SUCCESS"
+    else
+        echo "FAILED"
+    fi
+    return $retval
+}
+
+stop() {
+    if [ $pid -eq -1 ]
+    then
+        echo "$program is already stopped"
+        return 0
+    fi
+    echo -n "Stopping $program ..."
+    kill $pid
+    retval=$?
+    sleep 3
+    checkpid
+    if [ $pid -eq -1 ] ;then
+        echo "SUCCESS"
+    else
+        echo "FAILED"
+    fi
+    rm $pidfile -f
+    return $retval
+}
+
+restart() {
+    stop
+    start
+}
+
+status() {
+    checkpid
+    if [ $pid -eq -1 ] ;then
+        echo "$program is stopped"
+    else
+        echo "$program is running"
+    fi
+}
+
+reload() {
+    checkpid
+    if [ $pid -eq -1 ] ;then
+        echo "$program is not running"
+        return 1
+    fi
+    cd $basepath
+    $program -r
+    retval=$?
+    if [ $retval -eq 0 ] ;then
+        echo "$program reload success"
+    else
+        echo "$program reload failed"
+    fi
+    return $retval
+}
+
+case "$1" in
+    start)
+        $1
+        ;;
+    stop)
+        $1
+        ;;
+    restart)
+        $1
+        ;;
+    status)
+        $1
+        ;;
+    reload)
+        $1
+        ;;
+    *)
+        echo "Usage: $0 {start|stop|restart|status|reload}"
+        exit 2
+esac

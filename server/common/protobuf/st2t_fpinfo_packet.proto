@@ -1,0 +1,16 @@
+syntax = "proto2";
+message st2t_fpinfo_packet
+{
+    message forward_info
+    {
+        optional uint32 ip = 1;
+        optional uint32 port = 2;
+        optional uint32 asn = 3;
+        optional uint32 region = 4;
+        optional uint32 topo_level = 5;
+		repeated uint32 public_ip = 6;
+		repeated uint32 private_ip = 7;
+    }
+
+    repeated forward_info fi = 1;
+}

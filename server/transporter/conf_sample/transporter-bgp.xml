@@ -1,0 +1,14 @@
+<config>
+ <server.supervisor>10.103.5.103:5500</server.supervisor>
+ <server.bind>211.151.146.107</server.bind>
+ <server.stream-ip>211.151.146.107</server.stream-ip>
+ <server.control-port>5503</server.control-port>
+ <server.port>1111</server.port>
+ <server.maxfds>1024</server.maxfds>
+ <server.live-buffer-time>600</server.live-buffer-time>
+ <server.max-retry-count>0</server.max-retry-count>
+ <client.max-lag-seconds>0</client.max-lag-seconds>
+ <client.auto-downgrade>0</client.auto-downgrade>
+ <client.seek-to-keyframe>1</client.seek-to-keyframe>
+ <client.expire-time>0</client.expire-time>
+</config>

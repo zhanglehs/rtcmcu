@@ -1,0 +1,43 @@
+#!/bin/sh
+
+echo -e "\033[32m[INF] pre check for commit.\033[0m"
+allfiles=`git status -s`
+
+fail=0
+export fail
+
+#echo "$allfiles" | while read -r line; 
+echo "$allfiles">/tmp/allfiles
+exec 3<> /tmp/allfiles
+while read -r line <&3
+do 
+		mode=${line:0:1};
+#		echo $mode;
+		file=${line#* };
+#		echo $file;
+		if [ "$mode" = "M" -o "$mode" = "A" ]; then 
+				ext=${file##*.}; 
+#				echo $ext;
+				if [ "$ext" = "c" -o "$ext" = "h" -o "$ext" = "cpp" -o "$ext" = "hpp" -o "$ext" = "cc" ]; then 
+						if [ -x $file ]; then 
+								echo -e "\033[31m[ERROR] source file\033[32m" $file "\033[31mhas execute permission, reject to commit! \033[0m";
+								fail=1;
+						fi; 
+				fi; 
+		fi;
+done 
+exec 3>&-
+
+#echo $fail
+
+if [ $fail = 1 ]; then
+	echo -e "\033[31m[ERROR] source files has execute permission, reject to commit! \033[0m";
+	exit 1;
+fi
+
+#echo "$allfiles"
+
+
+
+#exit 1
+

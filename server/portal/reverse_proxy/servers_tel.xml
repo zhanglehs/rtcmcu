@@ -1,0 +1,5 @@
+<config>
+  <net>
+    <host name="tel1" ip="123.126.98.111" port="443"/>
+  </net>
+</config>

@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<cross-domain-policy>
+    <allow-access-from domain="*.youku.com" secure="true"/>
+    <allow-access-from domain="*.laifeng.com" secure="true"/>
+    <allow-access-from domain="*.xingmeng.com" secure="true"/>
+    <allow-access-from domain="*" secure="true"/>
+</cross-domain-policy>

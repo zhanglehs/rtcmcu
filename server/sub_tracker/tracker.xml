@@ -1,0 +1,51 @@
+<tracker>
+    <common>
+		<!-- attr: network_type="private"/"public"-->
+        <server listen_ip="eth0" listen_port="1841" http_listen_port="8888" portal_ip="10.100.20.75" portal_port="9091" notifier_listen_port="9091" child_topo_level="4" network_type="private"/>
+        <log dir="/data/opt/logs/interlive/tracker/" name="tracker" level="DBG" server_ip="10.109.0.92" server_port="2111"/>
+    </common>
+    <forwards>
+        <forward_set start_ip="111.206.107.131" stop_ip="111.206.107.131" asn="2000" region="11" topo_level="3" group_id="1000"/>
+        <!--forward_set start_ip="111.206.107.132" stop_ip="111.206.107.132" asn="2000" region="11" topo_level="3" group_id="1000"/-->
+
+
+        <forward_set start_ip="101.227.11.64" stop_ip="101.227.11.64" asn="1000" region="22" topo_level="3" group_id="3000"/>
+        <forward_set start_ip="101.227.11.65" stop_ip="101.227.11.65" asn="1000" region="22" topo_level="3" group_id="3000"/>
+        <forward_set start_ip="101.227.11.66" stop_ip="101.227.11.66" asn="1000" region="22" topo_level="3" group_id="3000"/>
+        <forward_set start_ip="101.227.11.67" stop_ip="101.227.11.67" asn="1000" region="22" topo_level="3" group_id="3000"/>
+        
+        <forward_set start_ip="103.41.143.105" stop_ip="103.41.143.105" asn="1000" region="33" topo_level="3" group_id="1000"/>
+        <forward_set start_ip="103.41.143.106" stop_ip="103.41.143.106" asn="2000" region="33" topo_level="3" group_id="1000"/>
+        <forward_set start_ip="111.206.107.130" stop_ip="111.206.107.130" asn="2000" region="11" topo_level="3" group_id="1000"/>
+
+
+
+
+        <forward_set start_ip="10.100.20.123" stop_ip="10.100.20.125" asn="1000" region="1100" topo_level="1"/>
+	<!--forward_set start_ip="10.108.27.105" stop_ip="10.108.27.105" asn="1000" region="22" topo_level="1"/-->
+        <!--<forward_set start_ip="119.167.222.84" stop_ip="119.167.222.85" asn="1000" region="3700" topo_level="1"/>
+        <forward_set start_ip="119.167.145.40" stop_ip="119.167.145.40" asn="1000" region="3700" topo_level="1"/>
+        <forward_set start_ip="119.167.145.171" stop_ip="119.167.145.171" asn="1000" region="3700" topo_level="1"/>
+
+        <forward_set start_ip="43.250.14.132" stop_ip="43.250.14.132" asn="2000" region="1100" topo_level="1"/>
+        <forward_set start_ip="43.250.14.133" stop_ip="43.250.14.134" asn="2000" region="1100" topo_level="1"/>
+        <forward_set start_ip="59.82.0.101" stop_ip="59.82.0.102" asn="2000" region="1100" topo_level="1"/>-->
+    </forwards>
+    <group>
+        <!--<g_lead ip="119.167.145.40" alias="58.56.160.138:2000:3700"/>
+        <g_lead ip="119.167.222.84" alias="58.56.160.217:2000:3700"/>
+        <g_lead ip="119.167.222.85" alias="58.56.160.218:2000:3700"/>
+        <g_lead ip="119.167.145.171" alias="58.56.160.139:2000:3700"/>
+        <g_lead ip="43.250.14.132" alias="43.250.14.132:1000:1100"/>
+        <g_lead ip="43.250.14.133" alias="43.250.14.133:1000:1100"/>
+        <g_lead ip="43.250.14.134" alias="43.250.14.134:1000:1100"/>
+        <g_lead ip="59.82.0.101" alias="59.82.0.101:1000:1100"/>
+        <g_lead ip="59.82.0.102" alias="59.82.0.102:1000:1100"/>-->
+	<!--g_lead ip="10.111.20.14" alias="10.111.20.14:1000:1100;"/>	
+	<g_lead ip="10.100.16.156" alias="10.100.16.156:2000:3700;"/-->	
+	<!--g_lead ip="10.108.27.105" alias="10.108.27.105:2000:22;"/-->
+	<g_lead ip="10.100.20.123" alias="10.100.20.123:2000:1100;"/>	
+	<g_lead ip="10.100.20.124" alias="10.100.20.124:2000:1100;"/>	
+	<g_lead ip="10.100.20.125" alias="10.100.20.125:2000:1100;"/>	
+    </group>
+</tracker>

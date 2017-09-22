@@ -1,0 +1,20 @@
+<config>
+  <!-- CDN Configs -->
+  <cdn>
+    <rule desc="Redirect default to test group">
+      <asn>0</asn>
+      <area>0</area>
+      <ketama>test</ketama>
+    </rule>
+  </cdn>
+
+  <net>
+    <ketama desc="test" name="test" >
+      <host name="122" weight="100" ip="10.10.69.122" port="443"/>
+      <host name="123" weight="100" ip="10.10.69.123" port="443"/>
+      <host name="124" weight="100" ip="10.10.69.53"  port="443"/>
+      <host name="125" weight="100" ip="10.10.69.54"  port="443"/>
+    </ketama>
+  </net>
+</config>
+

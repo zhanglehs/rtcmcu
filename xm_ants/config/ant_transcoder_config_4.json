@@ -1,0 +1,169 @@
+{
+	"config_type" : "ant_transcoder",
+	"config_value" : {
+		"transcoder_name" : "ffmpeg",
+		"transcoder_exec" : "bin/ffmpeg",
+		"arguments" : [
+			{
+				"config_name" 		: "src", 
+				"config_description": "source path",
+				"default_specified" : true,
+				"must_specified" 	: true,
+				"argument_name"		: "-i",
+				"need_value"		: true,
+				"default_value"		: [ "" ]
+			},
+			
+			{
+				"config_name" 		: "acodec",
+				"config_description": "audio codec",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-acodec",
+				"need_value"		: true,
+				"default_value"		: [ "copy" ]
+			},
+			
+			{
+				"config_name" 		: "ac",
+				"config_description": "audio channels",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-ac",
+				"need_value"		: true,
+				"default_value"		: [ "2" ]
+			},
+			
+			
+			{
+				"config_name" 		: "ar",
+				"config_description": "audio sample rate",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-ar",
+				"need_value"		: true,
+				"default_value"		: [ "44100" ]
+			},
+		
+			{
+				"config_name" 		: "b_a",
+				"config_description": "audio bit rate",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-b:a",
+				"need_value"		: true,
+				"default_value"		: [ "48000" ]
+			},
+			
+			{
+				"config_name" 		: "vcodec",
+				"config_description": "video codec",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-vcodec",
+				"need_value"		: true,
+				"default_value"		: [ "libx264" ]
+			},
+			
+			{
+				"config_name"		: "-x264-params",
+				"config_description": "-x264-params",
+				"default_specified" : true,
+				"must_specified"	: false,
+				"argument_name"		: "-x264-params",
+				"need_value"		: true,
+				"default_value"		: [ "aq-strength=0.6:ref=3:threads=2:rc-lookahead=0:sync-lookahead=0:slices-max=1340:vbv-maxrate=1835:vbv-bufsize=1835:vbv-init=0.5:bframes=0:weightp=0:no-8x8dct:no-cabac:cqm=flat" ]
+			},
+			
+			{
+				"config_name"		: "preset",
+				"config_description": "preset",
+				"default_specified" : false,
+				"must_specified"	: false,
+				"argument_name"		: "-preset",
+				"need_value"		: true,
+				"default_value"		: [ "medium" ]
+			},
+			
+			{
+				"config_name"		: "tune",
+				"config_description": "tune",
+				"default_specified" : false,
+				"must_specified"	: false,
+				"argument_name"		: "-tune",
+				"need_value"		: true,
+				"default_value"		: [ "zerolatency" ]
+			},
+			
+			{
+				"config_name"		: "b_v",
+				"config_description": "video bit rate",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-b:v",
+				"need_value"		: true,
+				"default_value"		: [ "1500k" ]
+			},
+	
+			{
+				"config_name" 		: "g",
+				"config_description": "group of picture",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-g",
+				"need_value"		: true,
+				"default_value"		: [ "60" ]
+			},
+			
+			{
+				"config_name" 		: "size",
+				"config_description": "video width length",
+				"default_specified" : false,
+				"must_specified"	: false,
+				"argument_name"		: "-s",
+				"need_value"		: true,
+				"default_value"		: [ "1920x1080" ]
+			},
+			
+			{
+				"config_name" 		: "fps",
+				"config_description": "frame rate",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-r",
+				"need_value"		: true,
+				"default_value"		: [ "15" ]
+			},
+			
+			{
+				"config_name" 		: "dst_format",
+				"config_description": "destination format",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-f",
+				"need_value"		: true,
+				"default_value"		: [ "flv" ]
+			},
+			
+			{
+				"config_name" 		: "overwrite",
+				"config_description": "overwrite destination file",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "-y",
+				"need_value"		: false,
+				"default_value"		: [ "" ]
+			},
+			
+			{
+				"config_name" 		: "output",
+				"config_description": "destination file",
+				"default_specified" : true,
+				"must_specified" 	: false,
+				"argument_name"		: "",
+				"need_value"		: true,
+				"default_value"		: [ "/tmp/fifo_00000000000000000000000000000000" ]
+			}
+		]
+	}
+}
