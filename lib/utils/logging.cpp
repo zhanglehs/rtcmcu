@@ -78,9 +78,10 @@ void log_initialize_file()
         g_log_initialized = true;
         */
 
-        char absolute_path[1024] = "";
+        char absolute_path[1024];
+		memset(absolute_path, 0, sizeof(absolute_path));
         int str_len = 0;
-        char *cfg_file_name = "log4cplus.cfg";
+        const char *cfg_file_name = "log4cplus.cfg";
         str_len = util_get_exe_absolute_path(absolute_path, 1024);
         strncpy(absolute_path+str_len, cfg_file_name, strlen(cfg_file_name));
         absolute_path[str_len+strlen(cfg_file_name)] = '\0';

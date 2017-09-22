@@ -151,9 +151,9 @@ void CMDServer::on_read(TCPConnection* conn)
         _fsm_timeout_list.push_back(fsm);
 
         INF("CMDServer::on_read: _fsm_timeout_list len: %d, fsm id: %d, \
-                conn id: %d, peerinfo %s, fsm last_update_time %d", \
-                _fsm_timeout_list.size(), fsm->id(), conn->id(), \
-                fsm->peerinfo().c_str(), fsm->last_active_time());
+                conn id: %d, peerinfo %s, fsm last_update_time %u", \
+                (int)_fsm_timeout_list.size(), fsm->id(), conn->id(), \
+                fsm->peerinfo().c_str(), (unsigned int)fsm->last_active_time());
 
         lcdn::base::Buffer* buf = conn->input_buffer();
         frame_state = CMDDataOpr::is_frame(buf, header);

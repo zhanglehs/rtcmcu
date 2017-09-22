@@ -648,5 +648,5 @@ extern void
 	read_filesystem(struct stats_filesystem *, int);
 extern void
 	read_fchost(struct stats_fchost *, int);
-extern int read_cpucores_cnt();
+extern int read_cpucores_cnt(void);
 #endif /* _RD_STATS_H */

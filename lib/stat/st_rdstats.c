@@ -2210,26 +2210,22 @@ void read_fchost(struct stats_fchost *st_fc, int nbr)
  * @cores count.
  ***************************************************************************
  */
-int read_cpucores_cnt()
+int read_cpucores_cnt(void)
 {
-	FILE *fp = NULL;
-	char line[512] = "";
-    int cores_cnt = 0;
+  FILE *fp = NULL;
+  char line[512] = "";
+  int cores_cnt = 0;
 
-	if ((fp = fopen(CPUINFO, "r")) == NULL)
-		return;
+  if ((fp = fopen(CPUINFO, "r")) == NULL) {
+    return 2;
+  }
 
+  while (fgets(line, sizeof(line), fp) != NULL) {
+    if (!strncmp(line, "processor\t", 10)) {
+      cores_cnt++;
+    }
+  }
 
-	while (fgets(line, sizeof(line), fp) != NULL) 
-    {
-		if (!strncmp(line, "processor\t", 10)) 
-        {
-            cores_cnt++;
-		}
-	}
-
-	fclose(fp);
-
-    return cores_cnt;
-
+  fclose(fp);
+  return cores_cnt;
 }
