@@ -16,7 +16,7 @@
 #include <set>
 #include <list>
 #include "whitelist_manager.h"
-#include "uploader/RtpTcpConnectionManager.h"
+//#include "uploader/RtpTcpConnectionManager.h"
 #include "avformat/rtcp.h"
 #include "transport/rtp_send_queue.h"
 

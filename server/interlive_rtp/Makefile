@@ -101,9 +101,8 @@ COMMONOBJS = hls.o stream_manager.o media_buffer.o stream_recorder.o perf.o info
 			 $(AVFORMAT_OBJS) $(AVCODEC_OBJS) $(PUBLISHER_OBJS) \
 			 $(LIBXML) $(LIBUUID) $(THIRD_PARTY_LIB) $(PROTOBUF_DIR)/proto_rtp_ext.pb.o
 
-PLAYEROBJS = $(PLAYER_DIR)/module_player.o $(PLAYER_DIR)/base_client.o \
-			 $(PLAYER_DIR)/player.o $(PLAYER_DIR)/sdp_client.o \
-			 $(PLAYER_DIR)/rtp_player_config.o $(PLAYER_DIR)/flv_miniblock_client.o
+PLAYEROBJS = $(PLAYER_DIR)/module_player.o \
+			 $(PLAYER_DIR)/rtp_player_config.o $(PLAYER_DIR)/flv_live_player.o
 
 TRACKEROBJS = module_tracker.o
 ifeq ($(BACKEND_DIR), backend_new)

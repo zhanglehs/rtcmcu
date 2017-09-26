@@ -1,18 +1,13 @@
-/*******************************************
- * YueHonghui, 2013-06-08
- * hhyue@tudou.com
- * copyright:youku.com
- * ****************************************/
 #ifndef MODULE_PLAYER_H_
 #define MODULE_PLAYER_H_
+
+#include "streamid.h"
+#include "uploader/RtpTcpConnectionManager.h"
+#include "config_manager.h"
 #include <linux/limits.h>
 #include <stdint.h>
-#include <event.h>
 #include <string>
-#include "config_manager.h"
 
-typedef struct player_stream player_stream;
-struct session_manager;
 class player_config : public ConfigModule
 {
 private:
@@ -65,14 +60,60 @@ typedef enum
     PLAYER_CROSSDOMAIN = 5,
     PLAYER_V2_FRAGMENT =6,
     PLAYER_NA = 255,
-} player_type; 
+} player_type;
 
-int player_init(struct event_base *main_base, struct session_manager *smng,
-                const player_config * config);
-uint32_t player_online_cnt(player_stream * ps);
-void player_fini();
+//////////////////////////////////////////////////////////////////////////
 
-class Player;
-Player* get_player_inst();
+class BaseLivePlayer;
+class LiveConnection {
+public:
+  LiveConnection();
+  ~LiveConnection();
+
+  struct sockaddr_in remote;
+  char remote_ip[32];
+  struct in_addr local_ip;
+  LibEventSocket ev_socket;
+  buffer *rb;
+  buffer *wb;
+  void EnableWrite();
+  void DisableWrite();
+  static void Destroy(LiveConnection *c);
+
+  BaseLivePlayer *live;
+
+  bool async_close;
+
+  StreamId_Ext streamid;
+};
+
+// INFO: zhangle, flv live play url like this:
+// http://192.168.245.133:8089/live/nodelay/v1/00000000000000000000000015958F05?token=98765
+class player_config;
+class LiveConnectionManager {
+public:
+  static LiveConnectionManager* Instance();
+  static void DestroyInstance();
+
+  int Init(struct event_base *ev_base, const player_config * config);
+
+  void OnConnectionClosed(LiveConnection *c);
+
+protected:
+  static void OnSocketAccept(const int fd, const short which, void *arg);
+  void OnSocketAcceptImpl(const int fd, const short which);
+  static void OnSocketData(const int fd, const short which, void *arg);
+  void OnSocketDataImpl(LiveConnection *c, const short which);
+  static void OnRecvStreamData(StreamId_Ext stream_id, uint8_t watch_type, void* arg);
+  void OnRecvStreamDataImpl(StreamId_Ext stream_id, uint8_t watch_type);
+
+  struct event_base *m_ev_base;
+  LibEventSocket m_ev_socket;
+  struct event m_ev_timer;
+  const player_config *m_config;
+  std::map<uint32_t, std::set<LiveConnection*> > m_stream_groups;
+
+  static LiveConnectionManager* m_inst;
+};
 
 #endif

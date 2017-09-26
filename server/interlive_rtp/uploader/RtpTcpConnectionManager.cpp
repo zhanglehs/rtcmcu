@@ -627,17 +627,19 @@ void RtpTcpServerManager::OnSocketAccept(const int fd, const short which, void *
 }
 
 void RtpTcpServerManager::OnSocketAcceptImpl(const int fd, const short which) {
-  struct sockaddr_in remote;
-  socklen_t len = sizeof(struct sockaddr_in);
-  memset(&remote, 0, len);
-  int fd_socket = ::accept(fd, (struct sockaddr *)&remote, &len);
-  if (fd_socket < 0) {
-    WRN("uploader bin accept failed. fd_socket = %d, error = %s",
-      fd_socket, strerror(errno));
-    return;
-  }
+  if (which & EV_READ) {
+    struct sockaddr_in remote;
+    socklen_t len = sizeof(struct sockaddr_in);
+    memset(&remote, 0, len);
+    int fd_socket = ::accept(fd, (struct sockaddr *)&remote, &len);
+    if (fd_socket < 0) {
+      WRN("uploader bin accept failed. fd_socket = %d, error = %s",
+        fd_socket, strerror(errno));
+      return;
+    }
 
-  CreateConnection(&remote, fd_socket);
+    CreateConnection(&remote, fd_socket);
+  }
 }
 
 int RtpTcpServerManager::set_http_server(http::HTTPServer *http_server) {

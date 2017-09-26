@@ -10,9 +10,6 @@
 
 #include "module_player.h"
 #include "target.h"
-#include "base_client.h"
-#include "player.h"
-//#include "rtp_udp_player.h"
 #include "target_player.h"
 #include "utils/memory.h"
 #include "util/access.h"
@@ -29,7 +26,7 @@
 #include "stream_manager.h"
 #include "util/connection.h"
 #include "hls.h"
-//#include "http_server.h"
+#include "player/flv_live_player.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -46,554 +43,8 @@
 #include <string.h>
 #include "../target_config.h"
 
-using namespace std;
+//////////////////////////////////////////////////////////////////////////
 
-#define NOCACHE_HEADER "Expires: -1\r\nCache-Control: private, max-age=0\r\nPragma: no-cache\r\n"
-#define HTTP_CONNECTION_HEADER "Connection: Close\r\n"
-#define TS_UPPER (1000)
-#define ENABLE_ADJUST_TS 0
-//#define MAX_HTTP_REQ_LINE (4 * 1024)
-#define MAX_BLOCK_PER_SECOND (13)
-#define MAX_BLOCK_PER_8SECOND (80)
-#define PLAYER_TOKEN_TIMEOUT (24*3600)
-#define WRITE_MAX (64 * 1024)
-#define WRITE_REMAIN_MAX (1024)
-#define PLAYER_WRN(...) do{\
-  WRN(__VA_ARGS__); \
-  g_rpt_global.wrn_cnt++; \
-  g_rpt_global.wrn_cnt_total++; \
-}while (0);
-
-#define PLAYER_ERR(...) do{\
-  ERR(__VA_ARGS__); \
-  g_rpt_global.err_cnt++; \
-  g_rpt_global.err_cnt_total++; \
-}while (0);
-
-static player_config *g_conf = NULL;
-static int player_listen_fd = -1;
-static struct event ev_listener;
-static struct event_base *g_main_base;
-static session_manager *g_session_manager = NULL;
-static const size_t write_step_min = 0;
-static const size_t write_step_max = 32 * 1024;
-static time_t g_time = 0;
-static pid_t g_pid = 0;
-static Player * g_player;
-
-
-typedef enum
-{
-  LIVE_STREAM_START = 0,
-  LIVE_STREAM_HEADER = 1,
-  LIVE_STREAM_FIRST_TAG = 2,
-  LIVE_STREAM_TAG = 3,
-} live_stream_state;
-
-typedef enum
-{
-  HLS_STREAM_START = 0,
-  HLS_STREAM_FIRST_M3U8 = 1,
-  HLS_STREAM_M3U8 = 2,
-  HLS_STREAM_FIRST_TS = 3,
-  HLS_STREAM_TS = 4,
-} hls_stream_state;
-
-typedef enum live_latency
-{
-  LIVE_AUDIO = 0,
-  LIVE_IFRAME = 1,
-  LIVE_PFRAME = 2,
-  LIVE_NORMAL = 3,
-} live_latency;
-
-//char* g_latency_str[4] = {
-//    "LIVE_AUDIO",
-//    "LIVE_IFRAME",
-//    "LIVE_PFRAME",
-//    "LIVE_NORMAL",
-//};
-
-typedef enum
-{
-  PLAYER_WORK_START = 0,
-  PLAYER_WORK_EATING = 1,
-  PLAYER_WORK_HUNGERY = 2,
-} player_work_state;
-
-typedef enum
-{
-  LIVE_STUCK_AUDIO = 0,
-  LIVE_STUCK_VIDEO = 1,
-  LIVE_STUCK_NORMAL = 2,
-}live_stuck;
-
-typedef struct live_stream
-{
-  uint32_t streamid;
-
-  uint32_t hungery_cnt;
-  list_head_t hungery_players;
-
-  uint32_t eating_cnt;
-  list_head_t eating_players;
-} live_stream;
-
-typedef struct hls_stream
-{
-  uint32_t streamid;
-  hls_ctx *ctx;
-
-  uint32_t hungery_cnt;
-  list_head_t hungery_players;
-
-  uint32_t eating_cnt;
-  list_head_t eating_players;
-
-  time_t get_first_ts_time;
-} hls_stream;
-
-typedef struct live_conn
-{
-  connection *conn_base;
-  uint32_t streamid;
-  live_stream *stream_ptr;
-  live_stream_state stream_state;
-  player_work_state work_state;
-  live_latency latency;
-  live_stuck stuck_long;
-  time_t check_point;
-  uint64_t last_idx;
-  int32_t delta_ts;
-  int32_t last_audio_newts, last_video_newts;
-  uint64_t last_block_seq;
-  list_head_t head;
-} live_conn;
-
-typedef struct hls_conn
-{
-  connection *conn_base;
-  uint32_t streamid;
-  hls_stream *stream_ptr;
-  hls_stream_state stream_state;
-  player_work_state work_state;
-  uint32_t next_idx;
-  char* method;
-  char* path;
-  char* query_str;
-  char* ua;
-  list_head_t head;
-} ts_conn;
-
-struct player_stream
-{
-  live_stream *ls;
-  hls_stream *hs;
-  bool enable_hls;
-};
-
-typedef struct rpt_global
-{
-  uint32_t err_cnt;
-  uint32_t wrn_cnt;
-  uint32_t err_cnt_total;
-  uint32_t wrn_cnt_total;
-  uint32_t m3u8_srv_cnt;
-  uint32_t ts_srv_cnt;
-  uint32_t live_online_cnt;
-} rpt_global;
-
-static connection *g_conns_ptr = NULL;
-static rpt_global g_rpt_global;
-static void player_handler(const int fd, const short which, void *arg);
-
-static void
-player_handler(const int fd, const short which, void *arg)
-{
-  connection *c = (connection *)arg;
-
-  assert(NULL != c);
-
-  if (which & EV_READ) {
-    int r = 0;
-    char method[32];
-    char path[128];
-    char query[1024];
-    //char streamid_buf[32];
-    //int64_t streamid = 0;
-
-    if (PLAYER_NA == c->bind_flag) {
-      // GET /v1/get_stream?streamid=X&programid=[live/m3u8/ts] HTTP/1.X
-      //int len = 0;
-
-      r = buffer_read_fd_max(c->r, fd, MAX_HTTP_REQ_LINE);
-
-      if (r < 0)
-        conn_close(c);
-      if (r <= 0)
-        return;
-
-      const char *lrcf2 = (const char *)memmem(buffer_data_ptr(c->r),
-        buffer_data_len(c->r), "\r\n\r\n", strlen("\r\n\r\n"));
-
-      if (NULL == lrcf2 || lrcf2 == buffer_data_ptr(c->r)) {
-        if (buffer_data_len(c->r) >= MAX_HTTP_REQ_LINE) {
-          PLAYER_WRN("http req line too long. #%d(%s:%hu), len = %zu",
-            c->fd, c->remote_ip, c->remote_port,
-            buffer_data_len(c->r));
-          ACCESS("player %s:%6hu 414", c->remote_ip,
-            c->remote_port);
-          util_http_rsp_error_code(c->fd, HTTP_414);
-          conn_close(c);
-        }
-        return;
-      }
-
-      int lrcf2_l = lrcf2 - (char *)buffer_data_ptr(c->r);
-      const char *lrcf = (const char *)memmem(buffer_data_ptr(c->r),
-        lrcf2_l + 4, "\r\n", strlen("\r\n"));
-      int lrcf_l = lrcf - (char *)buffer_data_ptr(c->r);
-
-      int parse_req = util_http_parse_req_line(buffer_data_ptr(c->r), lrcf_l,
-        method, sizeof(method),
-        path, sizeof(path),
-        query, sizeof(query));
-      if (-1 == parse_req) {
-        WRN("parse_req_line failed. connection closing. #%d(%s:%hu)",
-          c->fd, c->remote_ip, c->remote_port);
-        ACCESS("player %s:%6hu 400", c->remote_ip, c->remote_port);
-        util_http_rsp_error_code(c->fd, HTTP_400);
-        conn_close(c);
-        return;
-      }
-
-      if (strlen(method) != 3 || 0 != strncmp(method, "GET", 3)) {
-        WRN("method not valid. connection closing. #%d(%s:%hu), method = %s", c->fd, c->remote_ip, c->remote_port, method);
-        ACCESS("player %s:%6hu %s %s?%s 404", c->remote_ip,
-          c->remote_port, method, path, query);
-        util_http_rsp_error_code(c->fd, HTTP_404);
-        conn_close(c);
-        return;
-      }
-#define CROSSDOMAIN "/crossdomain.xml"
-      if (strlen(CROSSDOMAIN) == strlen(path) && 0 == strncmp(path, CROSSDOMAIN, strlen(CROSSDOMAIN)) && 0 == parse_req)
-      {
-        char rsp[1024];
-        int used = snprintf(rsp, sizeof(rsp),
-          "HTTP/1.0 200 OK\r\nServer: Youku Live Forward\r\n"
-          "Content-Type: application/xml;charset=utf-8\r\n"
-          "Host: %s:%d\r\n"
-          NOCACHE_HEADER
-          HTTP_CONNECTION_HEADER
-          "Content-Length: %zu\r\n\r\n",
-          c->local_ip, c->local_port, g_conf->crossdomain_len);
-
-        if (0 != buffer_expand_capacity(c->w, g_conf->crossdomain_len + used)) {
-          PLAYER_ERR("player-ts buffer_expand_capacity failed. len = %zu",
-            used + g_conf->crossdomain_len);
-          ACCESS("crossdomain %s:%6hu GET /crossdomain.xml 500",
-            c->remote_ip, c->remote_port);
-          util_http_rsp_error_code(c->fd, HTTP_500);
-          conn_close(c);
-          return;
-        }
-        buffer_append_ptr(c->w, rsp, used);
-        buffer_append_ptr(c->w, g_conf->crossdomain, g_conf->crossdomain_len);
-        conn_enable_write(c, g_main_base, player_handler);
-        ACCESS("crossdomain %s:%6hu GET /crossdomain.xml 200",
-          c->remote_ip, c->remote_port);
-        c->bind_flag = PLAYER_CROSSDOMAIN;
-        return;
-      }
-      else
-      {
-        if (1 != parse_req)
-        {
-          WRN("parse_req_line failed. connection closing. #%d(%s:%hu)",
-            c->fd, c->remote_ip, c->remote_port);
-          ACCESS("player %s:%6hu 400", c->remote_ip, c->remote_port);
-          util_http_rsp_error_code(c->fd, HTTP_400);
-          conn_close(c);
-          return;
-        }
-
-        // new url format which will replace /v1/ and /v2/ in the future,
-        // now keep /v1/ and /v2/ for compatibility
-        if (0 == strncmp(path, "/download/sdp/", strlen("/download/sdp/"))
-          || 0 == strncmp(path, "/live/nodelay/v1/", strlen("/live/nodelay/v1/"))
-          )
-        {
-          c->bind_flag = PLAYER_V2_FRAGMENT;
-          DBG("v2 fragment player is working !");
-          g_player->add_play_task(c, lrcf2, method, path, query);
-          return;
-        }
-      }
-    }
-    else
-    {
-      char buf[128];
-
-      r = read(c->fd, buf, 128);
-      if ((r == -1 && errno != EINTR && errno != EAGAIN) || r == 0)
-      {
-        switch (c->bind_flag) {
-        case PLAYER_CROSSDOMAIN:
-        {
-          INF("crossdomain #%d(%s:%hu) disconnected...",
-            c->fd, c->remote_ip, c->remote_port);
-          conn_close(c);
-          return;
-        }
-        default:
-          PLAYER_ERR("unexpected connection bind_flag = %d. #%d(%s:%hu)",
-            c->bind_flag, c->fd, c->remote_ip, c->remote_port);
-          assert(0);
-          return;
-        }
-      }
-    }
-  }
-  else if (which & EV_WRITE) {
-    switch (c->bind_flag) {
-    case PLAYER_NA:
-      conn_disable_write(c, g_main_base, player_handler);
-      return;
-    case PLAYER_CROSSDOMAIN:
-    {
-      if (-1 == buffer_write_fd_max(c->w, c->fd, WRITE_MAX)) {
-        INF("crossdomain #%d(%s:%hu) disconnected...",
-          c->fd, c->remote_ip, c->remote_port);
-        conn_close(c);
-        return;
-      }
-      if (0 == buffer_data_len(c->w))
-      {
-        conn_disable_write(c, g_main_base, player_handler);
-        conn_close(c);
-      }
-      return;
-    }
-    default:
-      PLAYER_ERR("unexpected connection bind_flag. %d", c->bind_flag);
-      assert(0);
-    }
-  }
-}
-
-static int
-set_player_sockopt(int fd)
-{
-  int ret;
-
-  util_set_cloexec(fd, TRUE);
-  ret = util_set_nonblock(fd, TRUE);
-  if (0 != ret) {
-    PLAYER_ERR("set nonblock failed. ret = %d, fd = %d, error = %s",
-      ret, fd, strerror(errno));
-    return -1;
-  }
-
-  int val = 1;
-
-  if (-1 == setsockopt(fd, IPPROTO_TCP, TCP_NODELAY,
-    (void *)&val, sizeof(val))) {
-    PLAYER_ERR("set tcp nodelay failed. fd = %d, error = %s",
-      fd, strerror(errno));
-    return -2;
-  }
-
-  if (-1 == setsockopt(fd, SOL_SOCKET, SO_SNDBUF,
-    (void *)&g_conf->sock_snd_buf_size,
-    sizeof(g_conf->sock_snd_buf_size))) {
-    PLAYER_ERR("set player sock snd buf sz failed. fd = %d, error = %s", fd,
-      strerror(errno));
-    return -3;
-  }
-  return 0;
-}
-
-static void
-player_accept(const int fd, const short which, void *arg)
-{
-  TRC("fd = %d", fd);
-  connection *c = NULL;
-  int newfd = -1;
-  struct sockaddr_in s_in;
-  socklen_t len = sizeof(struct sockaddr_in);
-
-  memset(&s_in, 0, len);
-  newfd = accept(fd, (struct sockaddr *) &s_in, &len);
-  if (-1 == newfd) {
-    PLAYER_ERR("fd #%d accept() failed, error = %s", fd, strerror(errno));
-    return;
-  }
-
-  if (newfd >= g_conf->max_players) {
-    PLAYER_WRN("fd too big, fd = %d, max_players = %d",
-      newfd, g_conf->max_players);
-    util_http_rsp_error_code(newfd, HTTP_503);
-    ACCESS("player %s:%6hu 503", util_ip2str_no(s_in.sin_addr.s_addr),
-      ntohs(s_in.sin_port));
-    close(newfd);
-    return;
-  }
-  if (0 != set_player_sockopt(newfd)) {
-    PLAYER_WRN("set newfd sockopt failed. fd = %d", newfd);
-    util_http_rsp_error_code(newfd, HTTP_500);
-    ACCESS("player %s:%6hu 500", util_ip2str_no(s_in.sin_addr.s_addr),
-      ntohs(s_in.sin_port));
-    close(newfd);
-    return;
-  }
-  c = g_conns_ptr + newfd;
-  assert(-1 == c->fd);
-  if (0 !=
-    conn_init(c, newfd, g_conf->buffer_max, g_main_base, player_handler,
-    g_session_manager, 10, PLAYER_NA)) {
-    PLAYER_ERR("connection init failed. fd = %d", newfd);
-    util_http_rsp_error_code(newfd, HTTP_500);
-    ACCESS("player %s:%6hu 500", util_ip2str_no(s_in.sin_addr.s_addr),
-      ntohs(s_in.sin_port));
-    close(newfd);
-    return;
-  }
-
-  INF("player connected #%d(%s:%hu)", c->fd, c->remote_ip, c->remote_port);
-}
-
-// INFO: zhangle, flv live play url like this:
-// http://192.168.245.133:8089/live/nodelay/v1/00000000000000000000000015958F05?token=98765
-int
-player_init(struct event_base *main_base, struct session_manager *smng,
-const player_config * config)
-{
-  if (NULL == main_base || NULL == config) {
-    PLAYER_ERR("main_base or config is NULL. main_base = %p, config = %p",
-      main_base, config);
-    return -1;
-  }
-  g_main_base = main_base;
-  g_session_manager = smng;
-  g_time = time(NULL);
-  g_conf = (player_config *)config;
-  memset(&g_rpt_global, 0, sizeof(g_rpt_global));
-  int i = 0;
-  int val = 0, ret = 0;
-  struct sockaddr_in addr;
-
-  player_listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (-1 == player_listen_fd) {
-    PLAYER_ERR("socket failed. error = %s", strerror(errno));
-    return -2;
-  }
-
-  val = 1;
-  if (-1 == setsockopt(player_listen_fd, SOL_SOCKET, SO_REUSEADDR,
-    (void *)&val, sizeof(val))) {
-    PLAYER_ERR("set socket SO_REUSEADDR failed. error = %s", strerror(errno));
-    return -5;
-  }
-
-  if (0 != set_player_sockopt(player_listen_fd)) {
-    PLAYER_ERR("set player_listen_fd sockopt failed.");
-    return -6;
-  }
-#ifdef TCP_DEFER_ACCEPT
-  {
-    int v = 30;             /* 30 seconds */
-
-    if (-1 ==
-      setsockopt(player_listen_fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &v,
-      sizeof(v))) {
-      PLAYER_WRN("can't set TCP_DEFER_ACCEPT on player_listen_fd %d",
-        player_listen_fd);
-    }
-  }
-#endif
-
-  addr.sin_family = AF_INET;
-  inet_aton("0.0.0.0", &(addr.sin_addr));
-  addr.sin_port = htons(g_conf->player_listen_port);
-
-  ret = bind(player_listen_fd, (struct sockaddr *) &addr, sizeof(addr));
-  if (0 != ret) {
-    PLAYER_ERR("bind addr failed. error = %s", strerror(errno));
-    return -8;
-  }
-
-  ret = listen(player_listen_fd, 5120);
-  if (0 != ret) {
-    PLAYER_ERR("listen player fd failed. error = %s", strerror(errno));
-    return -9;
-  }
-
-  g_conns_ptr =
-    (connection *)mcalloc(g_conf->max_players, sizeof(connection));
-  if (NULL == g_conns_ptr) {
-    PLAYER_ERR("g_conns mcalloc failed.");
-    close(player_listen_fd);
-    return -10;
-  }
-
-  for (i = 0; i < g_conf->max_players; i++) {
-    g_conns_ptr[i].fd = -1;
-  }
-
-  g_pid = getpid();
-  srand(g_pid);    /* init random seed */
-
-  levent_set(&ev_listener, player_listen_fd, EV_READ | EV_PERSIST,
-    player_accept, NULL);
-  event_base_set(g_main_base, &ev_listener);
-  levent_add(&ev_listener, 0);
-  //http_server_add_handler("/module_player_state", NULL, mp_get_state);
-
-  g_player = new Player(main_base, smng, config);
-
-
-  //  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  //  if (common_config->enable_rtp)
-  //  {
-  //RTPUDPPlayer::getInst()->init(main_base);
-  //  }
-  return 0;
-}
-
-void
-get_sdp_cb(StreamId_Ext sid, string &sdp)
-{
-  // TODO: zhangle
-  //sdp = RTPUDPPlayer::getInst()->get_sdp(sid);
-}
-
-void
-player_fini()
-{
-  // TODO: zhangle
-  //   if (NULL != g_player)
-  //   {
-  //       delete g_player;
-  //       g_player = NULL;
-  //   }
-  //   
-  //RTPUDPPlayer::destroyInst();
-
-  //   if (NULL != g_conns_ptr)
-  //   {
-  //       mfree(g_conns_ptr);
-  //       g_conns_ptr = NULL;
-  //   }
-
-  //   levent_del(&ev_listener);
-  //   close(player_listen_fd);
-  //   player_listen_fd = 0;
-}
-
-Player* get_player_inst()
-{
-  return g_player;
-}
 player_config::player_config()
 {
   inited = false;
@@ -941,4 +392,265 @@ success:
   crossdomain[max - 1] = 0;
   crossdomain_len = strlen(crossdomain);
   return true;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+LiveConnection::LiveConnection() {
+  memset(this, 0, sizeof(LiveConnection));
+  ev_socket.fd = -1;
+}
+
+LiveConnection::~LiveConnection() {
+  ev_socket.Stop();
+
+  if (NULL != rb) {
+    buffer_free(rb);
+    rb = NULL;
+  }
+
+  if (NULL != wb) {
+    buffer_free(wb);
+    wb = NULL;
+  }
+}
+
+void LiveConnection::EnableWrite() {
+  ev_socket.EnableWrite();
+}
+
+void LiveConnection::DisableWrite() {
+  ev_socket.DisableWrite();
+}
+
+void LiveConnection::Destroy(LiveConnection *c) {
+  c->ev_socket.Stop();
+  LiveConnectionManager::Instance()->OnConnectionClosed(c);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+#define WRITE_MAX (64 * 1024)
+
+LiveConnectionManager* LiveConnectionManager::m_inst = NULL;
+
+LiveConnectionManager* LiveConnectionManager::Instance() {
+  if (m_inst) {
+    return m_inst;
+  }
+  m_inst = new LiveConnectionManager();
+  return m_inst;
+}
+
+void LiveConnectionManager::DestroyInstance() {
+  if (m_inst) {
+    delete m_inst;
+    m_inst = NULL;
+  }
+}
+
+int LiveConnectionManager::Init(struct event_base *ev_base, const player_config * config) {
+  m_ev_base = ev_base;
+  m_config = config;
+
+  int fd_socket = util_create_listen_fd("0.0.0.0", config->player_listen_port, 128);
+  if (fd_socket < 0)	{
+    ERR("create rtp tcp listen fd failed. ret = %d", fd_socket);
+    return -1;
+  }
+  //#ifdef TCP_DEFER_ACCEPT
+  //  {
+  //    int v = 30;             /* 30 seconds */
+  //    if (-1 == setsockopt(player_listen_fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &v, sizeof(v))) {
+  //      WRN("can't set TCP_DEFER_ACCEPT on player_listen_fd %d", player_listen_fd);
+  //    }
+  //  }
+  //#endif
+  m_ev_socket.Start(ev_base, fd_socket, &LiveConnectionManager::OnSocketAccept, this);
+
+  media_manager::PlayerCacheManagerInterface *cache = media_manager::CacheManager::get_player_cache_instance();
+  cache->register_watcher(&LiveConnectionManager::OnRecvStreamData, media_manager::CACHE_WATCHING_ALL, this);
+  return 0;
+}
+
+void LiveConnectionManager::OnConnectionClosed(LiveConnection *c) {
+  auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());
+  if (it != m_stream_groups.end()) {
+    std::set<LiveConnection*> &connections = it->second;
+    connections.erase(c);
+    if (connections.empty()) {
+      m_stream_groups.erase(it);
+    }
+  }
+}
+
+void LiveConnectionManager::OnSocketAccept(const int fd, const short which, void *arg) {
+  LiveConnectionManager *pThis = (LiveConnectionManager*)arg;
+  pThis->OnSocketAcceptImpl(fd, which);
+}
+
+void LiveConnectionManager::OnSocketAcceptImpl(const int fd, const short which) {
+  if (which & EV_READ) {
+    struct sockaddr_in remote;
+    socklen_t len = sizeof(struct sockaddr_in);
+    memset(&remote, 0, len);
+    int newfd = accept(fd, (struct sockaddr *) &remote, &len);
+    if (-1 == newfd) {
+      //PLAYER_ERR("fd #%d accept() failed, error = %s", fd, strerror(errno));
+      return;
+    }
+
+    util_set_cloexec(newfd, TRUE);
+    int val = 1;
+    if (-1 == setsockopt(fd, IPPROTO_TCP, TCP_NODELAY, (void *)&val, sizeof(val))) {
+      close(newfd);
+      return;
+    }
+    if (-1 == setsockopt(fd, SOL_SOCKET, SO_SNDBUF,
+      (void *)&m_config->sock_snd_buf_size, sizeof(m_config->sock_snd_buf_size))) {
+      close(newfd);
+      return;
+    }
+
+    LiveConnection *c = new LiveConnection();
+    c->remote = remote;
+    strcpy(c->remote_ip, inet_ntoa(c->remote.sin_addr));
+    c->rb = buffer_create_max(16 * 1024, m_config->buffer_max);
+    c->wb = buffer_create_max(512 * 1024, m_config->buffer_max);
+    c->ev_socket.Start(m_ev_base, newfd, &LiveConnectionManager::OnSocketData, c);
+  }
+}
+
+void LiveConnectionManager::OnSocketData(const int fd, const short which, void *arg) {
+  LiveConnection *c = (LiveConnection*)arg;
+  LiveConnectionManager::Instance()->OnSocketDataImpl(c, which);
+}
+
+void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short which) {
+  if (which & EV_READ) {
+    if (c->live) {
+      char buf[128];
+      int len = read(c->ev_socket.fd, buf, 128);
+      if ((len == -1 && errno != EINTR && errno != EAGAIN) || len == 0) {
+        //conn_close(c);
+      }
+    }
+    else {
+      // 一大堆http协议的处理代码，写得很丑陋
+      buffer *rb = c->rb;
+      int len = buffer_read_fd_max(rb, c->ev_socket.fd, MAX_HTTP_REQ_LINE);
+      if (len < 0) {
+        LiveConnection::Destroy(c);
+        return;
+      }
+      else if (len == 0) {
+        // TODO: zhangle
+        int i = 0;
+        i++;
+      }
+
+      const char *buf = buffer_data_ptr(rb);
+      len = (int)buffer_data_len(rb);
+      const char *header_end = (const char *)memmem(buf, len, "\r\n\r\n", strlen("\r\n\r\n"));
+      if (header_end == NULL) {
+        if (len >= MAX_HTTP_REQ_LINE) {
+          //PLAYER_WRN("http req line too long");
+          ACCESS("player %s:%d 414", c->remote_ip, (int)c->remote.sin_port);
+          util_http_rsp_error_code(c->ev_socket.fd, HTTP_414);
+          // TODO: zhangle, close socket when writen
+          //conn_close(c);
+        }
+        return;
+      }
+      int header_len = (header_end - buf) + strlen("\r\n\r\n");
+      const char *first_line_end = (const char *)memmem(buf, header_len, "\r\n", strlen("\r\n"));
+      int first_line_len = first_line_end - buf;
+
+      char method[32] = { 0 };
+      char path[128] = { 0 };
+      char query[1024] = { 0 };
+      int parse_req = util_http_parse_req_line(buf, first_line_len,
+        method, sizeof(method),
+        path, sizeof(path),
+        query, sizeof(query));
+      if (parse_req < 0) {
+        WRN("parse_req_line failed. connection closing.");
+        ACCESS("player %s:%d 400", c->remote_ip, (int)c->remote.sin_port);
+        util_http_rsp_error_code(c->ev_socket.fd, HTTP_400);
+        //conn_close(c);
+        return;
+      }
+
+      if (strlen(method) != 3 || 0 != strncmp(method, "GET", 3)) {
+        WRN("method not valid. connection closing. %s:%d, method = %s", c->remote_ip, (int)c->remote.sin_port, method);
+        ACCESS("player %s:%d %s %s?%s 404", c->remote_ip, (int)c->remote.sin_port, method, path, query);
+        util_http_rsp_error_code(c->ev_socket.fd, HTTP_404);
+        //conn_close(c);
+        return;
+      }
+
+      const char *CROSSDOMAIN = "/crossdomain.xml";
+      if (strlen(CROSSDOMAIN) == strlen(path) && 0 == strncmp(path, CROSSDOMAIN, strlen(CROSSDOMAIN))) {
+        c->live = new CrossdomainLivePlayer(c, m_config);
+      }
+      else if (0 == strncmp(path, "/live/nodelay/v1/", strlen("/live/nodelay/v1/"))) {
+        if (query[0]) {
+          c->live = new FlvLivePlayer(c);
+          // g_player->add_play_task(c, lrcf2, method, path, query);
+          char buf[64];
+          memset(buf, 0, sizeof(buf));
+          if (!util_path_str_get(path, strlen(path), 4, buf, 64)
+            || !util_check_hex(buf, 32) || (c->streamid.parse(buf, 16) != 0)) {
+            LiveConnection::Destroy(c);
+            return;
+          }
+          m_stream_groups[c->streamid.get_32bit_stream_id()].insert(c);
+        }
+      }
+
+      if (c->live) {
+        c->EnableWrite();
+      }
+      else {
+        //conn_close(c);
+      }
+    }
+  }
+
+  if (which & EV_WRITE) {
+    if (c->live) {
+      c->live->OnWrite();
+      if (-1 == buffer_write_fd_max(c->wb, c->ev_socket.fd, WRITE_MAX)) {
+        INF("crossdomain (%s:%d) disconnected...", c->remote_ip, (int)c->remote.sin_port);
+        LiveConnection::Destroy(c);
+        return;
+      }
+    }
+
+    if (0 == buffer_data_len(c->wb)) {
+      c->DisableWrite();
+      if (c->async_close) {
+        LiveConnection::Destroy(c);
+        return;
+      }
+    }
+    buffer_try_adjust(c->wb);
+  }
+}
+
+void LiveConnectionManager::OnRecvStreamData(StreamId_Ext streamid, uint8_t watch_type, void* arg) {
+  LiveConnectionManager *pThis = (LiveConnectionManager*)arg;
+  pThis->OnRecvStreamDataImpl(streamid, watch_type);
+}
+
+void LiveConnectionManager::OnRecvStreamDataImpl(StreamId_Ext streamid, uint8_t watch_type) {
+  auto it1 = m_stream_groups.find(streamid.get_32bit_stream_id());
+  if (it1 == m_stream_groups.end()) {
+    return;
+  }
+  std::set<LiveConnection*> &connections = it1->second;
+  for (auto it = connections.begin(); it != connections.end(); it++) {
+    LiveConnection *c = *it;
+    c->EnableWrite();
+  }
 }

@@ -70,6 +70,7 @@
 #include "whitelist_manager.h"
 #include "config.h"
 #include "target_config.h"
+#include "player/module_player.h"
 
 #include "evhttp.h"
 
@@ -313,7 +314,8 @@ server_exit()
   INF("hash destroy...");
   SINGLETON(WhitelistManager)->clear();
   INF("player fini...");
-  player_fini();
+  //player_fini();
+  LiveConnectionManager::DestroyInstance();
   INF("uploader fini...");
   //RtpTcpConnectionManager::destroy_inst();
   //RtpUdpConnectionManager::destroy_inst();
@@ -720,7 +722,9 @@ int main_proc() {
   //  RTPTCPPlayerMgr::get_inst()->set_http_server(base_http_server);
   //}
 
-  if (0 != player_init(main_base, &g_session_mng, &(g_conf.player))) {
+  
+
+  if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
     ERR("player init failed.");
     return 1;
   }

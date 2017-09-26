@@ -33,7 +33,6 @@ using namespace interlive::forward_server;
 #include "backend/forward_client_v2.h"
 #endif
 
-#include "player/player.h"
 #include "player/module_player.h"
 
 #define IC_MAX_PROC_NAME 20
@@ -434,14 +433,14 @@ void InfoCollector::collect_info_10s()
     g_InfoStore.buss_fsv2_connection_count = 0;
     g_InfoStore.buss_fcv2_stream_count = 0;
 
-    const Player* player_inst = get_player_inst();
-    const player_stat_t * player_stat = player_inst->get_player_stat();
-    if (player_stat != nullptr)
-    {
-      g_InfoStore.buss_player_online_cnt = player_stat->get_online_cnt();
-      DBG("InfoCollector::collect_info_10s: buss_stream_count: %d, buss_player_online_cnt: %d", \
-        g_InfoStore.buss_fcv2_stream_count, g_InfoStore.buss_player_online_cnt);
-    }
+    //const Player* player_inst = get_player_inst();
+    //const player_stat_t * player_stat = player_inst->get_player_stat();
+    //if (player_stat != nullptr)
+    //{
+    //  g_InfoStore.buss_player_online_cnt = player_stat->get_online_cnt();
+    //  DBG("InfoCollector::collect_info_10s: buss_stream_count: %d, buss_player_online_cnt: %d", \
+    //    g_InfoStore.buss_fcv2_stream_count, g_InfoStore.buss_player_online_cnt);
+    //}
   }
 
   total_collect++;
