@@ -79,11 +79,10 @@ public:
   void EnableWrite();
   void DisableWrite();
   static void Destroy(LiveConnection *c);
-
-  BaseLivePlayer *live;
-
+  time_t active_time_s;
   bool async_close;
 
+  BaseLivePlayer *live;
   StreamId_Ext streamid;
 };
 
@@ -106,12 +105,16 @@ protected:
   void OnSocketDataImpl(LiveConnection *c, const short which);
   static void OnRecvStreamData(StreamId_Ext stream_id, uint8_t watch_type, void* arg);
   void OnRecvStreamDataImpl(StreamId_Ext stream_id, uint8_t watch_type);
+  void StartTimer();
+  static void OnTimer(const int fd, short which, void *arg);
+  void OnTimerImpl();
 
   struct event_base *m_ev_base;
   LibEventSocket m_ev_socket;
   struct event m_ev_timer;
   const player_config *m_config;
   std::map<uint32_t, std::set<LiveConnection*> > m_stream_groups;
+  std::set<LiveConnection*> m_connections;
 
   static LiveConnectionManager* m_inst;
 };

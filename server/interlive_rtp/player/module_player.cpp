@@ -1,4 +1,4 @@
-/**********************************************************
+ï»¿/**********************************************************
  * YueHonghui, 2013-05-02
  * hhyue@tudou.com
  * copyright:youku.com
@@ -430,7 +430,7 @@ void LiveConnection::Destroy(LiveConnection *c) {
 
 //////////////////////////////////////////////////////////////////////////
 
-#define WRITE_MAX (64 * 1024)
+#define WRITE_MAX (128 * 1024)
 
 LiveConnectionManager* LiveConnectionManager::m_inst = NULL;
 
@@ -458,14 +458,14 @@ int LiveConnectionManager::Init(struct event_base *ev_base, const player_config 
     ERR("create rtp tcp listen fd failed. ret = %d", fd_socket);
     return -1;
   }
-  //#ifdef TCP_DEFER_ACCEPT
-  //  {
-  //    int v = 30;             /* 30 seconds */
-  //    if (-1 == setsockopt(player_listen_fd, IPPROTO_TCP, TCP_DEFER_ACCEPT, &v, sizeof(v))) {
-  //      WRN("can't set TCP_DEFER_ACCEPT on player_listen_fd %d", player_listen_fd);
-  //    }
-  //  }
-  //#endif
+  #ifdef TCP_DEFER_ACCEPT
+    {
+      int v = 30;             /* 30 seconds */
+      if (-1 == setsockopt(fd_socket, IPPROTO_TCP, TCP_DEFER_ACCEPT, &v, sizeof(v))) {
+        WRN("can't set TCP_DEFER_ACCEPT on player_listen_fd %d", fd_socket);
+      }
+    }
+  #endif
   m_ev_socket.Start(ev_base, fd_socket, &LiveConnectionManager::OnSocketAccept, this);
 
   media_manager::PlayerCacheManagerInterface *cache = media_manager::CacheManager::get_player_cache_instance();
@@ -482,6 +482,7 @@ void LiveConnectionManager::OnConnectionClosed(LiveConnection *c) {
       m_stream_groups.erase(it);
     }
   }
+  m_connections.erase(c);
 }
 
 void LiveConnectionManager::OnSocketAccept(const int fd, const short which, void *arg) {
@@ -518,6 +519,8 @@ void LiveConnectionManager::OnSocketAcceptImpl(const int fd, const short which) 
     c->rb = buffer_create_max(16 * 1024, m_config->buffer_max);
     c->wb = buffer_create_max(512 * 1024, m_config->buffer_max);
     c->ev_socket.Start(m_ev_base, newfd, &LiveConnectionManager::OnSocketData, c);
+    c->active_time_s = time(NULL);
+    m_connections.insert(c);
   }
 }
 
@@ -526,66 +529,76 @@ void LiveConnectionManager::OnSocketData(const int fd, const short which, void *
   LiveConnectionManager::Instance()->OnSocketDataImpl(c, which);
 }
 
+static void HttpErrorResponse(LiveConnection *c, http_code code) {
+  c->async_close = true;
+  c->EnableWrite();
+
+  const char *code_str = util_http_code2numstr(code);
+  const char *code_msg = util_http_code2str(code);
+  if (!code_str || !code_msg) {
+    return;
+  }
+  ACCESS("player %s:%d %s", c->remote_ip, (int)c->remote.sin_port, code_str);
+
+  char rsp_line[128];
+  memset(rsp_line, 0, sizeof(rsp_line));
+  snprintf(rsp_line, sizeof(rsp_line), "HTTP/1.0 %s %s\r\nConnection: close\r\n\r\n", code_str, code_msg);
+  buffer_append_ptr(c->wb, rsp_line, strlen(rsp_line));
+}
+
 void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short which) {
   if (which & EV_READ) {
     if (c->live) {
       char buf[128];
       int len = read(c->ev_socket.fd, buf, 128);
       if ((len == -1 && errno != EINTR && errno != EAGAIN) || len == 0) {
-        //conn_close(c);
+        LiveConnection::Destroy(c);
       }
     }
     else {
-      // Ò»´ó¶ÑhttpÐ­ÒéµÄ´¦Àí´úÂë£¬Ð´µÃºÜ³óÂª
-      buffer *rb = c->rb;
-      int len = buffer_read_fd_max(rb, c->ev_socket.fd, MAX_HTTP_REQ_LINE);
-      if (len < 0) {
-        LiveConnection::Destroy(c);
-        return;
-      }
-      else if (len == 0) {
-        // TODO: zhangle
-        int i = 0;
-        i++;
-      }
-
-      const char *buf = buffer_data_ptr(rb);
-      len = (int)buffer_data_len(rb);
-      const char *header_end = (const char *)memmem(buf, len, "\r\n\r\n", strlen("\r\n\r\n"));
-      if (header_end == NULL) {
-        if (len >= MAX_HTTP_REQ_LINE) {
-          //PLAYER_WRN("http req line too long");
-          ACCESS("player %s:%d 414", c->remote_ip, (int)c->remote.sin_port);
-          util_http_rsp_error_code(c->ev_socket.fd, HTTP_414);
-          // TODO: zhangle, close socket when writen
-          //conn_close(c);
-        }
-        return;
-      }
-      int header_len = (header_end - buf) + strlen("\r\n\r\n");
-      const char *first_line_end = (const char *)memmem(buf, header_len, "\r\n", strlen("\r\n"));
-      int first_line_len = first_line_end - buf;
-
       char method[32] = { 0 };
       char path[128] = { 0 };
       char query[1024] = { 0 };
-      int parse_req = util_http_parse_req_line(buf, first_line_len,
-        method, sizeof(method),
-        path, sizeof(path),
-        query, sizeof(query));
-      if (parse_req < 0) {
-        WRN("parse_req_line failed. connection closing.");
-        ACCESS("player %s:%d 400", c->remote_ip, (int)c->remote.sin_port);
-        util_http_rsp_error_code(c->ev_socket.fd, HTTP_400);
-        //conn_close(c);
-        return;
+      {
+        // ä¸€å¤§å †httpåè®®çš„å¤„ç†ä»£ç ï¼Œå†™å¾—å¾ˆä¸‘é™‹
+        buffer *rb = c->rb;
+        int len = buffer_read_fd_max(rb, c->ev_socket.fd, MAX_HTTP_REQ_LINE);
+        if (len < 0) {
+          LiveConnection::Destroy(c);
+          return;
+        }
+        else if (len == 0) {
+          // TODO: zhangle
+          int i = 0;
+          i++;
+        }
+        const char *buf = buffer_data_ptr(rb);
+        len = (int)buffer_data_len(rb);
+        const char *header_end = (const char *)memmem(buf, len, "\r\n\r\n", strlen("\r\n\r\n"));
+        if (header_end == NULL) {
+          if (len >= MAX_HTTP_REQ_LINE) {
+            //PLAYER_WRN("http req line too long");
+            HttpErrorResponse(c, HTTP_414);
+          }
+          return;
+        }
+        int header_len = (header_end - buf) + strlen("\r\n\r\n");
+        const char *first_line_end = (const char *)memmem(buf, header_len, "\r\n", strlen("\r\n"));
+        int first_line_len = first_line_end - buf;
+        int parse_req = util_http_parse_req_line(buf, first_line_len,
+          method, sizeof(method),
+          path, sizeof(path),
+          query, sizeof(query));
+        if (parse_req < 0) {
+          WRN("parse_req_line failed. connection closing.");
+          HttpErrorResponse(c, HTTP_400);
+          return;
+        }
       }
 
       if (strlen(method) != 3 || 0 != strncmp(method, "GET", 3)) {
         WRN("method not valid. connection closing. %s:%d, method = %s", c->remote_ip, (int)c->remote.sin_port, method);
-        ACCESS("player %s:%d %s %s?%s 404", c->remote_ip, (int)c->remote.sin_port, method, path, query);
-        util_http_rsp_error_code(c->ev_socket.fd, HTTP_404);
-        //conn_close(c);
+        HttpErrorResponse(c, HTTP_404);
         return;
       }
 
@@ -596,7 +609,6 @@ void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short whic
       else if (0 == strncmp(path, "/live/nodelay/v1/", strlen("/live/nodelay/v1/"))) {
         if (query[0]) {
           c->live = new FlvLivePlayer(c);
-          // g_player->add_play_task(c, lrcf2, method, path, query);
           char buf[64];
           memset(buf, 0, sizeof(buf));
           if (!util_path_str_get(path, strlen(path), 4, buf, 64)
@@ -612,19 +624,25 @@ void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short whic
         c->EnableWrite();
       }
       else {
-        //conn_close(c);
+        HttpErrorResponse(c, HTTP_404);
       }
     }
   }
 
   if (which & EV_WRITE) {
-    if (c->live) {
+    if (c->live && !c->async_close) {
+      // TODO: zhangle, should process buffer too large
       c->live->OnWrite();
-      if (-1 == buffer_write_fd_max(c->wb, c->ev_socket.fd, WRITE_MAX)) {
-        INF("crossdomain (%s:%d) disconnected...", c->remote_ip, (int)c->remote.sin_port);
-        LiveConnection::Destroy(c);
-        return;
-      }
+    }
+
+    int write_len = buffer_write_fd_max(c->wb, c->ev_socket.fd, WRITE_MAX);
+    if (-1 == write_len) {
+      INF("crossdomain (%s:%d) disconnected...", c->remote_ip, (int)c->remote.sin_port);
+      LiveConnection::Destroy(c);
+      return;
+    }
+    else if (write_len > 0) {
+      c->active_time_s = time(NULL);
     }
 
     if (0 == buffer_data_len(c->wb)) {
@@ -653,4 +671,32 @@ void LiveConnectionManager::OnRecvStreamDataImpl(StreamId_Ext streamid, uint8_t 
     LiveConnection *c = *it;
     c->EnableWrite();
   }
+}
+
+void LiveConnectionManager::StartTimer() {
+  struct timeval tv;
+  evtimer_set(&m_ev_timer, OnTimer, (void *)this);
+  tv.tv_sec = 1;
+  tv.tv_usec = 0;
+  event_base_set(m_ev_base, &m_ev_timer);
+  evtimer_add(&m_ev_timer, &tv);
+}
+
+void LiveConnectionManager::OnTimer(const int fd, short which, void *arg) {
+  LiveConnectionManager *pThis = (LiveConnectionManager*)arg;
+  pThis->OnTimerImpl();
+}
+
+void LiveConnectionManager::OnTimerImpl() {
+  time_t now = time(NULL);
+  std::set<LiveConnection*> trash;
+  for (auto it = m_connections.begin(); it != m_connections.end(); it++) {
+    if (now - (*it)->active_time_s > 30) {
+      trash.insert(*it);
+    }
+  }
+  for (auto it = trash.begin(); it != trash.end(); it++) {
+    LiveConnection::Destroy(*it);
+  }
+  StartTimer();
 }
