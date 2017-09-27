@@ -570,7 +570,8 @@ namespace media_manager
       return NULL;
     }
 
-    FLVMiniBlock* block = dynamic_cast<FLVMiniBlock*>(cache->get_latest(status_code));
+    // INFO: zhangle, change "get_latest" to "get_latest_key", is it fit flv_publish?
+    FLVMiniBlock* block = dynamic_cast<FLVMiniBlock*>(cache->get_latest_key(status_code));
     switch (status_code)
     {
     case STATUS_SUCCESS:
