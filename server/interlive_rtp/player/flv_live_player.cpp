@@ -1,4 +1,4 @@
-#include "flv_live_player.h"
+﻿#include "flv_live_player.h"
 
 #include "util/util.h"
 #include "util/log.h"
@@ -26,6 +26,7 @@ BaseLivePlayer::~BaseLivePlayer() {
 FlvLivePlayer::FlvLivePlayer(LiveConnection *c) : BaseLivePlayer(c), _cmng(media_manager::CacheManager::get_player_cache_instance()) {
   m_written_header = false;
   m_written_first_tag = false;
+  m_buffer_overuse = false;
   m_latest_blockid = -1;
 }
 
@@ -44,13 +45,13 @@ void FlvLivePlayer::OnWrite() {
 
     // reponse header
     char rsp[1024];
-    int used = snprintf(rsp, sizeof(rsp),
+    int len = snprintf(rsp, sizeof(rsp),
       "HTTP/1.1 200 OK\r\n"
       "Server: Youku Live Forward\r\n"
       "Content-Type: video/x-flv\r\n"
       NOCACHE_HEADER
       HTTP_CONNECTION_HEADER "\r\n");
-    if (0 != buffer_append_ptr(c->wb, rsp, used)) {
+    if (0 != buffer_append_ptr(c->wb, rsp, len)) {
       LiveConnection::Destroy(c);
       return;
     }
@@ -58,6 +59,21 @@ void FlvLivePlayer::OnWrite() {
     flvheader.copy_header_to_buffer(c->wb);
 
     m_written_header = true;
+  }
+
+  const int kBufferOveruseSize = 2 * 1024 * 1024;
+  if (buffer_data_len(c->wb) > kBufferOveruseSize) {
+    // buffer超限，下次从IDR帧开始发送
+    m_buffer_overuse = true;
+    m_written_first_tag = false;
+  }
+  else if (m_buffer_overuse && buffer_data_len(c->wb) < kBufferOveruseSize / 2) {
+    // buffer从超限到正常的判断
+    m_buffer_overuse = false;
+  }
+  if (m_buffer_overuse) {
+    // buffer超限时丢弃frame
+    return;
   }
 
   if (!m_written_first_tag) {

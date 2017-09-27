@@ -631,7 +631,6 @@ void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short whic
 
   if (which & EV_WRITE) {
     if (c->live && !c->async_close) {
-      // TODO: zhangle, should process buffer too large
       c->live->OnWrite();
     }
 

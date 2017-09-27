@@ -24,6 +24,7 @@ protected:
   bool m_written_header;
   bool m_written_first_tag;
 
+  bool m_buffer_overuse;
   int m_latest_blockid;
   media_manager::PlayerCacheManagerInterface * _cmng;
 };
