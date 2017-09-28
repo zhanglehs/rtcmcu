@@ -42,18 +42,12 @@ namespace media_manager {
 
     uint32_t get_ssrc();
 
-    //uint64_t get_last_push_relative_timestamp_ms();
-
   protected:
     void clean();
-
-    //void _set_push_active();
 
     uint32_t _adjust();
 
     int _fill_in(const avformat::RTP_FIXED_HEADER*, uint16_t);
-
-    void _push_back(const avformat::RTP_FIXED_HEADER*, uint16_t);
 
     StreamId_Ext _stream_id;
     MediaManagerRTPInterface* _media_manager;
@@ -65,38 +59,32 @@ namespace media_manager {
 
     uint16_t _max_size;
 
-    //uint32_t _last_push_tick_timestamp;
-    //uint64_t _last_push_relative_timestamp_ms;
-
     std::deque<fragment::RTPBlock> _circular_cache;
   };
 
   class RTPMediaCache {
   public:
     RTPMediaCache(StreamId_Ext& stream_id);
-    virtual ~RTPMediaCache();
+    ~RTPMediaCache();
 
-    virtual int32_t set_manager(MediaManagerRTPInterface*);
+    int32_t set_manager(MediaManagerRTPInterface*);
 
-    virtual int32_t set_sdp(const char* sdp, int32_t len);
+    int32_t set_sdp(const char* sdp, int32_t len);
 
-    virtual avformat::SdpInfo* get_sdp();
+    avformat::SdpInfo* get_sdp();
 
-    virtual int32_t set_rtp(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);
+    int32_t set_rtp(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);
 
-    virtual RTPCircularCache* get_cache_by_ssrc(uint32_t ssrc);
+    RTPCircularCache* get_cache_by_ssrc(uint32_t ssrc);
 
-    virtual RTPCircularCache* get_audio_cache();
-    virtual RTPCircularCache* get_video_cache();
+    RTPCircularCache* get_audio_cache();
+    RTPCircularCache* get_video_cache();
 
-    virtual time_t get_push_active_time();
-    virtual time_t set_push_active_time();
+    time_t get_push_active_time();
 
-    //virtual uint64_t get_last_push_relative_timestamp_ms();
+    bool rtp_empty();
 
-    virtual bool rtp_empty();
-
-  public:
+  protected:
     StreamId_Ext _stream_id;
     avformat::SdpInfo* _sdp;
 
@@ -106,7 +94,5 @@ namespace media_manager {
     time_t _push_active;
 
     MediaManagerRTPInterface* _media_manager;
-
-    //uint64_t _last_push_relative_timestamp_ms;
   };
 }

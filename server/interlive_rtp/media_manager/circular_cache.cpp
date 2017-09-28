@@ -20,10 +20,7 @@ namespace media_manager
   CircularCache::CircularCache(StreamId_Ext& stream_id)
     :_last_push_time(0),
     _last_req_time(0),
-    _temp_pushed_count(0),
-    _just_pop_block_timestamp(-1),
-    _stream_id(stream_id)/*,
-    _last_push_relative_timestamp_ms(0)*/ {
+    _stream_id(stream_id) {
   }
 
   int32_t CircularCache::push(BaseBlock* block)
@@ -47,27 +44,15 @@ namespace media_manager
     TRC("push %s success, stream_id: %s, seq: %d, size: %d",
       block->get_type_s().c_str(), block->get_stream_id().unparse().c_str(), block->get_seq(), block->size());
 
-    _temp_pushed_count++;
-    if (_temp_pushed_count >= 100)
-    {
-      INF("pushed %d %s success, stream_id: %s, latest seq: %d",
-        _temp_pushed_count, block->get_type_s().c_str(), block->get_stream_id().unparse().c_str(), block->get_seq());
-      _temp_pushed_count = 0;
-    }
-
     set_push_active();
-
-    //_last_push_relative_timestamp_ms = block->get_start_ts();
 
     return _block_store.size();
   }
 
-  BaseBlock* CircularCache::get_by_seq(uint32_t seq, int32_t& status_code, bool return_next_if_error, bool only_check)
+  BaseBlock* CircularCache::get_by_seq(uint32_t seq, int32_t& status_code)
   {
-    if (_block_store.size() == 0)
-    {
+    if (_block_store.size() == 0) {
       status_code = STATUS_NO_DATA;
-
       return NULL;
     }
 
@@ -75,20 +60,8 @@ namespace media_manager
 
     if (seq < _block_store[0]->get_seq())
     {
-      if (return_next_if_error)
-      {
-        status_code = STATUS_SUCCESS;
-        if (!only_check)
-        {
-          set_req_active();
-        }
-        return _block_store[0];
-      }
-      else
-      {
-        status_code = STATUS_TOO_SMALL;
-        return NULL;
-      }
+      status_code = STATUS_TOO_SMALL;
+      return NULL;
     }
 
     if (seq > _block_store.back()->get_seq())
@@ -125,132 +98,27 @@ namespace media_manager
 
       if (_block_store[mid]->get_seq() != seq)
       {
-        if (return_next_if_error && mid < (int32_t)_block_store.size() - 1)
-        {
-          status_code = STATUS_SUCCESS;
-          if (!only_check)
-          {
-            set_req_active();
-          }
-          return _block_store[mid + 1];
-        }
-        else
-        {
-          status_code = STATUS_NO_DATA;
-          return NULL;
-        }
+        status_code = STATUS_NO_DATA;
+        return NULL;
       }
       else
       {
         status_code = STATUS_SUCCESS;
-        if (!only_check)
-        {
-          set_req_active();
-        }
+        set_req_active();
         return _block_store[mid];
       }
     }
     else
     {
       status_code = STATUS_SUCCESS;
-      if (!only_check)
-      {
-        set_req_active();
-      }
+      set_req_active();
       return _block_store[idx];
     }
 
     return NULL;
   }
 
-  BaseBlock* CircularCache::get_by_ts(uint32_t timestamp, int32_t& status_code, bool return_next_if_error, bool only_check)
-  {
-    if (_block_store.size() == 0)
-    {
-      status_code = STATUS_NO_DATA;
-
-      return NULL;
-    }
-
-    if (timestamp < _block_store[0]->get_start_ts())
-    {
-      if (return_next_if_error)
-      {
-        status_code = STATUS_SUCCESS;
-        if (!only_check)
-        {
-          set_req_active();
-        }
-        return _block_store[0];
-      }
-      else
-      {
-        status_code = STATUS_TOO_SMALL;
-        return NULL;
-      }
-    }
-
-    if (timestamp > _block_store.back()->get_end_ts())
-    {
-      status_code = STATUS_TOO_LARGE;
-      return NULL;
-    }
-
-    // binary search the whole store
-
-    int32_t low = 0;
-    int32_t high = _block_store.size() - 1;
-    int32_t mid = 0;
-
-    while (low <= high)
-    {
-      mid = (low + high) / 2;
-      if (_block_store[mid]->get_start_ts() < timestamp)
-      {
-        low = mid + 1;
-      }
-      else if (_block_store[mid]->get_start_ts() > timestamp)
-      {
-        high = mid - 1;
-      }
-      else
-      {
-        break;
-      }
-      mid = (low + high) / 2;
-    }
-
-    if (timestamp > _block_store[mid]->get_end_ts())
-    {
-      if (return_next_if_error && mid < (int32_t)_block_store.size() - 1)
-      {
-        status_code = STATUS_SUCCESS;
-        if (!only_check)
-        {
-          set_req_active();
-        }
-        return _block_store[mid + 1];
-      }
-      else
-      {
-        status_code = STATUS_NO_DATA;
-        return NULL;
-      }
-    }
-    else
-    {
-      status_code = STATUS_SUCCESS;
-      if (!only_check)
-      {
-        set_req_active();
-      }
-      return _block_store[mid];
-    }
-
-    return NULL;
-  }
-
-  BaseBlock* CircularCache::get_latest(int32_t& status_code, bool only_check)
+  BaseBlock* CircularCache::get_latest(int32_t& status_code)
   {
     if (_block_store.size() == 0)
     {
@@ -260,14 +128,11 @@ namespace media_manager
     }
 
     status_code = STATUS_SUCCESS;
-    if (!only_check)
-    {
-      set_req_active();
-    }
+    set_req_active();
     return _block_store.back();
   }
 
-  BaseBlock* CircularCache::get_latest_key(int32_t& status_code, bool only_check)
+  BaseBlock* CircularCache::get_latest_key(int32_t& status_code)
   {
     if (_block_store.size() == 0)
     {
@@ -283,10 +148,7 @@ namespace media_manager
       if (block->is_key())
       {
         status_code = STATUS_SUCCESS;
-        if (!only_check)
-        {
-          set_req_active();
-        }
+        set_req_active();
         return block;
       }
     }
@@ -295,7 +157,7 @@ namespace media_manager
     return NULL;
   }
 
-  BaseBlock* CircularCache::front(::int32_t& status_code, bool only_check)
+  BaseBlock* CircularCache::front(::int32_t& status_code)
   {
     if (_block_store.size() > 0)
     {
@@ -308,7 +170,7 @@ namespace media_manager
     return _block_store.front();
   }
 
-  BaseBlock* CircularCache::back(::int32_t& status_code, bool only_check)
+  BaseBlock* CircularCache::back(::int32_t& status_code)
   {
     if (_block_store.size() > 0)
     {
@@ -337,10 +199,6 @@ namespace media_manager
     {
       return -1;
     }
-
-    BaseBlock* block = _block_store.front();
-
-    _just_pop_block_timestamp = block->get_start_ts();
 
     if (delete_flag == true)
     {
@@ -386,11 +244,6 @@ namespace media_manager
     return _last_req_time;
   }
 
-  //uint64_t CircularCache::get_last_push_relative_timestamp_ms()
-  //{
-  //  return _last_push_relative_timestamp_ms;
-  //}
-
   CircularCache::~CircularCache()
   {
     CircularCache::clear();
@@ -414,9 +267,6 @@ namespace media_manager
 
     _last_push_time = 0;
     _last_req_time = 0;
-
-    _just_pop_block_timestamp = -1;
-    _temp_pushed_count = 0;
 
     DBG("CircularCache::clear(), stream_id: %s", _stream_id.unparse().c_str());
 

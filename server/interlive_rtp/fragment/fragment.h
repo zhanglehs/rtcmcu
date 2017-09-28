@@ -1,7 +1,7 @@
 /**
  * @file fragment.h
  * @brief	This file provide 3 base data structure for stream transport and storage. \n
-            FLVBlock, FLVFragment and TSSegment.
+ FLVBlock, FLVFragment and TSSegment.
  * @author songshenyi
  * <pre><b>copyright: Youku</b></pre>
  * <pre><b>email: </b>songshenyi@youku.com</pre>
@@ -24,7 +24,6 @@
 #include "util/city.h" 
 #include "streamid.h"
 
-
 #include <sys/time.h>
 #include <time.h>
 
@@ -32,211 +31,128 @@
 #define NULL 0
 #endif
 
-
 namespace media_manager
 {
-    //class FLVBlockCircularCache;
-    //class FLVFragmentScatterCache;
-    class CacheManager;
+  class CacheManager;
 }
 
 namespace fragment
 {
 
-    static const uint32_t CutIntervalForBlock = 100; // millisecond
-    static const uint32_t CutIntervalForFragment = 10000; // 10 seconds
+  static const uint32_t CutIntervalForBlock = 100; // millisecond
+  static const uint32_t CutIntervalForFragment = 10000; // 10 seconds
 
-    enum FrameType
-    {
-        NORMAL_FRAME_FLV_BLOCK = 0,
-        KEY_FRAME_FLV_BLOCK = 1
-    };
+  enum FrameType
+  {
+    NORMAL_FRAME_FLV_BLOCK = 0,
+    KEY_FRAME_FLV_BLOCK = 1
+  };
 
 #pragma pack(1)
 
-    typedef struct
-    {
-        uint32_t version;
-        StreamId_Ext stream_id;
-        uint32_t timestamp;
-        int64_t stream_start_ts_msec;
-        uint32_t seq;
-        uint32_t last_key_seq;
-        uint32_t payload_size;
+  typedef struct
+  {
+    uint32_t version;
+    StreamId_Ext stream_id;
+    uint32_t timestamp;
+    int64_t stream_start_ts_msec;
+    uint32_t seq;
+    uint32_t last_key_seq;
+    uint32_t payload_size;
 
-        uint8_t format_type;
-        uint8_t av_type;
-        uint8_t key_type;
+    uint8_t format_type;
+    uint8_t av_type;
+    uint8_t key_type;
 
-        uint8_t payload[0];
-    }flv_miniblock_header;
-
-    typedef struct
-    {
-        uint32_t version;
-        StreamId_Ext stream_id;
-        uint32_t start_ts;
-        uint32_t end_ts;
-        int64_t stream_start_ts_msec;
-
-        uint32_t global_seq;
-
-        uint32_t last_key_block_global_seq;
-        uint32_t next_key_block_global_seq;
-
-        uint32_t payload_size;
-
-        uint8_t payload_type;
-        uint8_t frame_type;
-
-        uint8_t payload[0];
-    }flv_block_header;
-
-    typedef struct
-    {
-        uint8_t reserved_0 : 1;
-        uint8_t reserved_1 : 1;
-        uint8_t key : 1;
-        uint8_t avc0 : 1;
-        uint8_t aac0 : 1;
-        uint8_t script_data_object : 1;
-        uint8_t reserved_2 : 1;
-        uint8_t reserved_3 : 1;
-
-        uint8_t reset_onMetadata : 1;
-        uint8_t reserved_4 : 7 ;
-        uint8_t reserved_5[6];
-    }onMetaData_flag;
+    uint8_t payload[0];
+  }flv_miniblock_header;
 
 #pragma pack()
 
 
-    class BaseBlock
-    {
-    public:
-        virtual uint32_t get_seq() = 0;
-        virtual uint32_t get_start_ts() = 0;
-        virtual uint32_t get_end_ts() = 0;
-        virtual StreamId_Ext& get_stream_id() = 0;
-        virtual uint32_t size() = 0;
-        virtual std::string get_type_s() = 0;
-        virtual bool is_key() = 0;
+  class BaseBlock
+  {
+  public:
+    virtual uint32_t get_seq() = 0;
+    virtual uint32_t get_start_ts() = 0;
+    virtual uint32_t get_end_ts() = 0;
+    virtual StreamId_Ext& get_stream_id() = 0;
+    virtual uint32_t size() = 0;
+    virtual std::string get_type_s() = 0;
+    virtual bool is_key() = 0;
 
-        virtual time_t        get_active_time();
-        virtual time_t        set_active();
+    virtual time_t        get_active_time();
+    virtual time_t        set_active();
 
-        virtual ~BaseBlock();
-    };
+    virtual ~BaseBlock();
+  };
 
-    class FLVMiniBlock : public BaseBlock
-    {
-        friend class media_manager::CacheManager;
- //       friend class media_manager::FLVMiniBlockCircularCache;
-    public:
-        FLVMiniBlock(flv_miniblock_header* input_block_buffer, bool malloc_flag = true);
-        uint32_t		get_seq();
-        uint32_t		get_start_ts();
-        uint32_t		get_end_ts();
-        StreamId_Ext&	get_stream_id();
-        uint32_t		size();
-        std::string get_type_s();
-        bool is_key();
+  class FLVMiniBlock : public BaseBlock
+  {
+    friend class media_manager::CacheManager;
+  public:
+    FLVMiniBlock(flv_miniblock_header* input_block_buffer, bool malloc_flag = true);
+    uint32_t		get_seq();
+    uint32_t		get_start_ts();
+    uint32_t		get_end_ts();
+    StreamId_Ext&	get_stream_id();
+    uint32_t		size();
+    std::string get_type_s();
+    bool is_key();
 
-        uint32_t		get_payload_size();
-        uint8_t			get_format_type();
-        uint8_t			get_av_type();
-        uint32_t		block_header_len();
+    uint32_t		get_payload_size();
+    uint8_t			get_format_type();
+    uint8_t			get_av_type();
+    uint32_t		block_header_len();
 
-        // these functions used by module_player
-        int32_t			copy_block_header_to_buffer(buffer* dst);
-        int32_t			copy_block_to_buffer(buffer* dst);
-        int32_t	copy_payload_to_buffer(buffer* dst, uint32_t& timeoffset, uint8_t flv_type_flags = FLV_FLAG_BOTH, bool quick_start = false, uint32_t base_timestamp = 0, uint32_t speed_up = 0);
+    // these functions used by module_player
+    int32_t			copy_block_header_to_buffer(buffer* dst);
+    int32_t			copy_block_to_buffer(buffer* dst);
+    int32_t	copy_payload_to_buffer(buffer* dst, uint32_t& timeoffset, uint8_t flv_type_flags = FLV_FLAG_BOTH, bool quick_start = false, uint32_t base_timestamp = 0, uint32_t speed_up = 0);
 
-        int32_t Destroy();
-        ~FLVMiniBlock();
+    int32_t Destroy();
+    ~FLVMiniBlock();
 
-    protected:
-        flv_miniblock_header* _block_buffer;
-    };
+  protected:
+    flv_miniblock_header* _block_buffer;
+  };
 
-    class FLVBlock : public BaseBlock
-    {
-        friend class media_manager::CacheManager;
-        //friend class media_manager::FLVBlockCircularCache;
+  class FLVHeader
+  {
+  public:
+    FLVHeader(StreamId_Ext& stream_id);
+    FLVHeader(StreamId_Ext& stream_id, flv_header* header, uint32_t len);
+    ~FLVHeader();
+    flv_header* set_flv_header(flv_header* header, uint32_t len);
 
-    public:
-        //FLVBlock();
-        FLVBlock(flv_block_header* input_block_buffer, bool malloc_flag = true);
-        //FLVBlock(std::vector<flv_tag*>& tag_store);
+    flv_header* generate_audio_header();
+    flv_header* generate_video_header();
 
-        uint32_t		get_seq();
-        uint32_t		get_start_ts();
-        uint32_t		get_end_ts();
-        StreamId_Ext&	get_stream_id();
-        uint32_t		size();
-        std::string get_type_s();
-        bool is_key();
+    flv_header* get_header(uint32_t& len);
+    flv_header* get_audio_header(uint32_t& len);
+    flv_header* get_video_header(uint32_t& len);
 
-        uint32_t		get_payload_size();
+    flv_tag   * get_audio_config_tag();
+    flv_tag   * get_video_config_tag();
 
-        uint8_t			get_payload_type();
-        uint8_t			get_frame_type();
+    int32_t copy_header_to_buffer(buffer* dst);
+    int32_t copy_audio_header_to_buffer(buffer* dst);
+    int32_t copy_video_header_to_buffer(buffer* dst);
 
-        uint32_t		block_header_len();
+  protected:
+    StreamId_Ext _stream_id;
 
-        // these functions used by module_player
-        int32_t			copy_block_header_to_buffer(buffer* dst);
-        int32_t			copy_block_to_buffer(buffer* dst);
-        int32_t	copy_payload_to_buffer(buffer* dst, uint32_t& timeoffset, uint8_t flv_type_flags = FLV_FLAG_BOTH, bool quick_start = false, uint32_t base_timestamp = 0, uint32_t speed_up = 0);
+    flv_header* _header;
+    uint32_t    _header_len;
 
-        int32_t Destroy();
-        ~FLVBlock();
-    public:
+    flv_tag *   _audio_config_tag;
+    flv_header* _audio_header;
+    uint32_t    _audio_header_len;
 
-    protected:
-
-
-    protected:
-        flv_block_header* _block_buffer;
-    };
-
-    class FLVHeader
-    {
-    public:
-        FLVHeader(StreamId_Ext& stream_id);
-        FLVHeader(StreamId_Ext& stream_id, flv_header* header, uint32_t len);
-        ~FLVHeader();
-        flv_header* set_flv_header(flv_header* header, uint32_t len);
-        
-        flv_header* generate_audio_header();
-        flv_header* generate_video_header();
-
-        flv_header* get_header(uint32_t& len);
-        flv_header* get_audio_header(uint32_t& len);
-        flv_header* get_video_header(uint32_t& len);
-
-        flv_tag   * get_audio_config_tag();
-        flv_tag   * get_video_config_tag();
-
-        int32_t copy_header_to_buffer(buffer* dst);
-        int32_t copy_audio_header_to_buffer(buffer* dst);
-        int32_t copy_video_header_to_buffer(buffer* dst);
-
-    protected:
-        StreamId_Ext _stream_id;
-
-        flv_header* _header;
-        uint32_t    _header_len;
-
-        flv_tag *   _audio_config_tag;
-        flv_header* _audio_header;
-        uint32_t    _audio_header_len;
-
-        flv_tag *   _video_config_tag;
-        flv_header* _video_header;
-        uint32_t    _video_header_len;
-    };
-
+    flv_tag *   _video_config_tag;
+    flv_header* _video_header;
+    uint32_t    _video_header_len;
+  };
 
 }
 #endif /* __FRAGMENT_H__ */

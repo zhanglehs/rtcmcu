@@ -71,29 +71,10 @@ namespace media_manager {
 
   void RTPCircularCache::reset() {
     _ssrc = 0;
-    //_last_push_tick_timestamp = 0;
-    //_last_push_relative_timestamp_ms = 0;
     _sample_rate = 0;
     _max_size = 0;
     _av_type = RTP_AV_NULL;
     clean();
-  }
-
-  void RTPCircularCache::_push_back(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len) {
-    RTPBlock block(rtp, len);
-    _circular_cache.push_back(block);
-
-    //uint32_t delta_tick = (uint32_t)(block.get_timestamp() - _last_push_tick_timestamp);
-
-    //if (_last_push_tick_timestamp > block.get_timestamp()) {
-    //  WRN("WRONG TIMESTAMP block ts %d last tick %d ssrc %d len %d streamid %s", block.get_timestamp(), _last_push_tick_timestamp, rtp->get_ssrc(), len, _stream_id.unparse().c_str());
-    //}
-
-    //_last_push_relative_timestamp_ms += (uint64_t)delta_tick * 1000 / _sample_rate;
-
-    //_last_push_tick_timestamp = block.get_timestamp();
-
-    //_set_push_active();
   }
 
   int32_t RTPCircularCache::set_rtp(const RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status) {
@@ -109,7 +90,6 @@ namespace media_manager {
 
     if (_ssrc == 0) {
       _ssrc = rtp->get_ssrc();
-      //_last_push_tick_timestamp = rtp->get_rtp_timestamp();
       INF("update ssrc %u payload %u ver %u", rtp->get_ssrc(), rtp->payload, rtp->version);
     }
 
@@ -123,7 +103,7 @@ namespace media_manager {
     uint16_t seq = rtp->get_seq();
 
     if (_circular_cache.size() == 0)  {
-      _push_back(rtp, len);
+      _circular_cache.push_back(RTPBlock(rtp, len));
       status = STATUS_SUCCESS;
       return 0;
     }
@@ -132,10 +112,9 @@ namespace media_manager {
     avformat::RTP_FIXED_HEADER* latest
       = _circular_cache.back().get(latest_len);
     if (latest && _sample_rate > 0
-      && abs(int(latest->get_rtp_timestamp() - rtp->get_rtp_timestamp()))
-      >= int(20 * _sample_rate)) {
+      && abs(int(latest->get_rtp_timestamp() - rtp->get_rtp_timestamp())) >= int(20 * _sample_rate)) {
       clean();
-      _push_back(rtp, len);
+      _circular_cache.push_back(RTPBlock(rtp, len));
 
       status = STATUS_SUCCESS;
       return 0;
@@ -163,7 +142,7 @@ namespace media_manager {
         RTPBlock block(NULL, 0);
         _circular_cache.push_back(block);
       }
-      _push_back(rtp, len);
+      _circular_cache.push_back(RTPBlock(rtp, len));
       _adjust();
 
       status = STATUS_SUCCESS;
@@ -173,7 +152,7 @@ namespace media_manager {
     // 2. if expect_next_max < new_block.seq < front.seq,         reset cache,
     if ((uint16_t)(seq - expect_next_max) < (uint16_t)(front_seq - expect_next_max)) {
       clean();
-      _push_back(rtp, len);
+      _circular_cache.push_back(RTPBlock(rtp, len));
 
       status = STATUS_SUCCESS;
       return 0;
@@ -246,10 +225,6 @@ namespace media_manager {
     }
   }
 
-  //uint64_t RTPCircularCache::get_last_push_relative_timestamp_ms() {
-  //  return _last_push_relative_timestamp_ms;
-  //}
-
   RTP_FIXED_HEADER* RTPCircularCache::get_by_seq(uint16_t seq, uint16_t& len, int32_t& status_code) {
     len = 0;
 
@@ -305,8 +280,7 @@ namespace media_manager {
     :_stream_id(stream_id),
     _sdp(NULL),
     _push_active(0),
-    _media_manager(NULL)/*,
-    _last_push_relative_timestamp_ms(0)*/ {
+    _media_manager(NULL) {
     _video_cache = new RTPCircularCache(stream_id);
     _audio_cache = new RTPCircularCache(stream_id);
   }
@@ -438,28 +412,13 @@ namespace media_manager {
     }
 
     if (status == STATUS_SUCCESS) {
-      set_push_active_time();
-      //if (_audio_cache->is_inited()) {
-      //  _last_push_relative_timestamp_ms = MAX(_last_push_relative_timestamp_ms, _audio_cache->get_last_push_relative_timestamp_ms());
-      //}
-
-      //if (_video_cache->is_inited()) {
-      //  _last_push_relative_timestamp_ms = MAX(_last_push_relative_timestamp_ms, _video_cache->get_last_push_relative_timestamp_ms());
-      //}
+      _push_active = time(NULL);
     }
     return status;
-  }
-
-  time_t RTPMediaCache::set_push_active_time() {
-    _push_active = time(NULL);
-    return _push_active;
   }
 
   time_t RTPMediaCache::get_push_active_time() {
     return _push_active;
   }
 
-  //uint64_t RTPMediaCache::get_last_push_relative_timestamp_ms() {
-  //  return _last_push_relative_timestamp_ms;
-  //}
 }

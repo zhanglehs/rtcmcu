@@ -1,4 +1,4 @@
-#ifndef _FLV2RTP_REMUXER_H_
+﻿#ifndef _FLV2RTP_REMUXER_H_
 #define _FLV2RTP_REMUXER_H_
 
 #include "cache_manager.h"
@@ -6,7 +6,12 @@
 #include "../rtp_trans/rtp_media_manager_helper.h"
 
 namespace media_manager {
+
   class Rtp2FlvTransformInfo;
+
+  // 这个类将rtp转换成flv
+  // 对于udp的rtp，其核心应该有jitterbuffer + 丢包防马赛克。
+  // 不幸的是代码中使用的jitterbuffer很烂，也没有做丢包防马赛克处理。
   class RTP2FLVRemuxer : public RTPMediaManagerHelper {
   public:
     static RTP2FLVRemuxer * get_instance();
@@ -28,5 +33,6 @@ namespace media_manager {
     UploaderCacheManagerInterface* _uploader_cache_instance;
     static RTP2FLVRemuxer *_inst;
   };
+
 }
 #endif

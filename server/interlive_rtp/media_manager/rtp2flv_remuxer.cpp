@@ -625,6 +625,10 @@ namespace media_manager {
           //}
 
           r = r1;
+
+          if (stream_meta->is_sps_reach && stream_meta->is_pps_reach) {
+            break;
+          }
         }
       }
       else {
@@ -651,6 +655,10 @@ namespace media_manager {
 
           if (*(r + 4) == 0x08) {
             WRN("recv invalied pps by size num  streamid  %s len %d", stream_meta->_stream_id.c_str(), payload_len);
+          }
+
+          if (stream_meta->is_sps_reach && stream_meta->is_pps_reach) {
+            break;
           }
         }
       }

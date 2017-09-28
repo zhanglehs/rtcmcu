@@ -1,4 +1,4 @@
-/**
+﻿/**
 * @file
 * @brief
 * @author   gaosiyu
@@ -42,6 +42,8 @@ namespace media_manager {
     void reset();
   };
 
+  // by zhangle: 这个jitterbuffer写得很low。从代码分析，防网络抖动的能力应该很低
+  // 同时也没有丢包防马赛克的处理
   class JitterBuffer {
     struct cmp{
       bool operator()(fragment::RTPBlock * a, fragment::RTPBlock * b){
@@ -64,9 +66,9 @@ namespace media_manager {
     RTPPACKET_QUEUE  _queue;
     LOST_QUEUE _lost_queue;
     BUFFER_STATE _state;
-    JitterBlockInfo *_jitter_block;
-    JitterBlockInfo *_last_queue_block;
-    JitterBlockInfo *_last_out_block;
+    JitterBlockInfo *_jitter_block;      // 最后一个连续的包，即从jitterbuffer的第一个包到_jitter_block都是连续的
+    JitterBlockInfo *_last_queue_block;  // 时间上最新的包
+    JitterBlockInfo *_last_out_block;    // 最近从jitterbuffer中取出的包
     uint32_t _buffer_duration;
     uint32_t _time_base;
     uint32_t _max_buffer_time;

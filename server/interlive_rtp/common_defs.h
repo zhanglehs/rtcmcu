@@ -37,10 +37,4 @@
 #define MAX_UDP_BUFFER_SIZE         (64 * 1024)
 #define MAX_RTP_UDP_BUFFER_SIZE     (2 * 1024)
 
-#ifndef cache_request_t
-#define cache_request_t media_manager::cache_request_header
-#endif 
-
-
-
 #endif//COMMON_DEFS_

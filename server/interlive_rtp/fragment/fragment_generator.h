@@ -30,112 +30,58 @@
 
 namespace media_manager
 {
-    class CacheManager;
+  class CacheManager;
 }
 
 namespace fragment
 {
-    class FragmentGenerator
-    {
-        friend  class media_manager::CacheManager;
-    public:
-        enum
-        {
-            CUT_BY_TIME = 1,
-            CUT_BY_FRAME = 2
-        };
-   
-        FragmentGenerator(StreamId_Ext& stream_id);
+  class FragmentGenerator {
+    friend  class media_manager::CacheManager;
 
-        virtual int32_t set_flv_header(flv_header* input_flv_header, uint32_t flv_header_len);
-        virtual int32_t set_flv_tag(flv_tag* input_flv_tag, bool& generate_fragment);
+  public:
+    FragmentGenerator(StreamId_Ext& stream_id);
 
-        virtual void reset_tag_buffer();
-        virtual void sort_tag_buffer();
+    virtual int32_t set_flv_header(flv_header* input_flv_header, uint32_t flv_header_len);
 
-        virtual ~FragmentGenerator();
+    virtual ~FragmentGenerator();
 
-    protected:
-        virtual int32_t _cut(flv_tag* input_flv_tag, uint32_t tag_len, uint32_t timestamp);
+  protected:
+    virtual int32_t _key_type(flv_tag* input_flv_tag);
 
-        virtual int32_t _cut_by_time(flv_tag* input_flv_tag, uint32_t tag_len, uint32_t timestamp);
-        virtual int32_t _cut_by_frame(flv_tag* input_flv_tag, uint32_t tag_len, uint32_t timestamp);
-        virtual int32_t _generate(flv_tag* input_flv_tag, uint32_t tag_len) = 0;
-        virtual int32_t _update_frame_type(flv_tag* input_flv_tag);
-        virtual int32_t _key_type(flv_tag* input_flv_tag);
+  protected:
+    // audio / video
+    uint8_t _main_type;
 
-    protected:
-        std::deque<flv_tag*> _temp_tag_store;
+    int32_t _last_main_tag_timestamp;
 
-        buffer* _temp_tag_buf;
+    uint32_t _flv_header_len;
+    flv_header* _flv_header;
+    uint8_t _flv_header_flag;
 
-        // audio / video
-        uint8_t _main_type;
+    uint32_t _input_tag_num;
 
-        // cut by timestamp or frametype
-        uint8_t _cut_by;
+    StreamId_Ext _stream_id;
 
-        int32_t _last_main_tag_timestamp;
+    int32_t _last_seq;
+    uint32_t _last_global_seq;
+    uint32_t _last_key_seq;
+  };
 
-        uint32_t _last_cut_timestamp;
-        timeval _last_cut_timeval;
+  class FLVMiniBlockGenerator : public FragmentGenerator {
+  public:
+    FLVMiniBlockGenerator(StreamId_Ext& stream_id);
+    virtual int32_t set_flv_tag(flv_tag* input_flv_tag, bool& generate_fragment);
+    FLVMiniBlock* get_block();
+    void    reset_block();
+    virtual ~FLVMiniBlockGenerator();
 
-        uint32_t _keyframe_num;
-        uint32_t _cut_interval_ms;
+  protected:
+    virtual int32_t _generate(flv_tag* input_flv_tag, uint32_t tag_len);
+    flv_miniblock_header* _init_block(flv_miniblock_header* block);
 
-        uint32_t _flv_header_len;
-        flv_header* _flv_header;
-        uint8_t _flv_header_flag;
-
-        uint32_t _input_tag_num;
-
-        StreamId_Ext _stream_id;
-
-        int32_t _last_seq;
-        uint32_t _last_global_seq;
-        uint32_t _last_key_seq;
-
-        bool _has_aac0;
-        bool _has_avc0;
-        bool _has_script_data_object;
-    };
-
-    class FLVMiniBlockGenerator : public FragmentGenerator
-    {
-    public:
-        FLVMiniBlockGenerator(StreamId_Ext& stream_id);
-        virtual int32_t set_flv_tag(flv_tag* input_flv_tag, bool& generate_fragment);
-        FLVMiniBlock* get_block();
-        void    reset_block();
-        virtual ~FLVMiniBlockGenerator();
-
-    protected:
-        virtual int32_t _cut(flv_tag* input_flv_tag, uint32_t tag_len, uint32_t timestamp);
-        virtual int32_t _generate(flv_tag* input_flv_tag, uint32_t tag_len);
-        flv_miniblock_header* _init_block(flv_miniblock_header* block);
-
-    protected:
-        FLVMiniBlock* _block;
-    };
-
-    class FLVBlockGenerator : public FragmentGenerator
-    {
-    public:
-        FLVBlockGenerator(StreamId_Ext& stream_id, timeval stream_start_ts);
-        std::vector<FLVBlock*>&   get_block();
-        void    reset_block();
-        virtual ~FLVBlockGenerator();
-
-    protected:
-        virtual int32_t _cut(flv_tag* input_flv_tag, uint32_t tag_len, uint32_t timestamp);
-        virtual int32_t _generate(flv_tag* input_flv_tag, uint32_t tag_len);
-        flv_block_header* _init_block(flv_block_header* block);
-
-    protected:
-        std::vector<FLVBlock*> _block_vec;
-    };
-
+  protected:
+    FLVMiniBlock* _block;
+  };
 }
-
 
 #endif /* __FRAGMENT_GENERATOR_H_ */

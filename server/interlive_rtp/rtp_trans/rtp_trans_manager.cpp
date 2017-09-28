@@ -1,4 +1,4 @@
-#include "rtp_trans_manager.h"
+﻿#include "rtp_trans_manager.h"
 #include "media_manager/media_manager_rtp_interface.h"
 #include "media_manager/cache_manager.h"
 #include "media_manager/rtp_block_cache.h"
@@ -31,6 +31,11 @@ int RTPTransManager::OnRecvRtp(RtpConnection *c, const void *rtp, uint16_t len) 
 
   if (playload_type != avformat::RTP_AV_FEC
     && playload_type != avformat::RTP_AV_F_FEC) {
+    // 这种做法有几个问题：
+    // 1. 重复包都被转发给player了
+    // 2. 通常下行（当前server到player）数比上行数（uploader到当前server）多，
+    //    如果较多的下行链路是慢网络（例如当前server的出口带宽不足），
+    //    则数据被被copy到了多个RtpConnection::wb中，会导致整体内存占用非常大
     ForwardRtp(c->streamid, rtp_header, len);
   }
   return 0;

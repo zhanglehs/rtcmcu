@@ -87,55 +87,55 @@ void target_close_list_seat(uint32_t streamid)
 
 void WhitelistManager::del_stream(uint32_t streamid)
 {
-  TRC("WhitelistManager::del_stream. streamid = %u", streamid);
+  //TRC("WhitelistManager::del_stream. streamid = %u", streamid);
 
-  StreamId_Ext orignal_streamid(streamid, 0);
-  if (_white_list.find(orignal_streamid) == _white_list.end())
-  {
-    WRN("streamid %s not in white list. do nothing.", orignal_streamid.unparse().c_str());
-    return;
-  }
+  //StreamId_Ext orignal_streamid(streamid, 0);
+  //if (_white_list.find(orignal_streamid) == _white_list.end())
+  //{
+  //  WRN("streamid %s not in white list. do nothing.", orignal_streamid.unparse().c_str());
+  //  return;
+  //}
 
-  if (strlen(_conf.target_conf.record_dir) > 0)
-  {
-    stop_record_stream(streamid);
-  }
-  TRC("begin manager destroy stream. streamid = %u", streamid);
-  stream_manager_destroy_stream(streamid);
+  //if (strlen(_conf.target_conf.record_dir) > 0)
+  //{
+  //  stop_record_stream(streamid);
+  //}
+  //TRC("begin manager destroy stream. streamid = %u", streamid);
+  //stream_manager_destroy_stream(streamid);
 
-  WhiteListMap::iterator it;
-  vector<StreamId_Ext> removal_list;
+  //WhiteListMap::iterator it;
+  //vector<StreamId_Ext> removal_list;
 
-  //UploaderManager* uploader_manager = UploaderManager::get_inst();
-  for (it = _white_list.begin(); it != _white_list.end(); it++)
-  {
-    if (it->second.streamid.get_32bit_stream_id() == streamid)
-    {
-      WhiteListItem& item = it->second;
+  ////UploaderManager* uploader_manager = UploaderManager::get_inst();
+  //for (it = _white_list.begin(); it != _white_list.end(); it++)
+  //{
+  //  if (it->second.streamid.get_32bit_stream_id() == streamid)
+  //  {
+  //    WhiteListItem& item = it->second;
 
-      removal_list.push_back(item.streamid);
-    }
-  }
+  //    removal_list.push_back(item.streamid);
+  //  }
+  //}
 
-  CacheManager::get_cache_manager()->stop_stream(streamid);
+  //CacheManager::get_cache_manager()->stop_stream(streamid);
 
-  for (int i = 0; i < (int)removal_list.size(); i++)
-  {
-    _white_list.erase(removal_list[i]);
-    INF("close list seat success. streamid = %s", removal_list[i].unparse().c_str());
-    //}
+  //for (int i = 0; i < (int)removal_list.size(); i++)
+  //{
+  //  _white_list.erase(removal_list[i]);
+  //  INF("close list seat success. streamid = %s", removal_list[i].unparse().c_str());
+  //  //}
 
-    for (ObserverList::iterator oi = _observer_list.begin();
-      oi != _observer_list.end(); oi++)
-    {
-      OB_EV &ob_ev = *oi;
-      if (WHITE_LIST_EV_STOP == (ob_ev.event & WHITE_LIST_EV_STOP))
-      {
-        //ob_ev.observer->update(orignal_streamid, WHITE_LIST_EV_STOP);
-        ob_ev.observer->update(removal_list[i], WHITE_LIST_EV_STOP);
-      }
-    }
-  }
+  //  for (ObserverList::iterator oi = _observer_list.begin();
+  //    oi != _observer_list.end(); oi++)
+  //  {
+  //    OB_EV &ob_ev = *oi;
+  //    if (WHITE_LIST_EV_STOP == (ob_ev.event & WHITE_LIST_EV_STOP))
+  //    {
+  //      //ob_ev.observer->update(orignal_streamid, WHITE_LIST_EV_STOP);
+  //      ob_ev.observer->update(removal_list[i], WHITE_LIST_EV_STOP);
+  //    }
+  //  }
+  //}
 }
 
 void WhitelistManager::del_stream(const StreamId_Ext& streamid) {

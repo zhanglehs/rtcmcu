@@ -138,11 +138,11 @@ namespace media_manager
       }
       else
       {
-        FLVMiniBlockGenerator* block_generator = stream_store->flv_miniblock_generator;
-        json_object* start_timestamp = json_object_new_int64(block_generator->_last_cut_timestamp);
-        json_object* flv_miniblock_generator = json_object_new_object();
-        json_object_object_add(flv_miniblock_generator, "_last_cut_timestamp", start_timestamp);
-        json_object_object_add(obj, "flv_miniblock_generator", flv_miniblock_generator);
+        //FLVMiniBlockGenerator* block_generator = stream_store->flv_miniblock_generator;
+        //json_object* start_timestamp = json_object_new_int64(block_generator->_last_cut_timestamp);
+        //json_object* flv_miniblock_generator = json_object_new_object();
+        //json_object_object_add(flv_miniblock_generator, "_last_cut_timestamp", start_timestamp);
+        //json_object_object_add(obj, "flv_miniblock_generator", flv_miniblock_generator);
       }
 
       if (stream_store->flv_miniblock_cache == NULL)
@@ -258,44 +258,44 @@ namespace media_manager
 
   void CacheManager::_fragment_generator_state(FragmentGenerator* generator, json_object* rsp)
   {
-    deque<flv_tag*>::iterator it = generator->_temp_tag_store.begin();
+    //deque<flv_tag*>::iterator it = generator->_temp_tag_store.begin();
 
-    uint32_t data_len = 0;
-    for (; it != generator->_temp_tag_store.end(); it++)
-    {
-      flv_tag* tag = *it;
-      data_len += flv_get_datasize(tag->datasize) + sizeof(flv_tag)+4;
-    }
+    //uint32_t data_len = 0;
+    //for (; it != generator->_temp_tag_store.end(); it++)
+    //{
+    //  flv_tag* tag = *it;
+    //  data_len += flv_get_datasize(tag->datasize) + sizeof(flv_tag)+4;
+    //}
 
-    json_object* buf_tag_store_size = json_object_new_int64(generator->_temp_tag_store.size());
-    json_object_object_add(rsp, "buf_tag_store_size", buf_tag_store_size);
+    //json_object* buf_tag_store_size = json_object_new_int64(generator->_temp_tag_store.size());
+    //json_object_object_add(rsp, "buf_tag_store_size", buf_tag_store_size);
 
-    json_object* buf_data_len = json_object_new_int64(data_len);
-    json_object_object_add(rsp, "buffer_data_len", buf_data_len);
+    //json_object* buf_data_len = json_object_new_int64(data_len);
+    //json_object_object_add(rsp, "buffer_data_len", buf_data_len);
 
-    json_object* main_type = json_object_new_int(generator->_main_type);
-    json_object_object_add(rsp, "main_type", main_type);
+    //json_object* main_type = json_object_new_int(generator->_main_type);
+    //json_object_object_add(rsp, "main_type", main_type);
 
-    json_object* cut_by = json_object_new_int(generator->_cut_by);
-    json_object_object_add(rsp, "cut_by", cut_by);
+    //json_object* cut_by = json_object_new_int(generator->_cut_by);
+    //json_object_object_add(rsp, "cut_by", cut_by);
 
-    json_object* keyframe_num = json_object_new_int(generator->_keyframe_num);
-    json_object_object_add(rsp, "keyframe_num", keyframe_num);
+    //json_object* keyframe_num = json_object_new_int(generator->_keyframe_num);
+    //json_object_object_add(rsp, "keyframe_num", keyframe_num);
 
-    json_object* flv_header_len = json_object_new_int(generator->_flv_header_len);
-    json_object_object_add(rsp, "flv_header_len", flv_header_len);
+    //json_object* flv_header_len = json_object_new_int(generator->_flv_header_len);
+    //json_object_object_add(rsp, "flv_header_len", flv_header_len);
 
-    json_object* flv_header_flag = json_object_new_int(generator->_flv_header_flag);
-    json_object_object_add(rsp, "flv_header_flag", flv_header_flag);
+    //json_object* flv_header_flag = json_object_new_int(generator->_flv_header_flag);
+    //json_object_object_add(rsp, "flv_header_flag", flv_header_flag);
 
-    json_object* input_tag_num = json_object_new_int(generator->_input_tag_num);
-    json_object_object_add(rsp, "input_tag_num", input_tag_num);
+    //json_object* input_tag_num = json_object_new_int(generator->_input_tag_num);
+    //json_object_object_add(rsp, "input_tag_num", input_tag_num);
 
-    json_object* last_seq = json_object_new_int(generator->_last_seq);
-    json_object_object_add(rsp, "last_seq", last_seq);
+    //json_object* last_seq = json_object_new_int(generator->_last_seq);
+    //json_object_object_add(rsp, "last_seq", last_seq);
 
-    json_object* last_key_seq = json_object_new_int(generator->_last_key_seq);
-    json_object_object_add(rsp, "last_key_seq", last_key_seq);
+    //json_object* last_key_seq = json_object_new_int(generator->_last_key_seq);
+    //json_object_object_add(rsp, "last_key_seq", last_key_seq);
   }
 
   void CacheManager::_flv_miniblock_generator_state(fragment::FLVMiniBlockGenerator* generator, json_object* rsp)
@@ -304,19 +304,6 @@ namespace media_manager
     {
       json_object* flv_miniblock_generator = json_object_new_string("null");
       json_object_object_add(rsp, "flv_miniblock_generator", flv_miniblock_generator);
-    }
-    else
-    {
-      _fragment_generator_state(generator, rsp);
-    }
-  }
-
-  void CacheManager::_flv_block_generator_state(FLVBlockGenerator* generator, json_object* rsp)
-  {
-    if (generator == NULL)
-    {
-      json_object* flv_block_generator = json_object_new_string("null");
-      json_object_object_add(rsp, "flv_block_generator", flv_block_generator);
     }
     else
     {
@@ -349,13 +336,13 @@ namespace media_manager
 
   void CacheManager::_flv_live_miniblock_cache_state(FLVMiniBlockCircularCache* cache, json_object* rsp)
   {
-    _live_cache_state(cache, rsp);
+    //_live_cache_state(cache, rsp);
 
-    json_object* flv_header_len = json_object_new_int(cache->_flv_header_len);
-    json_object_object_add(rsp, "flv_header_len", flv_header_len);
+    //json_object* flv_header_len = json_object_new_int(cache->_flv_header_len);
+    //json_object_object_add(rsp, "flv_header_len", flv_header_len);
 
-    json_object* flv_header_flag = json_object_new_int(cache->_flv_header_flag);
-    json_object_object_add(rsp, "flv_header_flag", flv_header_flag);
+    //json_object* flv_header_flag = json_object_new_int(cache->_flv_header_flag);
+    //json_object_object_add(rsp, "flv_header_flag", flv_header_flag);
   }
 
 }
