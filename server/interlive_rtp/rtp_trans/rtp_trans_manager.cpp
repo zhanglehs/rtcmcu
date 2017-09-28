@@ -7,7 +7,7 @@
 
 using namespace std;
 
-RTPTransManager::RTPTransManager(RTPMMHelper *helper)
+RTPTransManager::RTPTransManager(RTPMediaManagerHelper *helper)
 :_mm_helper(helper) {
 }
 

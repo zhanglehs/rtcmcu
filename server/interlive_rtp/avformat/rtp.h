@@ -26,8 +26,6 @@ namespace avformat
         RTP_AV_MP3 = 14,
         RTP_AV_H264 = 96,
         RTP_AV_AAC = 97,
-		RTP_AV_AAC_GXH = 115,
-		RTP_AV_AAC_MAIN = 116,
         RTP_AV_FEC = 127,
 		RTP_AV_F_FEC = 126,
         RTP_AV_ALL = 255,

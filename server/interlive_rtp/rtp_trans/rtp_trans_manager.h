@@ -1,43 +1,28 @@
 #ifndef __RTP_TRANS_MANAGER_
 #define __RTP_TRANS_MANAGER_
 
-#include <deque>
-//#include <ext/hash_map>
-#include <stdint.h>
-#include <time.h>
-
 #include <appframe/array_object_pool.hpp>
 #include "avformat/sdp.h"
 #include "avformat/rtp.h"
 #include "rtp_media_manager_helper.h"
 #include "rtp_types.h"
-//#include "rtp_trans_id.h"
 #include "rtp_sender_trans.h"
 #include "rtp_receiver_trans.h"
 #include "rtp_trans_stat.h"
 #include "streamid.h"
+#include <deque>
+#include <stdint.h>
+#include <time.h>
 
 const int MAX_RTP_LEN = (10 * 1024);
 
 class RtpConnection;
 
-//enum RTP_TRANS_EVENT {
-//  RTP_TRANS_EV_CLOSE = 1,
-//  RTP_TRANS_EV_WRITABLE
-//};
-
-//enum GET_RTP_CODE {
-//  GET_RTP_OK = 0,
-//  GET_RTP_BUF_SIZE_ERROR = -1,
-//  GET_RTP_SENDER_QUEUE_EMPTY = -2,
-//  GET_RTP_BAD_DATA = -3,
-//};
-
 class RTPTransManager {
   friend class RTPTrans;
 
 public:
-  RTPTransManager(RTPMMHelper *helper);
+  RTPTransManager(RTPMediaManagerHelper *helper);
   ~RTPTransManager();
 
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
@@ -70,7 +55,7 @@ private:
   static const uint32_t MAX_TRANS_NUM = 5000;
   static const uint32_t MAX_RTP_ITEM_NUM = 25000;
 
-  RTPMMHelper *_mm_helper;
+  RTPMediaManagerHelper *_mm_helper;
 
   std::map<uint32_t, std::set<RtpConnection*> > m_stream_groups;
 };

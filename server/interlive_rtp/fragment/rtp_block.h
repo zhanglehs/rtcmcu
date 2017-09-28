@@ -15,45 +15,25 @@
 
 #include <stdint.h>
 #include "avformat/rtp.h"
-#include "util/port.h"
 
-namespace fragment
-{
-    class DLLEXPORT RTPBlock
-    {
-    public:
-        RTPBlock();
-        RTPBlock(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len);
+namespace fragment {
 
-        avformat::RTP_FIXED_HEADER* init();
-        avformat::RTP_FIXED_HEADER* set(const avformat::RTP_FIXED_HEADER*, uint16_t);
-        avformat::RTP_FIXED_HEADER* get(uint16_t&);
+  class RTPBlock {
+  public:
+    RTPBlock();
+    RTPBlock(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len);
+    ~RTPBlock();
 
-        uint32_t get_ssrc() const;
-        uint16_t get_seq() const;
-        uint32_t get_timestamp() const;
+    avformat::RTP_FIXED_HEADER* set(const avformat::RTP_FIXED_HEADER*, uint16_t);
+    avformat::RTP_FIXED_HEADER* get(uint16_t&);
+    bool is_valid();
+    void finalize();
+    uint16_t get_seq() const;
+    uint32_t get_timestamp() const;
 
-        avformat::RTPAVType get_payload_type();
-
-        bool is_valid();
-        void set_invalid();
-        uint16_t len();
-
-        void finalize();
-        ~RTPBlock();
-
-        // these functions are working for debug.
-        static int get_new_count();
-        static int get_delete_count();
-
-        static int new_count;
-        static int delete_count;
-
-        uint16_t _max_len;
-
-    protected:
-        avformat::RTP_FIXED_HEADER* _rtp_header;
-        uint16_t _rtp_len;
-    };
+  protected:
+    avformat::RTP_FIXED_HEADER* _rtp_header;
+    uint16_t _rtp_len;
+  };
 
 }

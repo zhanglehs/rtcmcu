@@ -192,8 +192,6 @@ RTPSession *RTPTrans::get_audio_session()
             {
             case avformat::RTP_AV_MP3:
             case avformat::RTP_AV_AAC:
-            case avformat::RTP_AV_AAC_GXH:
-            case avformat::RTP_AV_AAC_MAIN:
                 return session;
             default:
                 break;

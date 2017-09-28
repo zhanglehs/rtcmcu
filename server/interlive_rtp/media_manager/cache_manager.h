@@ -29,7 +29,6 @@
 #include <deque>
 #include <string>
 #include <list>
-//#include <ext/hash_map>
 
 #include "fragment/fragment.h"
 #include "fragment/fragment_generator.h"
@@ -41,7 +40,6 @@
 #include <event.h>
 #include "cache_manager_config.h"
 #include "circular_cache.h"
-//#include "http_server.h"
 
 #include "media_manager_state.h"
 
@@ -53,435 +51,353 @@
 
 #define CACHE_RESPONSE_VERSION_2 2
 
+namespace media_manager {
+  static const uint32_t CacheMassageMaxLen = 128;
+  static const uint32_t KeepStreamAfterClose = 2 * 3600 * 1000; // millisecond
 
-namespace media_manager
-{
-    static const uint32_t CacheMassageMaxLen = 128;
+  enum CacheReqStatus {
+    CACHE_REQ_STREAM_CONFIG = 1,
+    CACHE_REQ_STOP = 9,
 
-    //	static const uint32_t RateTypeCount = 4;
+    CACHE_REQ_LIVE_FLV_HEADER = 100,
+    CACHE_REQ_SHIFT_FLV_HEADER = 110,
 
-    static const uint32_t KeepStreamAfterClose = 2 * 3600 * 1000; // millisecond
+    CACHE_REQ_LIVE_FLV_LATEST_KEY_BLOCK = 200,
+    CACHE_REQ_LIVE_FLV_BLOCK = 201,
+    CACHE_REQ_SHIFT_FLV_BLOCK = 210,
 
+    CACHE_REQ_LIVE_FLV_LATEST_KEY_FRAGMENT = 300,
+    CACHE_REQ_LIVE_FLV_LATEST_N_FRAGMENT = 301,
+    CACHE_REQ_LIVE_FLV_LATEST_FRAGMENT = 302,
 
-    enum CacheReqStatus
-    {
-        CACHE_REQ_STREAM_CONFIG = 1,
-        CACHE_REQ_STOP = 9,
+    CACHE_REQ_LIVE_FLV_FRAGMENT_BY_SEQ = 310,
+    CACHE_REQ_LIVE_FLV_FRAGMENT_BY_TS = 311,
+    // CACHE_REQ_SHIFT_FLV_FRAGMENT = 320,
 
-        CACHE_REQ_LIVE_FLV_HEADER = 100,
-        CACHE_REQ_SHIFT_FLV_HEADER = 110,
+    CACHE_REQ_LIVE_TS_LATEST_SEGMENT = 400,
+    CACHE_REQ_LIVE_TS_LATEST_N_SEGMENT = 401,
 
-        CACHE_REQ_LIVE_FLV_LATEST_KEY_BLOCK = 200,
-        CACHE_REQ_LIVE_FLV_BLOCK = 201,
-        CACHE_REQ_SHIFT_FLV_BLOCK = 210,
+    CACHE_REQ_LIVE_TS_SEGMENT_BY_SEQ = 420,
 
-        CACHE_REQ_LIVE_FLV_LATEST_KEY_FRAGMENT = 300,
-        CACHE_REQ_LIVE_FLV_LATEST_N_FRAGMENT = 301,
-        CACHE_REQ_LIVE_FLV_LATEST_FRAGMENT = 302,
+    CACHE_REQ_LIVE_SDP = 500,
+    CACHE_REQ_LIVE_RTP = 510,
 
-        CACHE_REQ_LIVE_FLV_FRAGMENT_BY_SEQ = 310,
-        CACHE_REQ_LIVE_FLV_FRAGMENT_BY_TS = 311,
-        // CACHE_REQ_SHIFT_FLV_FRAGMENT = 320,
+    CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK = 600,
+    CACHE_REQ_LIVE_FLV_MINIBLOCK = 601,
+    CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER = 610,
+  };
 
-        CACHE_REQ_LIVE_TS_LATEST_SEGMENT = 400,
-        CACHE_REQ_LIVE_TS_LATEST_N_SEGMENT = 401,
+  enum RateType {
+    RATE_AUDIO = 0,					// only audio
+    RATE_KEY_VIDEO_AND_AUDIO = 1,	// key frame and audio
+    RATE_P_VIDEO_AND_AUDIO = 2,		// key frame, p frame and audio
+    RATE_COMPLETE = 3				// full video and audio
+  };
 
-        CACHE_REQ_LIVE_TS_SEGMENT_BY_SEQ = 420,
+  enum ModuleType {
+    MODULE_TYPE_UPLOADER = 1,
+    MODULE_TYPE_BACKEND = 2
+  };
 
-        CACHE_REQ_LIVE_SDP = 500,
-        CACHE_REQ_LIVE_RTP = 510,
-
-        CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK = 600,
-        CACHE_REQ_LIVE_FLV_MINIBLOCK = 601,
-        CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER = 610,
-    };
-
-
-
-    enum RateType
-    {
-        RATE_AUDIO = 0,					// only audio
-        RATE_KEY_VIDEO_AND_AUDIO = 1,	// key frame and audio
-        RATE_P_VIDEO_AND_AUDIO = 2,		// key frame, p frame and audio
-        RATE_COMPLETE = 3				// full video and audio
-    };
-
-    enum ModuleType
-    {
-        MODULE_TYPE_UPLOADER = 1,
-        MODULE_TYPE_BACKEND = 2
-    };
-
-    enum StreamStoreState
-    {
-        STREAM_STORE_CONSTRUCT = 0,
-        STREAM_STORE_INIT = 1,
-        //        STREAM_STORE_HEADER = 2,
-        STREAM_STORE_ACTIVE = 2,
-        STREAM_STORE_STOP = 3,
-        STREAM_STORE_DESTROY = 4
-    };
-
+  enum StreamStoreState {
+    STREAM_STORE_CONSTRUCT = 0,
+    STREAM_STORE_INIT = 1,
+    //        STREAM_STORE_HEADER = 2,
+    STREAM_STORE_ACTIVE = 2,
+    STREAM_STORE_STOP = 3,
+    STREAM_STORE_DESTROY = 4
+  };
 
 #pragma pack(1)
-    struct cache_request_header
-    {
-        uint16_t		version;
-        uint16_t		type;
-        uint32_t	    range_start;
-        uint32_t        range_len;
-        StreamId_Ext	stream_id;
-        int32_t			seq;
+  struct cache_request_header {
+    uint16_t		version;
+    uint16_t		type;
+    uint32_t	    range_start;
+    uint32_t        range_len;
+    StreamId_Ext	stream_id;
+    int32_t			seq;
 
-        cache_request_header(){}
+    cache_request_header() {
+    }
 
-        cache_request_header(const cache_request_header& right)
-        {
-            range_start = right.range_start;
-            range_len = right.range_len;
-            stream_id = right.stream_id;
-            seq = right.seq;
-            type = right.type;
-            version = right.version;
-        }
+    cache_request_header(const cache_request_header& right) {
+      range_start = right.range_start;
+      range_len = right.range_len;
+      stream_id = right.stream_id;
+      seq = right.seq;
+      type = right.type;
+      version = right.version;
+    }
 
-        void generate_debug_header(std::string& input_string)
-        {
-            memset(this, 0, sizeof(*this));
+    void generate_debug_header(std::string& input_string) {
+      memset(this, 0, sizeof(*this));
 
-            char* c = (char*)this;
-            int32_t len = MIN(sizeof(*this), input_string.length());
+      char* c = (char*)this;
+      int32_t len = MIN(sizeof(*this), input_string.length());
 
-            for (int32_t i = 0; i < len; i++)
-            {
-                c[i] = input_string[i];
-            }
+      for (int32_t i = 0; i < len; i++) {
+        c[i] = input_string[i];
+      }
 
-            return;
-        }
+      return;
+    }
 
-        bool operator==(const cache_request_header& right) const
-        {
-            if (this == &right)
-            {
-                return true;
-            }
+    bool operator==(const cache_request_header& right) const {
+      if (this == &right) {
+        return true;
+      }
 
-            if (range_start == right.range_start
-                && range_len == right.range_len
-                && stream_id == right.stream_id
-                && seq == right.seq
-                && type == right.type
-                && version == right.version)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-        }
+      if (range_start == right.range_start
+        && range_len == right.range_len
+        && stream_id == right.stream_id
+        && seq == right.seq
+        && type == right.type
+        && version == right.version) {
+        return true;
+      }
+      else {
+        return false;
+      }
+    }
+  };
 
-    };
-
-    struct cache_response_header
-    {
-        int16_t		version;
-        int16_t		type;
-        int16_t		status_code;
-        uint32_t	payload_total_len;
-        uint32_t	range_start;
-        uint32_t	range_len;
-        StreamId_Ext	stream_id;
-        int32_t			seq;
-        uint8_t		payload[0];
-    };
-
+  struct cache_response_header {
+    int16_t		version;
+    int16_t		type;
+    int16_t		status_code;
+    uint32_t	payload_total_len;
+    uint32_t	range_start;
+    uint32_t	range_len;
+    StreamId_Ext	stream_id;
+    int32_t			seq;
+    uint8_t		payload[0];
+  };
 #pragma pack()
 
+  class StreamStore {
+  public:
+    StreamStore(const StreamId_Ext& stream_id_ext);
 
+    int32_t init(uint8_t module_type, CacheManagerConfig* cache_manager_config, CacheManager* cache_manager);
 
-    class StreamStore
-    {
-    public:
-        StreamStore(const StreamId_Ext& stream_id_ext);
+    timeval set_start_ts(timeval& ts);
+    timeval get_start_ts();
 
-        int32_t init(uint8_t module_type, CacheManagerConfig* cache_manager_config, CacheManager* cache_manager);
+    time_t& set_push_active();
+    time_t& set_req_active();
 
-        timeval set_start_ts(timeval& ts);
+    time_t& get_push_active_time();
+    time_t& get_req_active_time();
 
-        timeval get_start_ts();
+    //uint32_t get_last_block_seq();
+    //uint64_t get_last_push_relative_timestamp_ms();
 
-        time_t& set_push_active();
-        time_t& set_req_active();
+    ~StreamStore();
 
-        time_t& get_push_active_time();
-        time_t& get_req_active_time();
+  public:
+    StreamId_Ext stream_id;
+    time_t       create_time;
 
-        uint32_t get_last_block_seq();
-        uint64_t get_last_push_relative_timestamp_ms();
+    StreamStoreState state;
 
-        ~StreamStore();
+    fragment::FLVMiniBlockGenerator* flv_miniblock_generator;
+    FLVMiniBlockCircularCache* flv_miniblock_cache;
 
-    public:
-        StreamId_Ext stream_id;
-        time_t       create_time;
+    RTPMediaCache* rtp_media_cache;
 
-        StreamStoreState state;
+  protected:
+    time_t				_last_push_time;
+    time_t				_last_req_time;
 
-        fragment::FLVMiniBlockGenerator* flv_miniblock_generator;
-        FLVMiniBlockCircularCache* flv_miniblock_cache;
+    uint64_t _last_push_relative_timestamp_ms;
+  };
 
-        RTPMediaCache* rtp_media_cache;
+  class UploaderCacheManagerInterface {
+  public:
+    virtual int32_t init_stream(const StreamId_Ext& stream_id) = 0;
 
-    protected:
-        time_t				_last_push_time;
-        time_t				_last_req_time;
+    //virtual int32_t set_start_ts_msec(StreamId_Ext stream_id, int64_t start_ts_msec) = 0;
 
-        uint64_t _last_push_relative_timestamp_ms;
-    };
+    virtual int32_t set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len) = 0;
 
+    virtual int32_t set_flv_tag(StreamId_Ext stream_id, flv_tag* input_flv_tag, bool malloc_new_memory_flag = true) = 0;
 
-    class UploaderCacheManagerInterface
-    {
-    public:
-        virtual int32_t init_stream(const StreamId_Ext& stream_id) = 0;
+    virtual int32_t stop_stream(StreamId_Ext stream_id) = 0;
 
-        //virtual int32_t set_start_ts_msec(StreamId_Ext stream_id, int64_t start_ts_msec) = 0;
+    virtual int32_t destroy_stream(StreamId_Ext stream_id) = 0;
 
-        virtual int32_t set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len) = 0;
+    virtual int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type = CACHE_WATCHING_ALL, void* arg = NULL) = 0;
 
-        virtual int32_t set_flv_tag(StreamId_Ext stream_id, flv_tag* input_flv_tag, bool malloc_new_memory_flag = true) = 0;
+    virtual ~UploaderCacheManagerInterface(){}
+  };
 
-        virtual int32_t stop_stream(StreamId_Ext stream_id) = 0;
+  class PlayerCacheManagerInterface {
+  public:
+    // stream method.
+    virtual int32_t init_stream(const StreamId_Ext& stream_id) = 0;
+    virtual bool stream_initialized(StreamId_Ext& stream_id) = 0;
 
-        virtual int32_t destroy_stream(StreamId_Ext stream_id) = 0;
+    // miniblock method
+    virtual flv_header* get_miniblock_flv_header(StreamId_Ext stream_id, uint32_t& header_len, int32_t& status_code, bool req_from_backend = true) = 0;
+    virtual fragment::FLVHeader* get_miniblock_flv_header(StreamId_Ext stream_id, fragment::FLVHeader &header, int32_t& status_code) = 0;
+    virtual fragment::FLVMiniBlock* get_latest_miniblock(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend = true) = 0;
+    virtual fragment::FLVMiniBlock* get_miniblock_by_seq(StreamId_Ext stream_id, int32_t seq, int32_t& status_code, bool return_next_if_not_found = false, bool req_from_backend = true) = 0;
 
-        virtual int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type = CACHE_WATCHING_ALL, void* arg = NULL) = 0;
+    // other method
+    virtual int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type = CACHE_WATCHING_ALL, void* arg = NULL) = 0;
+    virtual ~PlayerCacheManagerInterface(){}
+  };
 
-        virtual ~UploaderCacheManagerInterface(){}
-    };
+  void cache_manager_state(char* query, char* param, json_object* rsp);
 
-    class PlayerCacheManagerInterface
-    {
-    public:
-        // stream method.
-        virtual int32_t init_stream(const StreamId_Ext& stream_id) = 0;
-        virtual bool contains_stream(const StreamId_Ext& stream_id, int32_t& status_code) = 0;
-        virtual bool stream_initialized(StreamId_Ext& stream_id) = 0;
+  void cache_manager_stream_state(char* query, char* param, json_object* rsp);
 
-        // miniblock method
-        virtual flv_header* get_miniblock_flv_header(StreamId_Ext stream_id, uint32_t& header_len, int32_t& status_code, bool req_from_backend = true) = 0;
-        virtual fragment::FLVHeader* get_miniblock_flv_header(StreamId_Ext stream_id, fragment::FLVHeader &header, int32_t& status_code) = 0;
-        virtual fragment::FLVMiniBlock* get_latest_miniblock(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend = true) = 0;
-        virtual fragment::FLVMiniBlock* get_miniblock_by_seq(StreamId_Ext stream_id, int32_t seq, int32_t& status_code, bool return_next_if_not_found = false, bool req_from_backend = true) = 0;
+  typedef void (CacheManager::*HttpHandler_t)(char* query, char* param, json_object* rsp);
 
+  /**
+  * @class	CacheManager
+  * @brief	This is base cache manager class, \n
+  *			you can use this class to get header/block/fragment. \n
+  *			If you want to set value, you can use the derived classes.
+  * @see		FLVBlock \n
+  *			FLVFragment \n
+  *			UploaderCacheManagerInterface \n
+  *			BackendCacheManagerInterface \n
+  *			PlayerCacheManagerInterface
+  */
+  class CacheManager :
+    public UploaderCacheManagerInterface,
+    public PlayerCacheManagerInterface,
+    public MediaManagerRTPInterface {
+  public:
+    CacheManager(uint8_t module_type, CacheManagerConfig* config = NULL);
 
-        // other method
-        virtual int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type = CACHE_WATCHING_ALL, void* arg = NULL) = 0;
-        virtual ~PlayerCacheManagerInterface(){}
-    };
+    void set_event_base(event_base* base);
+    void set_http_server(http::HTTPServer *server);
 
-    void cache_manager_state(char* query, char* param, json_object* rsp);
+    virtual ~CacheManager();
+    static void Destroy();
 
-    void cache_manager_stream_state(char* query, char* param, json_object* rsp);
+    static UploaderCacheManagerInterface* get_uploader_cache_instance();
+    static PlayerCacheManagerInterface* get_player_cache_instance();
+    static MediaManagerRTPInterface* get_rtp_cache_instance();
+    static CacheManager* get_cache_manager();
 
-    typedef void (CacheManager::*HttpHandler_t)(char* query, char* param, json_object* rsp);
+    // UploaderCacheManagerInterface
+    int32_t init_stream(const StreamId_Ext& stream_id);
+    int32_t init_stream(const StreamId_Ext& stream_id, int32_t& status_code);
+    int32_t set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len);
+    int32_t set_flv_tag(StreamId_Ext stream_id, flv_tag* input_flv_tag, bool malloc_new_memory_flag = true);
+    int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type, void* arg);
+    int32_t stop_stream(StreamId_Ext stream_id);
+    int32_t stop_stream(uint32_t stream_id);
+    int32_t destroy_stream();
+    int32_t destroy_stream(StreamId_Ext stream_id);
+    int32_t destroy_stream(uint32_t stream_id);
 
+    // PlayerCacheManagerInterface
+    bool stream_initialized(StreamId_Ext& stream_id);
 
-    /**
-    * @class	CacheManager
-    * @brief	This is base cache manager class, \n
-    *			you can use this class to get header/block/fragment. \n
-    *			If you want to set value, you can use the derived classes.
-    * @see		FLVBlock \n
-    *			FLVFragment \n
-    *			UploaderCacheManagerInterface \n
-    *			BackendCacheManagerInterface \n
-    *			PlayerCacheManagerInterface
-    */
-    class CacheManager :
-        public UploaderCacheManagerInterface,
-        public PlayerCacheManagerInterface,
-        public MediaManagerRTPInterface
-    {
-    public:
-        CacheManager(uint8_t module_type, WhiteListMap* white_list_map);
-        CacheManager(uint8_t module_type, CacheManagerConfig* config, WhiteListMap* white_list_map);
+    // miniblock method
+    flv_header* get_miniblock_flv_header(StreamId_Ext stream_id, uint32_t& header_len, int32_t& status_code, bool req_from_backend = true);
+    fragment::FLVHeader* get_miniblock_flv_header(StreamId_Ext stream_id, fragment::FLVHeader &header, int32_t& status_code);
+    fragment::FLVMiniBlock* get_latest_miniblock(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend = true);
+    fragment::FLVMiniBlock* get_miniblock_by_seq(StreamId_Ext stream_id, int32_t seq, int32_t& status_code, bool return_next_if_not_found = false, bool req_from_backend = true);
+    avformat::SdpInfo* get_sdp(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend = true);
 
-        void set_event_base(event_base* base);
-		void set_http_server(http::HTTPServer *server);
+    // backend internal interface.
+    int32_t set_flv_block_flvheader(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len);
+    int32_t set_flv_miniblock_flvheader(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len);
 
-        virtual ~CacheManager();
-        static void Destroy();
+    int32_t set_miniblock(fragment::flv_miniblock_header* input_block);
 
-        static UploaderCacheManagerInterface* get_uploader_cache_instance();
+    int32_t set_block(fragment::flv_block_header* input_block);
 
-        static PlayerCacheManagerInterface* get_player_cache_instance();
+    int32_t load_config(const CacheManagerConfig* config);
 
-        static MediaManagerRTPInterface* get_rtp_cache_instance();
+    void timer_service(const int32_t fd, short which, void *arg);
 
-        static CacheManager* get_cache_manager();
+    void start_timer();
 
-        // UploaderCacheManagerInterface
-        int32_t init_stream(const StreamId_Ext& stream_id);
+    void stop_timer();
 
-        int32_t init_stream(const StreamId_Ext& stream_id, int32_t& status_code);
+    void http_state(char* query, char* param, json_object* rsp);
 
-        int32_t set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len);
+    // MediaManagerRTPInterface
+    virtual RTPMediaCache* get_rtp_media_cache(const StreamId_Ext& stream_id, int32_t& status_code, bool req_from_backend = true);
 
-        int32_t set_flv_tag(StreamId_Ext stream_id, flv_tag* input_flv_tag, bool malloc_new_memory_flag = true);
+    virtual int32_t notify_watcher(StreamId_Ext& stream_id, uint8_t watch_type);
 
-        int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type, void* arg);
+    virtual void on_timer();
 
-        int32_t add_tracker_info(StreamId_Ext stream_id, uint32_t parent_ip, uint16_t parent_port, uint16_t level);
+    StreamStore* get_stream_store(StreamId_Ext& stream_id, int32_t& status_code);
 
-        int32_t stop_stream(StreamId_Ext stream_id);
+  protected:
+    bool contains_stream(const StreamId_Ext& stream_id);
+    int32_t _init_dump_stream_dir(StreamId_Ext stream_id);
+    int32_t _set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header);
+    int32_t _set_flv_tag(StreamId_Ext stream_id, flv_tag* flv_tag, bool malloc_new_memory_flag = true);
+    flv_header* _get_flv_header(StreamId_Ext stream_id, int32_t& header_len, int32_t& status_code);
+    int32_t _notify_watcher(StreamId_Ext& stream_id, uint8_t watch_type = CACHE_WATCHING_ALL);
+    int32_t _req_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq = 0);
+    int32_t _req_from_backend_rtp(StreamId_Ext stream_id, int32_t request_state);
+    int32_t _req_stop_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq = 0);
+    int32_t _req_stop_from_backend(uint32_t stream_id);
+    int32_t _req_stop_from_backend_rtp(StreamId_Ext stream_id);
+    int32_t _req_stop_from_backend(StreamId_Ext stream_id);
+    //int32_t _req_next_shift_flv_fragment(StreamId_Ext stream_id, int32_t fragment_seq);
+    int32_t _get_cache_request_status(int32_t status_code);
 
-        int32_t stop_stream(uint32_t stream_id);
+    uint8_t _init_cache_request_header();
+    uint8_t _init_cache_response_header();
 
-        int32_t destroy_stream();
+    void _check_stream_store_timeout();
 
-        int32_t destroy_stream(StreamId_Ext stream_id);
+    void _adjust_flv_miniblock_cache_size();
 
-        int32_t destroy_stream(uint32_t stream_id);
+    int32_t _destroy_stream_store();
+    int32_t _destroy_stream_store(StreamId_Ext& stream_id);
+    int32_t _destroy_stream_store(uint32_t stream_id);
 
+    // state
+    void _init_http_server();
+    void _add_http_handler(const char* query, const char* param, HttpHandler_t handler);
 
-        // PlayerCacheManagerInterface
-        bool contains_stream(const StreamId_Ext& stream_id, int32_t& status_code);
-        bool contains_stream(const StreamId_Ext& stream_id);
-        bool stream_initialized(StreamId_Ext& stream_id);
+    void _state(char* query, char* param, json_object* rsp);
+    void _stream_list(char* query, char* param, json_object* rsp);
+    void _store_state(char* query, char* param, json_object* rsp);
+    void _whitelist_fake(char* query, char* param, json_object* rsp);
 
-        // miniblock method
-        flv_header* get_miniblock_flv_header(StreamId_Ext stream_id, uint32_t& header_len, int32_t& status_code, bool req_from_backend = true);
-        fragment::FLVHeader* get_miniblock_flv_header(StreamId_Ext stream_id, fragment::FLVHeader &header, int32_t& status_code);
-        fragment::FLVMiniBlock* get_latest_miniblock(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend = true);
-        fragment::FLVMiniBlock* get_miniblock_by_seq(StreamId_Ext stream_id, int32_t seq, int32_t& status_code, bool return_next_if_not_found = false, bool req_from_backend = true);
-        avformat::SdpInfo* get_sdp(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend = true);
+    void _live_cache_state(CircularCache* cache, json_object* rsp);
 
-        // backend internal interface.
-        int32_t set_flv_block_flvheader(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len);
-        int32_t set_flv_miniblock_flvheader(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len);
+    void _fragment_generator_state(fragment::FragmentGenerator* generator, json_object* rsp);
+    void _flv_miniblock_generator_state(fragment::FLVMiniBlockGenerator* generator, json_object* rsp);
+    void _flv_block_generator_state(fragment::FLVBlockGenerator* generator, json_object* rsp);
 
-        int32_t set_miniblock(fragment::flv_miniblock_header* input_block);
+    void _flv_live_miniblock_cache_state(FLVMiniBlockCircularCache* cache, json_object* rsp);
 
-        int32_t set_block(fragment::flv_block_header* input_block);
+  protected:
+    typedef __gnu_cxx::hash_map<StreamId_Ext, StreamStore*> StreamStoreMap_t;
+    StreamStoreMap_t _stream_store_map;
 
-        int32_t load_config(const CacheManagerConfig* config);
+    typedef std::map<std::string, HttpHandler_t> HttpHandlerMap_t;
+    HttpHandlerMap_t _http_handler_map;
 
-        void timer_service(const int32_t fd, short which, void *arg);
+    std::vector<CacheWatcher*> _notify_handle_vec;
 
-        void start_timer();
+    uint8_t		_module_type;
 
-        void stop_timer();
+    static CacheManager* _instance;
 
-        void http_state(char* query, char* param, json_object* rsp);
+    struct event _ev_timer;
 
+    struct event_base* _main_base;
 
-        // MediaManagerRTPInterface
-        virtual RTPMediaCache* get_rtp_media_cache(const StreamId_Ext& stream_id, int32_t& status_code, bool req_from_backend = true);
+    bool _time_service_active;
 
-        virtual int32_t notify_watcher(StreamId_Ext& stream_id, uint8_t watch_type);
-
-        virtual void on_timer();
-
-        StreamStore* get_stream_store(StreamId_Ext& stream_id, int32_t& status_code);
-
-    public:
-
-    protected:
-
-        int32_t _init_dump_stream_dir(StreamId_Ext stream_id);
-
-        int32_t _set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header);
-
-        int32_t _set_flv_tag(StreamId_Ext stream_id, flv_tag* flv_tag, bool malloc_new_memory_flag = true);
-
-        flv_header* _get_flv_header(StreamId_Ext stream_id, int32_t& header_len, int32_t& status_code);
-
-
-        int32_t _notify_watcher(StreamId_Ext& stream_id, uint8_t watch_type = CACHE_WATCHING_ALL);
-
-
-        int32_t _req_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq = 0);
-
-        int32_t _req_from_backend_rtp(StreamId_Ext stream_id, int32_t request_state);
-
-        int32_t _req_stop_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq = 0);
-
-        int32_t _req_stop_from_backend(uint32_t stream_id);
-
-        int32_t _req_stop_from_backend_rtp(StreamId_Ext stream_id);
-
-        int32_t _req_stop_from_backend(StreamId_Ext stream_id);
-
-        //int32_t _req_next_shift_flv_fragment(StreamId_Ext stream_id, int32_t fragment_seq);
-
-
-        int32_t _get_cache_request_status(int32_t status_code);
-
-
-        uint8_t _init_cache_request_header();
-        uint8_t _init_cache_response_header();
-
-
-        void _check_stream_store_timeout();
-
-        void _adjust_flv_miniblock_cache_size();
-
-
-        int32_t _destroy_stream_store();
-        int32_t _destroy_stream_store(StreamId_Ext& stream_id);
-        int32_t _destroy_stream_store(uint32_t stream_id);
-
-
-        // state
-        void _init_http_server();
-        void _add_http_handler(const char* query, const char* param, HttpHandler_t handler);
-
-        void _state(char* query, char* param, json_object* rsp);
-        void _stream_list(char* query, char* param, json_object* rsp);
-        void _store_state(char* query, char* param, json_object* rsp);
-        void _whitelist_fake(char* query, char* param, json_object* rsp);
-
-
-
-        void _live_cache_state(CircularCache* cache, json_object* rsp);
-
-
-        void _fragment_generator_state(fragment::FragmentGenerator* generator, json_object* rsp);
-        void _flv_miniblock_generator_state(fragment::FLVMiniBlockGenerator* generator, json_object* rsp);
-        void _flv_block_generator_state(fragment::FLVBlockGenerator* generator, json_object* rsp);
-
-
-        void _flv_live_miniblock_cache_state(FLVMiniBlockCircularCache* cache, json_object* rsp);
-
-    protected:
-
-        typedef __gnu_cxx::hash_map<StreamId_Ext, StreamStore*> StreamStoreMap_t;
-        StreamStoreMap_t _stream_store_map;
-
-        typedef std::map<std::string, HttpHandler_t> HttpHandlerMap_t;
-        HttpHandlerMap_t _http_handler_map;
-
-        std::vector<CacheWatcher*> _notify_handle_vec;
-
-        uint8_t		_module_type;
-
-        static CacheManager* _instance;
-
-        struct event _ev_timer;
-
-        struct event_base* _main_base;
-
-        bool _time_service_active;
-
-        WhiteListMap* _white_list_map;
-        CacheManagerConfig*		_config;
-        cache_request_header	_temp_cache_request_header;
-        cache_response_header	_temp_cache_response_header;
-    };
+    CacheManagerConfig*		_config;
+    cache_request_header	_temp_cache_request_header;
+    cache_response_header	_temp_cache_response_header;
+  };
 
 }
-
-

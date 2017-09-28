@@ -669,7 +669,7 @@ int main_proc() {
 
   WhiteListMap *white_list = SINGLETON(WhitelistManager)->get_white_list();
 
-  new CacheManager(module_type, &(g_conf.cache_manager_config), white_list);
+  new CacheManager(module_type, &(g_conf.cache_manager_config));
   CacheManager* cache = CacheManager::get_cache_manager();
 
   cache->set_event_base(main_base);

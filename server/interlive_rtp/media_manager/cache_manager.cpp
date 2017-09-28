@@ -40,36 +40,20 @@ namespace media_manager
     cache->timer_service(fd, which, arg);
   }
 
-  CacheManager::CacheManager(uint8_t module_type, WhiteListMap* white_list_map)
-    :_module_type(module_type),
-    _white_list_map(white_list_map)
-  {
-    if (_instance != NULL)
-    {
+  CacheManager::CacheManager(uint8_t module_type, CacheManagerConfig* config)
+    :_module_type(module_type) {
+    if (_instance != NULL) {
       return;
     }
 
     _config = new CacheManagerConfig();
     _config->init(_module_type == MODULE_TYPE_UPLOADER);
-    _config->load_default_config();
-    _time_service_active = false;
-    _init_http_server();
-
-    _instance = this;
-  }
-
-  CacheManager::CacheManager(uint8_t module_type, CacheManagerConfig* config, WhiteListMap* white_list_map)
-    :_module_type(module_type),
-    _white_list_map(white_list_map)
-  {
-    if (_instance != NULL)
-    {
-      return;
+    if (config) {
+      load_config(config);
     }
-
-    _config = new CacheManagerConfig();
-    _config->init(_module_type == MODULE_TYPE_UPLOADER);
-    load_config(config);
+    else {
+      _config->load_default_config();
+    }
     _time_service_active = false;
     _init_http_server();
 
@@ -141,34 +125,26 @@ namespace media_manager
   }
 
   // UploaderCacheManagerInterface
-  int32_t CacheManager::set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len)
-  {
-    int32_t status_code = 0;
-
+  int32_t CacheManager::set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len) {
     INF("set_flv_header. streamid: %s", stream_id.unparse().c_str());
-    if (!contains_stream(stream_id, status_code))
-    {
+    if (!contains_stream(stream_id)) {
       WRN("cache manager doesn't contain this stream, id: %s", stream_id.unparse().c_str());
-      return status_code;
+      return STATUS_NO_THIS_STREAM;
     }
 
     StreamStore* stream_store = _stream_store_map[stream_id];
-
-    if (stream_store == NULL)
-    {
+    if (stream_store == NULL) {
       ERR("stream_store is null, streamid: %s", stream_id.unparse().c_str());
       assert(0);
       return -1;
     }
 
-    if (stream_store->state == STREAM_STORE_CONSTRUCT)
-    {
+    if (stream_store->state == STREAM_STORE_CONSTRUCT) {
       stream_store->init(_module_type, _config, this);
     }
 
     if (stream_store->state != STREAM_STORE_INIT
-      && stream_store->state != STREAM_STORE_ACTIVE)
-    {
+      && stream_store->state != STREAM_STORE_ACTIVE) {
       ERR("stream_store state error, streamid: %s, state: %d",
         stream_id.unparse().c_str(), stream_store->state);
       assert(0);
@@ -178,11 +154,9 @@ namespace media_manager
     stream_store->state = STREAM_STORE_ACTIVE;
 
     int32_t header_len;
-    if (_module_type == MODULE_TYPE_UPLOADER)
-    {
+    if (_module_type == MODULE_TYPE_UPLOADER) {
       header_len = stream_store->flv_miniblock_generator->set_flv_header(input_flv_header, flv_header_len);
-      if (header_len < 0)
-      {
+      if (header_len < 0)  {
         ERR("flv_miniblock_generator set flv header error, streamid: %s, header len: %d",
           stream_id.unparse().c_str(), header_len);
         assert(0);
@@ -190,10 +164,8 @@ namespace media_manager
       }
     }
 
-
     header_len = stream_store->flv_miniblock_cache->set_flv_header(input_flv_header, flv_header_len);
-    if (header_len < 0)
-    {
+    if (header_len < 0) {
       ERR("flv_miniblock_cache set flv header error, streamid: %s, header len: %d",
         stream_id.unparse().c_str(), header_len);
       assert(0);
@@ -202,38 +174,30 @@ namespace media_manager
 
     _notify_watcher(stream_id, CACHE_WATCHING_FLV_HEADER);
     stream_store->set_push_active();
-
     return header_len;
   }
 
-  int32_t CacheManager::set_flv_tag(StreamId_Ext stream_id, flv_tag* input_flv_tag, bool malloc_new_memory_flag)
-  {
-    int32_t status_code = 0;
-    if (!contains_stream(stream_id, status_code))
-    {
+  int32_t CacheManager::set_flv_tag(StreamId_Ext stream_id, flv_tag* input_flv_tag, bool malloc_new_memory_flag) {
+    if (!contains_stream(stream_id)) {
       ERR("cache manager doesn't contain this stream, id: %s", stream_id.unparse().c_str());
       assert(0);
-      return status_code;
+      return STATUS_NO_THIS_STREAM;
     }
 
     uint8_t watch_type = 0;
 
     StreamStore* stream_store = _stream_store_map[stream_id];
-
-    if (stream_store == NULL)
-    {
+    if (stream_store == NULL) {
       ERR("stream_store is null, streamid: %s", stream_id.unparse().c_str());
       assert(0);
       return -1;
     }
 
-    if (stream_store->state == STREAM_STORE_CONSTRUCT)
-    {
+    if (stream_store->state == STREAM_STORE_CONSTRUCT) {
       stream_store->init(_module_type, _config, this);
     }
 
-    if (stream_store->state != STREAM_STORE_ACTIVE)
-    {
+    if (stream_store->state != STREAM_STORE_ACTIVE) {
       ERR("stream_store state error, streamid: %s, state: %d",
         stream_id.unparse().c_str(), stream_store->state);
       assert(0);
@@ -242,69 +206,36 @@ namespace media_manager
 
     bool generate_miniblock = false;
     stream_store->flv_miniblock_generator->set_flv_tag(input_flv_tag, generate_miniblock);
-    if (generate_miniblock)
-    {
+    if (generate_miniblock) {
       watch_type |= CACHE_WATCHING_FLV_MINIBLOCK;
       FLVMiniBlock* flv_block = stream_store->flv_miniblock_generator->get_block();
-      if (flv_block == NULL)
-      {
+      if (flv_block == NULL) {
         ERR("flv_block is NULL from flv_miniblock_generator, stream: %s", stream_id.unparse().c_str());
       }
-      else
-      {
+      else {
         int ret = stream_store->flv_miniblock_cache->push(flv_block);
-        if (ret < 0)
-        {
+        if (ret < 0) {
           delete flv_block;
         }
       }
     }
 
-    if (generate_miniblock)
-    {
+    if (generate_miniblock) {
       stream_store->set_push_active();
       _notify_watcher(stream_id, watch_type);
     }
-
     return 0;
   }
 
   int32_t CacheManager::register_watcher(cache_watch_handler input_handler,
-    uint8_t watch_type = CACHE_WATCHING_ALL, void* arg = NULL)
-  {
+    uint8_t watch_type = CACHE_WATCHING_ALL, void* arg = NULL) {
     CacheWatcher* watcher = new CacheWatcher(input_handler, watch_type, arg);
     _notify_handle_vec.push_back(watcher);
     return _notify_handle_vec.size();
   }
 
-  int32_t CacheManager::add_tracker_info(StreamId_Ext stream_id, uint32_t parent_ip, uint16_t parent_port, uint16_t my_level)
-  {
-    int32_t status = 0;
-    int32_t rtn = 0;
-
-    if (!contains_stream(stream_id, status))
-    {
-      rtn = init_stream(stream_id, status);
-      if (status == STATUS_SUCCESS)
-      {
-        INF("init stream for add_tracker info.");
-      }
-      else
-      {
-        ERR("init stream failed.");
-      }
-    }
-
-    INF("add_tracker_info for stream %s, parent ip %s, parent port %u, my_level %u.",
-      stream_id.unparse().c_str(), util_ip2str(parent_ip), parent_port, my_level);
-
-    return rtn;
-  }
-
-  int32_t CacheManager::stop_stream(StreamId_Ext stream_id)
-  {
+  int32_t CacheManager::stop_stream(StreamId_Ext stream_id) {
     destroy_stream(stream_id);
-
     return -1;
   }
 
@@ -440,27 +371,11 @@ namespace media_manager
   }
 
   // PlayerCacheManagerInterface
-  bool CacheManager::contains_stream(const StreamId_Ext& stream_id, int32_t& status_code)
-  {
-    if (_stream_store_map.find(stream_id) != _stream_store_map.end())
-    {
+  bool CacheManager::contains_stream(const StreamId_Ext& stream_id) {
+    if (_stream_store_map.find(stream_id) != _stream_store_map.end()) {
       return true;
     }
-    else
-    {
-      status_code = STATUS_NO_THIS_STREAM;
-      return false;
-    }
-  }
-
-  bool CacheManager::contains_stream(const StreamId_Ext& stream_id)
-  {
-    if (_stream_store_map.find(stream_id) != _stream_store_map.end())
-    {
-      return true;
-    }
-    else
-    {
+    else {
       return false;
     }
   }
@@ -486,12 +401,11 @@ namespace media_manager
 
   flv_header* CacheManager::get_miniblock_flv_header(StreamId_Ext stream_id, uint32_t& header_len, int32_t& status_code, bool req_from_backend)
   {
-    if (!contains_stream(stream_id, status_code))
+    if (!contains_stream(stream_id))
     {
       header_len = 0;
 
-      if ((status_code == STATUS_NO_THIS_STREAM)
-        && _module_type != MODULE_TYPE_UPLOADER
+      if (_module_type != MODULE_TYPE_UPLOADER
         && req_from_backend)
       {
         status_code = STATUS_REQ_DATA;
@@ -549,9 +463,9 @@ namespace media_manager
 
   FLVMiniBlock* CacheManager::get_latest_miniblock(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend)
   {
-    if (!contains_stream(stream_id, status_code))
+    if (!contains_stream(stream_id))
     {
-      if ((status_code == STATUS_NO_THIS_STREAM) && _module_type != MODULE_TYPE_UPLOADER && req_from_backend)
+      if (_module_type != MODULE_TYPE_UPLOADER && req_from_backend)
       {
         INF("get_latest_miniblock failed, require from backend, streamid: %s", stream_id.unparse().c_str());
         status_code = STATUS_REQ_DATA;
@@ -601,7 +515,7 @@ namespace media_manager
 
   FLVMiniBlock* CacheManager::get_miniblock_by_seq(StreamId_Ext stream_id, int32_t seq, int32_t& status_code, bool return_next_if_not_found, bool req_from_backend)
   {
-    if (!contains_stream(stream_id, status_code))
+    if (!contains_stream(stream_id))
     {
       return NULL;
     }
@@ -627,62 +541,33 @@ namespace media_manager
     }
   }
 
-  SdpInfo* CacheManager::get_sdp(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend)
-  {
+  SdpInfo* CacheManager::get_sdp(StreamId_Ext stream_id, int32_t& status_code, bool req_from_backend) {
     RTPMediaCache* media_cache = get_rtp_media_cache(stream_id, status_code, req_from_backend);
-
-    if (media_cache == NULL)
-    {
+    if (media_cache == NULL) {
       INF("media cache is null, stream: %s, status: %d", stream_id.unparse().c_str(),
         status_code);
       return NULL;
     }
 
-    SdpInfo* sdp = media_cache->get_sdp(status_code);
-
-    switch (status_code)
-    {
-    case STATUS_SUCCESS:
+    SdpInfo* sdp = media_cache->get_sdp();
+    if (sdp) {
+      status_code = STATUS_SUCCESS;
       return sdp;
-
-    case STATUS_NO_DATA:
-      if (_module_type != MODULE_TYPE_UPLOADER && req_from_backend)
-      {
-        status_code = STATUS_REQ_DATA;
-      }
-      break;
-
-    default:
-      break;
     }
 
-    if (sdp == NULL)
-    {
-      INF("media cache get sdp failed, stream: %s", stream_id.unparse().c_str());
-      return NULL;
+    if (_module_type != MODULE_TYPE_UPLOADER && req_from_backend) {
+      status_code = STATUS_REQ_DATA;
     }
-
-    return sdp;
+    INF("media cache get sdp failed, stream: %s", stream_id.unparse().c_str());
+    return NULL;
   }
 
-  int32_t CacheManager::init_stream(const StreamId_Ext& stream_id, int32_t& status_code)
-  {
-    if (contains_stream(stream_id, status_code))
-    {
+  int32_t CacheManager::init_stream(const StreamId_Ext& stream_id, int32_t& status_code) {
+    if (contains_stream(stream_id)) {
       status_code = STATUS_REINIT_STREAM;
       ERR("stream was init already. stream_id: %s", stream_id.unparse().c_str());
       return 0;
     }
-
-    // 白名单机制被我disable了，所以注释掉这段
-    //StreamId_Ext whitelist_stream_id = StreamId_Ext(stream_id.get_32bit_stream_id(), 0);
-    //WhiteListMap::iterator it = _white_list_map->find(whitelist_stream_id);
-    //if (it == _white_list_map->end())
-    //{
-    //  status_code = STATUS_STREAM_ID_INVALID;
-    //  ERR("stream is invalid. stream_id: %s", stream_id.unparse().c_str());
-    //  return -1;
-    //}
 
     StreamStore* stream_store = new StreamStore(stream_id);
     stream_store->init(_module_type, _config, this);
@@ -702,8 +587,7 @@ namespace media_manager
 
   int32_t CacheManager::set_flv_miniblock_flvheader(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len)
   {
-    int32_t status_code = 0;
-    if (!contains_stream(stream_id, status_code))
+    if (!contains_stream(stream_id))
     {
       WRN("set_flv_miniblock_flvheader failed, stream %s not exist", stream_id.unparse().c_str());
       return -1;
@@ -751,7 +635,7 @@ namespace media_manager
 
     int32_t status_code = 0;
 
-    if (!contains_stream(stream_id, status_code))
+    if (!contains_stream(stream_id))
     {
       WRN("set_miniblock failed, stream %s not exist", stream_id.unparse().c_str());
       return -1;
@@ -862,10 +746,9 @@ namespace media_manager
 
   RTPMediaCache* CacheManager::get_rtp_media_cache(const StreamId_Ext& stream_id, int32_t& status_code, bool req_from_backend)
   {
-    if (!contains_stream(stream_id, status_code))
+    if (!contains_stream(stream_id))
     {
-      if ((status_code == STATUS_NO_THIS_STREAM)
-        && _module_type != MODULE_TYPE_UPLOADER
+      if (_module_type != MODULE_TYPE_UPLOADER
         && req_from_backend)
       {
         status_code = STATUS_REQ_DATA;
@@ -907,7 +790,7 @@ namespace media_manager
 
     if (req_from_backend && _module_type != MODULE_TYPE_UPLOADER)
     {
-      if (cache->get_sdp(status_code) == NULL || cache->rtp_empty())
+      if (cache->get_sdp() == NULL || cache->rtp_empty())
       {
         status_code = STATUS_REQ_DATA;
         //_req_from_backend(stream_id, CACHE_REQ_LIVE_SDP);

@@ -20,172 +20,93 @@
 #include "streamid.h"
 #include "util/port.h"
 
-namespace media_manager
-{
-    class MediaManagerRTPInterface;
+namespace media_manager {
+  class MediaManagerRTPInterface;
 
-    class RTPSessionItem
-    {
-    public:
-        RTPSessionItem()
-        {
-            ssrc = 0;
-            seq = 0;
-        }
+  class RTPCircularCache {
+  public:
+    RTPCircularCache(StreamId_Ext& stream_id);
+    ~RTPCircularCache();
 
-        uint32_t ssrc;
-        uint16_t seq;
-    };
+    int32_t set_manager(MediaManagerRTPInterface*);
 
-    class RTPMediaItem
-    {
-    public:
-        RTPMediaItem()
-            :audio_item(items[0]),
-            video_item(items[1])
-        {
+    void init(uint32_t sample_rate, uint32_t max_size);
+    bool is_inited();
+    void reset();
 
-        }
+    int32_t set_rtp(const avformat::RTP_FIXED_HEADER*, uint16_t len, int32_t& status);
 
-        RTPSessionItem items[2];
+    avformat::RTP_FIXED_HEADER* get_by_seq(uint16_t seq, uint16_t& len, int32_t& status_code);
 
-        RTPSessionItem& audio_item;
-        RTPSessionItem& video_item;
+    uint16_t size();
 
-    };
+    uint32_t get_ssrc();
 
-    class DLLEXPORT RTPCircularCache
-    {
-    public:
-        RTPCircularCache(StreamId_Ext& stream_id);
-        virtual ~RTPCircularCache();
+    //uint64_t get_last_push_relative_timestamp_ms();
 
-        int32_t set_manager(MediaManagerRTPInterface*);
+  protected:
+    void clean();
 
-        virtual uint32_t set_sample_rate(uint32_t sample_rate);
-        virtual uint32_t set_max_duration_ms(uint32_t max_duration);
-        virtual uint32_t set_max_size(uint32_t max_size);
+    //void _set_push_active();
 
-        virtual int32_t set_rtp(const avformat::RTP_FIXED_HEADER*, uint16_t len, int32_t& status);
-        virtual int32_t empty_count();
+    uint32_t _adjust();
 
-        virtual avformat::RTP_FIXED_HEADER* get_by_seq(uint16_t seq, uint16_t& len, int32_t& status_code, bool return_next_valid_packet = false);
-        virtual avformat::RTP_FIXED_HEADER* get_latest(uint16_t& len, int32_t& status_code);
-        virtual avformat::RTP_FIXED_HEADER* get_next_by_seq(uint16_t seq, uint16_t& len, int32_t& status_code);
+    int _fill_in(const avformat::RTP_FIXED_HEADER*, uint16_t);
 
-        virtual uint16_t size();
-        virtual uint16_t max_size();
+    void _push_back(const avformat::RTP_FIXED_HEADER*, uint16_t);
 
-        virtual bool  is_inited();
+    StreamId_Ext _stream_id;
+    MediaManagerRTPInterface* _media_manager;
 
-        uint32_t get_ssrc();
-        void reset();
-        void clean();
+    uint32_t _sample_rate;
 
-        void on_timer();
+    uint32_t _ssrc;
+    avformat::RTPAVType _av_type;
 
-        time_t get_push_active();
-        uint64_t get_last_push_relative_timestamp_ms();
+    uint16_t _max_size;
 
-    protected:
-        void _set_push_active();
-       
-        uint32_t _adjust();
+    //uint32_t _last_push_tick_timestamp;
+    //uint64_t _last_push_relative_timestamp_ms;
 
-        int _fill_in(const avformat::RTP_FIXED_HEADER*, uint16_t);
+    std::deque<fragment::RTPBlock> _circular_cache;
+  };
 
-        void _push_back(const avformat::RTP_FIXED_HEADER*, uint16_t);
+  class RTPMediaCache {
+  public:
+    RTPMediaCache(StreamId_Ext& stream_id);
+    virtual ~RTPMediaCache();
 
-        StreamId_Ext _stream_id;
-        MediaManagerRTPInterface* _media_manager;
+    virtual int32_t set_manager(MediaManagerRTPInterface*);
 
-        uint32_t _max_duration;
-        uint32_t _sample_rate;
+    virtual int32_t set_sdp(const char* sdp, int32_t len);
 
-        uint32_t _ssrc;
-        avformat::RTPAVType _av_type;
-        avformat::RTPMediaType _media_type;
+    virtual avformat::SdpInfo* get_sdp();
 
-        uint16_t _max_size;
-        uint16_t _last_push_seq;
+    virtual int32_t set_rtp(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);
 
-        uint32_t _last_push_tick_timestamp;
-        uint64_t _last_push_relative_timestamp_ms;
+    virtual RTPCircularCache* get_cache_by_ssrc(uint32_t ssrc);
 
-        time_t _push_active;
+    virtual RTPCircularCache* get_audio_cache();
+    virtual RTPCircularCache* get_video_cache();
 
-        int32_t _push_timeout_seconds;
+    virtual time_t get_push_active_time();
+    virtual time_t set_push_active_time();
 
-        std::deque<fragment::RTPBlock> _circular_cache;
-    };
+    //virtual uint64_t get_last_push_relative_timestamp_ms();
 
-    class DLLEXPORT RTPMediaCache
-    {
-    public:
-        RTPMediaCache(StreamId_Ext& stream_id);
-        virtual ~RTPMediaCache();
+    virtual bool rtp_empty();
 
-        virtual int32_t set_manager(MediaManagerRTPInterface*);
+  public:
+    StreamId_Ext _stream_id;
+    avformat::SdpInfo* _sdp;
 
-        virtual int32_t set_sdp(std::string& sdp);
-        virtual int32_t set_sdp(const char* sdp, int32_t len);
-        //        int32_t set_sdp(avformat::SdpInfo* sdp, bool malloc_new = false);
+    RTPCircularCache* _audio_cache;
+    RTPCircularCache* _video_cache;
 
-        virtual avformat::SdpInfo* get_sdp();
+    time_t _push_active;
 
-        virtual avformat::SdpInfo* get_sdp(int32_t& status);
+    MediaManagerRTPInterface* _media_manager;
 
-        virtual int32_t set_rtp(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);
-
-        int32_t set_uploader_ntp(avformat::RTPAVType type, uint32_t ntp_secs, uint32_t ntp_frac, uint32_t rtp);
-        int32_t get_uploader_ntp(avformat::RTPAVType &type, uint32_t &ntp_secs, uint32_t &ntp_frac, uint32_t &rtp);
-
- //       avformat::RTP_FIXED_HEADER* get_by_media_item(RTPMediaItem& item, uint16_t& len, int32_t& status_code, bool return_next_valid_packet = false);
-
-        virtual avformat::RTP_FIXED_HEADER* get_latest_by_media_item(RTPMediaItem& item, uint16_t& len, int32_t& status_code);
-        virtual avformat::RTP_FIXED_HEADER* get_next_by_media_item(RTPMediaItem& item, uint16_t& len, int32_t& status_code);
-
-
-        virtual RTPCircularCache* get_cache_by_ssrc(uint32_t ssrc);
-        virtual RTPCircularCache* get_cache_by_media(avformat::RTPMediaType);
-        virtual RTPCircularCache* get_cache_by_codec(avformat::RTPAVType);
-
-        virtual RTPCircularCache* get_audio_cache();
-        virtual RTPCircularCache* get_video_cache();
-
-        virtual time_t get_push_active_time();
-        virtual time_t set_push_active_time();
-
-        virtual uint64_t get_last_push_relative_timestamp_ms();
-
-        virtual void adjust_cache_size();
-
-        virtual bool rtp_empty();
-
-        virtual void on_timer();
-
-    protected:
-        int32_t _reset_cache();
-
-
-    public:
-        StreamId_Ext _stream_id;
-        avformat::SdpInfo* _sdp;
-
-        RTPCircularCache* _audio_cache;
-        RTPCircularCache* _video_cache;
-
-        int32_t _push_timeout_seconds;
-
-        time_t _push_active;
-
-        MediaManagerRTPInterface* _media_manager;
-
-        uint64_t _last_push_relative_timestamp_ms;
-
-        avformat::RTPAVType _ntp_type;
-        uint32_t _ntp_secs;
-        uint32_t _ntp_frac;
-        uint32_t _ntp_rtp;
-    };
+    //uint64_t _last_push_relative_timestamp_ms;
+  };
 }

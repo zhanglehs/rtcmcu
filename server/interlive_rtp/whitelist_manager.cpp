@@ -157,56 +157,56 @@ r2p_keepalive* build_r2p_keepalive(r2p_keepalive* rka)
 }
 r2p_keepalive* WhitelistManager::build_r2p_keepalive(r2p_keepalive* rka)
 {
-  if (!_conf.target_conf.enable_uploader)
-    return rka;
+  //if (!_conf.target_conf.enable_uploader)
+  //  return rka;
 
-  inet_aton(_conf.uploader.listen_ip,
-    (struct in_addr *) &rka->listen_uploader_addr.ip);
-  rka->listen_uploader_addr.ip = ntohl(rka->listen_uploader_addr.ip);
-  rka->listen_uploader_addr.port = _conf.uploader.listen_port;
-  rka->outbound_speed = rka->inbound_speed = 0;
-  rka->stream_cnt = 0;
+  //inet_aton(_conf.uploader.listen_ip,
+  //  (struct in_addr *) &rka->listen_uploader_addr.ip);
+  //rka->listen_uploader_addr.ip = ntohl(rka->listen_uploader_addr.ip);
+  //rka->listen_uploader_addr.port = _conf.uploader.listen_port;
+  //rka->outbound_speed = rka->inbound_speed = 0;
+  //rka->stream_cnt = 0;
 
-  receiver_stream_status *rss = NULL;
+  //receiver_stream_status *rss = NULL;
 
-  WhiteListMap::iterator it;
+  //WhiteListMap::iterator it;
 
-  CacheManager* cache = CacheManager::get_cache_manager();
+  //CacheManager* cache = CacheManager::get_cache_manager();
 
-  for (it = _white_list.begin(); it != _white_list.end(); it++)
-  {
-    WhiteListItem& item = it->second;
+  //for (it = _white_list.begin(); it != _white_list.end(); it++)
+  //{
+  //  WhiteListItem& item = it->second;
 
-    if (item.streamid != StreamId_Ext(item.streamid.get_32bit_stream_id(), 0))
-    {
-      continue;
-    }
+  //  if (item.streamid != StreamId_Ext(item.streamid.get_32bit_stream_id(), 0))
+  //  {
+  //    continue;
+  //  }
 
-    int32_t status = 0;
-    StreamStore* store = cache->get_stream_store(item.streamid, status);
+  //  int32_t status = 0;
+  //  StreamStore* store = cache->get_stream_store(item.streamid, status);
 
-    if (store == NULL)
-      continue;
+  //  if (store == NULL)
+  //    continue;
 
-    rss = rka->streams + rka->stream_cnt;
-    rss->streamid = item.streamid.get_32bit_stream_id();
-    rss->forward_cnt = 0;
+  //  rss = rka->streams + rka->stream_cnt;
+  //  rss->streamid = item.streamid.get_32bit_stream_id();
+  //  rss->forward_cnt = 0;
 
-    rss->last_ts = store->get_last_push_relative_timestamp_ms();
-    rss->block_seq = store->get_last_block_seq();
+  //  rss->last_ts = store->get_last_push_relative_timestamp_ms();
+  //  rss->block_seq = store->get_last_block_seq();
 
-    rka->outbound_speed += DEFAULT_BPS * rss->forward_cnt / 8;
-    rka->inbound_speed += DEFAULT_BPS / 8;
-    rka->stream_cnt++;
-    //DBG("build build_r2p_keepalive for stream: %s seq %d", item.streamid.unparse().c_str(), rss->block_seq);
+  //  rka->outbound_speed += DEFAULT_BPS * rss->forward_cnt / 8;
+  //  rka->inbound_speed += DEFAULT_BPS / 8;
+  //  rka->stream_cnt++;
+  //  //DBG("build build_r2p_keepalive for stream: %s seq %d", item.streamid.unparse().c_str(), rss->block_seq);
 
-    //       printf("build build_r2p_keepalive for stream: %s , seq %llu\n", item.streamid.unparse().c_str(), rss->block_seq);
+  //  //       printf("build build_r2p_keepalive for stream: %s , seq %llu\n", item.streamid.unparse().c_str(), rss->block_seq);
 
-    if (rka->stream_cnt >= MAX_STREAM_CNT)
-      break;
-  }
+  //  if (rka->stream_cnt >= MAX_STREAM_CNT)
+  //    break;
+  //}
 
-  DBG("build_r2p_keepalive rka->stream_cnt: %d", rka->stream_cnt);
+  //DBG("build_r2p_keepalive rka->stream_cnt: %d", rka->stream_cnt);
 
   return rka;
 }

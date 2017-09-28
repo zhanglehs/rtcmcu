@@ -86,29 +86,29 @@ namespace media_manager
         return _last_req_time;
     }
 
-    uint32_t StreamStore::get_last_block_seq()
-    {
-        uint32_t seq = 0;
+    //uint32_t StreamStore::get_last_block_seq()
+    //{
+    //    uint32_t seq = 0;
 
-        if (rtp_media_cache != NULL)
-        {
-            _last_push_relative_timestamp_ms = MAX(_last_push_relative_timestamp_ms, rtp_media_cache->get_last_push_relative_timestamp_ms());
-            seq = MAX(seq, _last_push_relative_timestamp_ms / 100); // flv block duartion is 100 ms.
-        }
+    //    if (rtp_media_cache != NULL)
+    //    {
+    //        _last_push_relative_timestamp_ms = MAX(_last_push_relative_timestamp_ms, rtp_media_cache->get_last_push_relative_timestamp_ms());
+    //        seq = MAX(seq, _last_push_relative_timestamp_ms / 100); // flv block duartion is 100 ms.
+    //    }
 
-        return seq;
-    }
+    //    return seq;
+    //}
 
-    uint64_t StreamStore::get_last_push_relative_timestamp_ms()
-    {
+    //uint64_t StreamStore::get_last_push_relative_timestamp_ms()
+    //{
 
-        if (rtp_media_cache != NULL)
-        {
-            _last_push_relative_timestamp_ms = MAX(_last_push_relative_timestamp_ms, rtp_media_cache->get_last_push_relative_timestamp_ms());
-        }
+    //    if (rtp_media_cache != NULL)
+    //    {
+    //        _last_push_relative_timestamp_ms = MAX(_last_push_relative_timestamp_ms, rtp_media_cache->get_last_push_relative_timestamp_ms());
+    //    }
 
-        return _last_push_relative_timestamp_ms;
-    }
+    //    return _last_push_relative_timestamp_ms;
+    //}
 
 
     StreamStore::~StreamStore()
