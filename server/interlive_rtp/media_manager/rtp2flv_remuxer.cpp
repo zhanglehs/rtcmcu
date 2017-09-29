@@ -233,7 +233,9 @@ namespace media_manager {
       }
     }
 
-    return RTPMediaManagerHelper::set_rtp(stream_id, pkt, len, status_code);
+    return 0;
+
+    //return RTPMediaManagerHelper::set_rtp(stream_id, pkt, len, status_code);
   }
 
   int32_t RTP2FLVRemuxer::set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len, int32_t& status_code) {
@@ -317,7 +319,9 @@ namespace media_manager {
         stream_meta->_video_frame_buffer_pos.pop();
       }
     }
-    return RTPMediaManagerHelper::set_sdp_char(stream_id, sdp, len, status_code);
+
+    return 0;
+    //return RTPMediaManagerHelper::set_sdp_char(stream_id, sdp, len, status_code);
   }
 
   int32_t RTP2FLVRemuxer::_set_flv_to_mm(Rtp2FlvTransformInfo *stream_meta) {

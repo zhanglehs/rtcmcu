@@ -7,7 +7,7 @@
 
 using namespace std;
 
-RTPTransManager::RTPTransManager(RTPMediaManagerHelper *helper)
+RTPTransManager::RTPTransManager(RtpCacheManager *helper)
 :_mm_helper(helper) {
 }
 
@@ -23,8 +23,7 @@ int RTPTransManager::OnRecvRtp(RtpConnection *c, const void *rtp, uint16_t len) 
   uint8_t playload_type = rtp_header->payload;
   if (playload_type != avformat::RTP_AV_FEC
     && playload_type != avformat::RTP_AV_F_FEC) {
-    int32_t code = 0;
-    _mm_helper->set_rtp(c->streamid, rtp_header, len, code);
+    _mm_helper->set_rtp(c->streamid, rtp_header, len);
   }
 
   c->trans->on_handle_rtp((avformat::RTP_FIXED_HEADER *)rtp, len);
@@ -80,7 +79,7 @@ void RTPTransManager::on_timer() {
 
 int32_t RTPTransManager::set_sdp_char(const StreamId_Ext& stream_id,
   const char* sdp, int32_t len, int32_t& status_code) {
-  int32_t ret = _mm_helper->set_sdp_char(stream_id, sdp, len, status_code);
+  int32_t ret = _mm_helper->set_sdp(stream_id, sdp, len);
 
   uint32_t audio_time_base = 0;
   uint32_t video_time_base = 0;
@@ -115,7 +114,7 @@ int32_t RTPTransManager::set_sdp_str(const StreamId_Ext& stream_id,
 }
 
 std::string RTPTransManager::get_sdp_str(const StreamId_Ext& stream_id, int32_t& status_code) {
-  return _mm_helper->get_sdp_str(stream_id, status_code);
+  return _mm_helper->get_sdp(stream_id);
 }
 
 int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config) {
@@ -161,32 +160,33 @@ int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config)
 
 avformat::RTP_FIXED_HEADER* RTPTransManager::_get_rtp_by_ssrc_seq(RtpConnection *c,
   bool video, uint16_t seq, uint16_t &len, int32_t& status_code) {
-  len = 0;
-  if (c->rtp_cache == NULL) {
-    media_manager::MediaManagerRTPInterface* mm =
-      media_manager::CacheManager::get_rtp_cache_instance();
-    int32_t status_code;
-    c->rtp_cache = mm->get_rtp_media_cache(c->streamid, status_code, true);
-    if (c->rtp_cache == NULL) {
-      return NULL;
-    }
-  }
-  media_manager::RTPCircularCache *cache = NULL;
-  if (video) {
-    cache = c->rtp_cache->get_video_cache();
-  }
-  else {
-    cache = c->rtp_cache->get_audio_cache();
-  }
-  if (cache == NULL) {
-    return NULL;
-  }
+  return _mm_helper->get_rtp_by_seq(c->streamid, video, seq, len);
+  //len = 0;
+  //if (c->rtp_cache == NULL) {
+  //  media_manager::MediaManagerRTPInterface* mm =
+  //    media_manager::CacheManager::get_rtp_cache_instance();
+  //  int32_t status_code;
+  //  c->rtp_cache = mm->get_rtp_media_cache(c->streamid, status_code, true);
+  //  if (c->rtp_cache == NULL) {
+  //    return NULL;
+  //  }
+  //}
+  //media_manager::RTPCircularCache *cache = NULL;
+  //if (video) {
+  //  cache = c->rtp_cache->get_video_cache();
+  //}
+  //else {
+  //  cache = c->rtp_cache->get_audio_cache();
+  //}
+  //if (cache == NULL) {
+  //  return NULL;
+  //}
 
-  avformat::RTP_FIXED_HEADER* rtp = cache->get_by_seq(seq, len, status_code);
-  if (!rtp || len > MAX_RTP_LEN) {
-    return NULL;
-  }
-  return rtp;
+  //avformat::RTP_FIXED_HEADER* rtp = cache->get_by_seq(seq, len, status_code);
+  //if (!rtp || len > MAX_RTP_LEN) {
+  //  return NULL;
+  //}
+  //return rtp;
 }
 
 void RTPTransManager::ForwardRtp(const StreamId_Ext& streamid, avformat::RTP_FIXED_HEADER *rtp, uint32_t len) {

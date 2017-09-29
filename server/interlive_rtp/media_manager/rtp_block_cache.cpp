@@ -45,7 +45,7 @@ namespace {
 
 namespace media_manager {
 
-  RTPCircularCache::RTPCircularCache(StreamId_Ext& stream_id) {
+  RTPCircularCache::RTPCircularCache(const StreamId_Ext& stream_id) {
     _media_manager = NULL;
     _stream_id = stream_id;
     reset();
@@ -253,11 +253,11 @@ namespace media_manager {
 
     if (block.is_valid()) {
       if (seq == block.get_seq()) {
-        int32_t status = 0;
-        StreamStore* store = ((CacheManager *)_media_manager)->get_stream_store(_stream_id, status);
-        if (store && status == STATUS_SUCCESS) {
-          store->set_req_active();
-        }
+        //int32_t status = 0;
+        //StreamStore* store = ((CacheManager *)_media_manager)->get_stream_store(_stream_id, status);
+        //if (store && status == STATUS_SUCCESS) {
+        //  store->set_req_active();
+        //}
         status_code = STATUS_SUCCESS;
         return block.get(len);
       }
@@ -276,7 +276,7 @@ namespace media_manager {
     return NULL;
   }
 
-  RTPMediaCache::RTPMediaCache(StreamId_Ext& stream_id)
+  RTPMediaCache::RTPMediaCache(const StreamId_Ext& stream_id)
     :_stream_id(stream_id),
     _sdp(NULL),
     _push_active(0),
@@ -331,31 +331,19 @@ namespace media_manager {
       }
     }
 
-    if (_media_manager != NULL) {
-      _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_SDP);
-    }
+    //if (_media_manager != NULL) {
+    //  _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_SDP);
+    //}
     return 0;
   }
 
   SdpInfo* RTPMediaCache::get_sdp() {
-    int32_t status = 0;
-    StreamStore* store = ((CacheManager *)_media_manager)->get_stream_store(_stream_id, status);
-    if (store && status == STATUS_SUCCESS) {
-      store->set_req_active();
-    }
+    //int32_t status = 0;
+    //StreamStore* store = ((CacheManager *)_media_manager)->get_stream_store(_stream_id, status);
+    //if (store && status == STATUS_SUCCESS) {
+    //  store->set_req_active();
+    //}
     return _sdp;
-  }
-
-  RTPCircularCache* RTPMediaCache::get_cache_by_ssrc(uint32_t ssrc) {
-    if (_audio_cache->get_ssrc() == ssrc) {
-      return _audio_cache;
-    }
-
-    if (_video_cache->get_ssrc() == ssrc) {
-      return _video_cache;
-    }
-
-    return NULL;
   }
 
   RTPCircularCache* RTPMediaCache::get_audio_cache() {
@@ -395,15 +383,15 @@ namespace media_manager {
     case RTP_AV_MP3:
     case RTP_AV_AAC:
       _audio_cache->set_rtp(rtp, len, status);
-      if (status == STATUS_SUCCESS && _media_manager != NULL) {
-        _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_RTP_BLOCK);
-      }
+      //if (status == STATUS_SUCCESS && _media_manager != NULL) {
+      //  _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_RTP_BLOCK);
+      //}
       break;
     case RTP_AV_H264:
       _video_cache->set_rtp(rtp, len, status);
-      if (status == STATUS_SUCCESS && _media_manager != NULL) {
-        _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_RTP_BLOCK);
-      }
+      //if (status == STATUS_SUCCESS && _media_manager != NULL) {
+      //  _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_RTP_BLOCK);
+      //}
       break;
     default:
       status = RTP_CACHE_SET_RTP_FAILED;
@@ -421,4 +409,130 @@ namespace media_manager {
     return _push_active;
   }
 
+}
+
+//////////////////////////////////////////////////////////////////////////
+#include "media_manager/rtp2flv_remuxer.h"
+//#include "media_manager/rtp_block_cache.h"
+#include "backend_new/module_backend.h"
+
+RtpCacheManager * RtpCacheManager::m_inst = NULL;
+
+RtpCacheManager* RtpCacheManager::Instance() {
+  if (m_inst) {
+    return m_inst;
+  }
+  m_inst = new RtpCacheManager();
+  return m_inst;
+}
+
+void RtpCacheManager::DestroyInstance() {
+  if (m_inst) {
+    delete m_inst;
+    m_inst = NULL;
+  }
+}
+
+RtpCacheManager::RtpCacheManager() {
+}
+
+int RtpCacheManager::Init(struct event_base *ev_base) {
+  return 0;
+}
+
+void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
+  m_watches.insert(watcher);
+}
+
+void RtpCacheManager::RemoveWatcher(RtpCacheWatcher *watcher) {
+  m_watches.erase(watcher);
+}
+
+int RtpCacheManager::set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len) {
+  auto it = m_caches.find(stream_id.get_32bit_stream_id());
+  if (it == m_caches.end()) {
+    return -1;
+  }
+
+  // TODO: zhangle
+  if (true) {
+    int32_t status_code = 0;
+    media_manager::RTP2FLVRemuxer::get_instance()->set_rtp(stream_id, rtp, len, status_code);
+  }
+
+  media_manager::RTPMediaCache *cache = it->second;
+  int32_t status_code = 0;
+  int ret = cache->set_rtp(rtp, len, status_code);
+  if (ret >= 0) {
+    for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
+      (*it)->OnRtp();
+    }
+  }
+  return ret;
+}
+
+int RtpCacheManager::set_sdp(const StreamId_Ext& stream_id, const char* sdp, int32_t len) {
+  media_manager::RTPMediaCache *cache = NULL;
+  auto it = m_caches.find(stream_id.get_32bit_stream_id());
+  if (it == m_caches.end()) {
+    // create
+    cache = new media_manager::RTPMediaCache(stream_id);
+    m_caches[stream_id.get_32bit_stream_id()] = cache;
+    // TODO: zhangle
+    //cache->set_manager(cache_manager);
+  }
+  else {
+    cache = it->second;
+  }
+
+  // TODO: zhangle
+  if (true) {
+    int32_t status_code = 0;
+    media_manager::RTP2FLVRemuxer::get_instance()->set_sdp_char(stream_id, sdp, len, status_code);
+  }
+
+  int ret = cache->set_sdp(sdp, len);
+  if (ret >= 0) {
+    for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
+      (*it)->OnSdp();
+    }
+  }
+  return ret;
+}
+
+std::string RtpCacheManager::get_sdp(const StreamId_Ext& stream_id) {
+  auto it = m_caches.find(stream_id.get_32bit_stream_id());
+  if (it == m_caches.end()) {
+    backend_start_stream_rtp(stream_id);
+    return "";
+  }
+
+  media_manager::RTPMediaCache *cache = it->second;
+  SdpInfo* sdp = cache->get_sdp();
+  if (sdp == NULL) {
+    return std::string("");
+  }
+  return sdp->get_sdp_str();
+}
+
+avformat::RTP_FIXED_HEADER* RtpCacheManager::get_rtp_by_seq(const StreamId_Ext& stream_id, bool video, uint16_t seq, uint16_t& len) {
+  len = 0;
+  auto it = m_caches.find(stream_id.get_32bit_stream_id());
+  if (it == m_caches.end()) {
+    return NULL;
+  }
+
+  media_manager::RTPMediaCache *cache = it->second;
+  media_manager::RTPCircularCache *media = NULL;
+  if (video) {
+    media = cache->get_video_cache();
+  }
+  else {
+    media = cache->get_audio_cache();
+  }
+  if (media) {
+    int32_t status_code = 0;
+    return media->get_by_seq(seq, len, status_code);
+  }
+  return NULL;
 }

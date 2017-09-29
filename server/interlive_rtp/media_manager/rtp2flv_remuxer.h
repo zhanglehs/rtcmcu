@@ -12,13 +12,13 @@ namespace media_manager {
   // 这个类将rtp转换成flv
   // 对于udp的rtp，其核心应该有jitterbuffer + 丢包防马赛克。
   // 不幸的是代码中使用的jitterbuffer很烂，也没有做丢包防马赛克处理。
-  class RTP2FLVRemuxer : public RTPMediaManagerHelper {
+  class RTP2FLVRemuxer {
   public:
     static RTP2FLVRemuxer * get_instance();
     ~RTP2FLVRemuxer();
 
-    virtual int32_t set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len, int32_t& status_code);
-    virtual int32_t set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len, int32_t& status_code);
+    int32_t set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len, int32_t& status_code);
+    int32_t set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len, int32_t& status_code);
 
   protected:
     RTP2FLVRemuxer();

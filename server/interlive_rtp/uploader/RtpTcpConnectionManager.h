@@ -80,7 +80,7 @@ public:
 };
 
 class RTPTransManager;
-class RTPMediaManagerHelper;
+class RtpCacheManager;
 
 class RtpManagerBase {
 public:
@@ -99,7 +99,7 @@ protected:
 protected:
 public:
   static RTPTransManager *m_trans_mgr;
-  static RTPMediaManagerHelper *m_rtp_mmh;
+  //static RtpCacheManager *m_rtp_cache;
   struct event_base* m_ev_base;
 };
 

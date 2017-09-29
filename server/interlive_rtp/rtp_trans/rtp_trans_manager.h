@@ -17,12 +17,13 @@
 const int MAX_RTP_LEN = (10 * 1024);
 
 class RtpConnection;
+class RtpCacheManager;
 
 class RTPTransManager {
   friend class RTPTrans;
 
 public:
-  RTPTransManager(RTPMediaManagerHelper *helper);
+  RTPTransManager(RtpCacheManager *helper);
   ~RTPTransManager();
 
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
@@ -55,7 +56,7 @@ private:
   static const uint32_t MAX_TRANS_NUM = 5000;
   static const uint32_t MAX_RTP_ITEM_NUM = 25000;
 
-  RTPMediaManagerHelper *_mm_helper;
+  RtpCacheManager *_mm_helper;
 
   std::map<uint32_t, std::set<RtpConnection*> > m_stream_groups;
 };

@@ -19,13 +19,15 @@
 #include "avformat/sdp.h"
 #include "streamid.h"
 #include "util/port.h"
+#include <map>
+#include <set>
 
 namespace media_manager {
   class MediaManagerRTPInterface;
 
   class RTPCircularCache {
   public:
-    RTPCircularCache(StreamId_Ext& stream_id);
+    RTPCircularCache(const StreamId_Ext& stream_id);
     ~RTPCircularCache();
 
     int32_t set_manager(MediaManagerRTPInterface*);
@@ -64,7 +66,7 @@ namespace media_manager {
 
   class RTPMediaCache {
   public:
-    RTPMediaCache(StreamId_Ext& stream_id);
+    RTPMediaCache(const StreamId_Ext& stream_id);
     ~RTPMediaCache();
 
     int32_t set_manager(MediaManagerRTPInterface*);
@@ -74,8 +76,6 @@ namespace media_manager {
     avformat::SdpInfo* get_sdp();
 
     int32_t set_rtp(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);
-
-    RTPCircularCache* get_cache_by_ssrc(uint32_t ssrc);
 
     RTPCircularCache* get_audio_cache();
     RTPCircularCache* get_video_cache();
@@ -96,3 +96,33 @@ namespace media_manager {
     MediaManagerRTPInterface* _media_manager;
   };
 }
+
+class RtpCacheWatcher {
+public:
+  virtual ~RtpCacheWatcher() {}
+  virtual void OnRtp() {}
+  virtual void OnSdp() {}
+};
+
+class RtpCacheManager {
+public:
+  static RtpCacheManager* Instance();
+  static void DestroyInstance();
+
+  int Init(struct event_base *ev_base);
+  void AddWatcher(RtpCacheWatcher *watcher);
+  void RemoveWatcher(RtpCacheWatcher *watcher);
+
+  int set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len);
+  int set_sdp(const StreamId_Ext& stream_id, const char* sdp, int32_t len);
+  std::string get_sdp(const StreamId_Ext& stream_id);
+  avformat::RTP_FIXED_HEADER* get_rtp_by_seq(const StreamId_Ext& stream_id, bool video, uint16_t seq, uint16_t& len);
+
+  // timer: check m_caches timeout
+
+protected:
+  RtpCacheManager();
+  static RtpCacheManager *m_inst;
+  std::map<uint32_t, media_manager::RTPMediaCache*> m_caches;
+  std::set<RtpCacheWatcher*> m_watches;
+};

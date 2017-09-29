@@ -304,7 +304,7 @@ RtpManagerBase::~RtpManagerBase() {
 }
 
 RTPTransManager * RtpManagerBase::m_trans_mgr = NULL;
-RTPMediaManagerHelper * RtpManagerBase::m_rtp_mmh = NULL;
+//RtpCacheManager * RtpManagerBase::m_rtp_cache = NULL;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -607,14 +607,14 @@ int32_t RtpTcpServerManager::Init(struct event_base *ev_base) {
   }
   m_ev_socket.Start(ev_base, fd_socket, &RtpTcpServerManager::OnSocketAccept, this);
 
-  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  if (common_config->enable_rtp2flv) {
-    m_rtp_mmh = media_manager::RTP2FLVRemuxer::get_instance();
-  }
-  else {
-    m_rtp_mmh = new RTPMediaManagerHelper;
-  }
-  m_trans_mgr = new RTPTransManager(m_rtp_mmh);
+  //TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
+  //if (common_config->enable_rtp2flv) {
+  //  m_rtp_cache = media_manager::RTP2FLVRemuxer::get_instance();
+  //}
+  //else {
+  //  m_rtp_cache = new RTPMediaManagerHelper;
+  //}
+  m_trans_mgr = new RTPTransManager(RtpCacheManager::Instance());
 
   start_timer();
 

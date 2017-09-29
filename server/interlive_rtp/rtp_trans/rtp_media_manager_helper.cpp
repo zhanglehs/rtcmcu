@@ -26,22 +26,6 @@ int RTPMediaManagerHelper::set_rtp(const StreamId_Ext& stream_id, const RTP_FIXE
   return 0;
 }
 
-const RTP_FIXED_HEADER* RTPMediaManagerHelper::get_rtp_by_ssrc_seq(const StreamId_Ext& stream_id, uint32_t ssrc, uint16_t seq,
-  uint16_t &len, int32_t& status_code) {
-  RTPMediaCache* media_cache = _media_manager->get_rtp_media_cache(stream_id, status_code, true);
-  if (media_cache == NULL) {
-    return NULL;
-  }
-
-  RTPCircularCache* circular_cache = media_cache->get_cache_by_ssrc(ssrc);
-  if (circular_cache == NULL) {
-    status_code = media_manager::RTP_CACHE_NO_THIS_TRACK;
-    return NULL;
-  }
-
-  return circular_cache->get_by_seq(seq, len, status_code);
-}
-
 int32_t RTPMediaManagerHelper::set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len, int32_t& status_code) {
   RTPMediaCache* media_cache = _media_manager->get_rtp_media_cache(stream_id, status_code, false);
   if (media_cache == NULL) {
