@@ -16,7 +16,7 @@
 
 using namespace std;
 using namespace avformat;
-using namespace media_manager;
+//using namespace media_manager;
 
 
 	RTPSendTrans::RTPSendTrans(RtpConnection *connection, StreamId_Ext sid, RTPTransManager *manage, RTPTransConfig* config)

@@ -26,6 +26,7 @@
 #include "player/rtp_player_config.h"
 #include "uploader/rtp_uploader_config.h"
 #include "media_manager/rtp2flv_remuxer.h"
+#include "media_manager/rtp_block_cache.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 

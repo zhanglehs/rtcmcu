@@ -29,7 +29,6 @@
 
 using namespace std;
 using namespace fragment;
-using namespace avformat;
 
 namespace media_manager
 {
@@ -109,11 +108,6 @@ namespace media_manager
   }
 
   PlayerCacheManagerInterface* CacheManager::get_player_cache_instance()
-  {
-    return get_cache_manager();
-  }
-
-  MediaManagerRTPInterface* CacheManager::get_rtp_cache_instance()
   {
     return get_cache_manager();
   }
@@ -529,49 +523,6 @@ namespace media_manager
     start_timer();
   }
 
-  RTPMediaCache* CacheManager::get_rtp_media_cache(const StreamId_Ext& stream_id, int32_t& status_code, bool req_from_backend) {
-    if (!contains_stream(stream_id)) {
-      if (_module_type != MODULE_TYPE_UPLOADER
-        && req_from_backend) {
-        status_code = STATUS_REQ_DATA;
-        //_req_from_backend(stream_id, CACHE_REQ_LIVE_SDP);
-        _req_from_backend_rtp(stream_id, CACHE_REQ_LIVE_RTP);
-
-        return NULL;
-      }
-
-      if (!req_from_backend) {
-        init_stream(stream_id);
-      }
-    }
-
-    StreamStoreMap_t::iterator it = _stream_store_map.find(stream_id);
-    if (it == _stream_store_map.end()) {
-      ERR("stream_store is NULL, streamid: %s", stream_id.unparse().c_str());
-      status_code = STATUS_NO_DATA;
-      return NULL;
-    }
-
-    StreamStore* stream_store = it->second;
-    RTPMediaCache* cache = stream_store->rtp_media_cache;
-    if (cache == NULL) {
-      ERR("rtp_media_cache is NULL, streamid: %s", stream_id.unparse().c_str());
-      status_code = STATUS_NO_DATA;
-      return NULL;
-    }
-
-    if (req_from_backend && _module_type != MODULE_TYPE_UPLOADER) {
-      if (cache->get_sdp() == NULL || cache->rtp_empty()) {
-        status_code = STATUS_REQ_DATA;
-        //_req_from_backend(stream_id, CACHE_REQ_LIVE_SDP);
-        _req_from_backend_rtp(stream_id, CACHE_REQ_LIVE_RTP);
-      }
-    }
-
-    status_code = STATUS_SUCCESS;
-    return cache;
-  }
-
   StreamStore* CacheManager::get_stream_store(StreamId_Ext& stream_id, int32_t& status_code) {
     StreamStoreMap_t::iterator it = _stream_store_map.find(stream_id);
     if (it == _stream_store_map.end()) {
@@ -701,20 +652,6 @@ namespace media_manager
             WRN("flv_miniblock_cache long time no data for stream: %s, from: %ld, now: %ld, request from backend again.",
               stream_store->stream_id.unparse().c_str(), last_push_time, now);
             _req_from_backend((*hash_map_it).first, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
-          }
-        }
-
-        // 4. rtp media cache
-        if (stream_store->rtp_media_cache != NULL) {
-          time_t last_push_time = stream_store->rtp_media_cache->get_push_active_time();
-
-          if (_module_type != MODULE_TYPE_UPLOADER
-            && last_push_time != 0
-            && now - last_push_time >= _config->live_push_timeout_sec) {
-            WRN("rtp_media_cache long time no data for stream: %s, from: %ld, now: %ld, request from backend again.",
-              stream_store->stream_id.unparse().c_str(), last_push_time, now);
-            _req_from_backend((*hash_map_it).first, CACHE_REQ_LIVE_SDP);
-            _req_from_backend_rtp((*hash_map_it).first, CACHE_REQ_LIVE_RTP);
           }
         }
       }

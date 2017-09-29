@@ -21,7 +21,7 @@ namespace media_manager {
     stream_id = stream_id_ext;
     flv_miniblock_generator = NULL;
     flv_miniblock_cache = NULL;
-    rtp_media_cache = NULL;
+    //rtp_media_cache = NULL;
     state = STREAM_STORE_CONSTRUCT;
     this->set_push_active();
     this->set_req_active();
@@ -39,8 +39,8 @@ namespace media_manager {
       // no break here
     case MODULE_TYPE_BACKEND:
       flv_miniblock_cache = new FLVMiniBlockCircularCache(stream_id);
-      rtp_media_cache = new RTPMediaCache(stream_id);
-      rtp_media_cache->set_manager(cache_manager);
+      //rtp_media_cache = new RTPMediaCache(stream_id);
+      //rtp_media_cache->set_manager(cache_manager);
       break;
 
     default:
@@ -73,7 +73,7 @@ namespace media_manager {
   StreamStore::~StreamStore() {
     SAFE_DELETE(flv_miniblock_generator);
     SAFE_DELETE(flv_miniblock_cache);
-    SAFE_DELETE(rtp_media_cache);
+    //SAFE_DELETE(rtp_media_cache);
     INF("destruct StreamStore for stream: %s", stream_id.unparse().c_str());
   }
 };

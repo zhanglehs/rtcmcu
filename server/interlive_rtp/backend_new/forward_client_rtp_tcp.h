@@ -1,4 +1,4 @@
-#ifndef FORWARD_CLIENT_RTP_TCP_H
+﻿#ifndef FORWARD_CLIENT_RTP_TCP_H
 #define FORWARD_CLIENT_RTP_TCP_H
 
 #include <map>
@@ -36,6 +36,7 @@ private:
 
 class RtpPullClient;
 
+// TODO: zhangle, 如果一路流没有人拉流（即同时没有rtp和flv拉取），那么pull应该断开
 class ForwardClientRtpTCPMgr: public RtpTcpManager {
 public:
   void startStream(const StreamId_Ext& streamid);

@@ -33,17 +33,13 @@
 #include "fragment/fragment.h"
 #include "fragment/fragment_generator.h"
 #include "cache_watcher.h"
-
 #include "util/linked_hash_map.h"
 #include "util/xml.h"
 #include "util/city.h"
 #include <event.h>
 #include "cache_manager_config.h"
 #include "circular_cache.h"
-
 #include "media_manager_state.h"
-
-#include "media_manager_rtp_interface.h"
 #include "whitelist_manager.h"
 #include "../network/base_http_server.h"
 
@@ -128,7 +124,6 @@ namespace media_manager {
 
     fragment::FLVMiniBlockGenerator* flv_miniblock_generator;
     FLVMiniBlockCircularCache* flv_miniblock_cache;
-    RTPMediaCache* rtp_media_cache;
 
   protected:
     time_t				_last_push_time;
@@ -181,8 +176,7 @@ namespace media_manager {
   */
   class CacheManager :
     public UploaderCacheManagerInterface,
-    public PlayerCacheManagerInterface,
-    public MediaManagerRTPInterface {
+    public PlayerCacheManagerInterface {
   public:
     CacheManager(uint8_t module_type, CacheManagerConfig* config = NULL);
 
@@ -194,7 +188,6 @@ namespace media_manager {
 
     static UploaderCacheManagerInterface* get_uploader_cache_instance();
     static PlayerCacheManagerInterface* get_player_cache_instance();
-    static MediaManagerRTPInterface* get_rtp_cache_instance();
     static CacheManager* get_cache_manager();
 
     // UploaderCacheManagerInterface
@@ -205,8 +198,6 @@ namespace media_manager {
     int32_t destroy_stream();
     int32_t destroy_stream(StreamId_Ext stream_id);
     int32_t destroy_stream(uint32_t stream_id);
-
-    // PlayerCacheManagerInterface
 
     // miniblock method
     flv_header* get_miniblock_flv_header(StreamId_Ext stream_id, uint32_t& header_len, int32_t& status_code, bool req_from_backend = true);
@@ -221,9 +212,6 @@ namespace media_manager {
     void stop_timer();
 
     void http_state(char* query, char* param, json_object* rsp);
-
-    // MediaManagerRTPInterface
-    virtual RTPMediaCache* get_rtp_media_cache(const StreamId_Ext& stream_id, int32_t& status_code, bool req_from_backend = true);
 
     virtual int32_t notify_watcher(StreamId_Ext& stream_id, uint8_t watch_type);
 

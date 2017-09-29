@@ -13,13 +13,65 @@
 
 #include "rtp_block_cache.h"
 #include "cache_watcher.h"
-#include "media_manager_rtp_interface.h"
 #include "util/log.h"
 #include "time.h"
 #include "media_manager_state.h"
 #include <assert.h>
 #include <algorithm>
 #include "cache_manager.h"
+#include "avformat/sdp.h"
+
+namespace media_manager {
+
+  class RTPCircularCache {
+  public:
+    RTPCircularCache(const StreamId_Ext& stream_id);
+    ~RTPCircularCache();
+
+    void init(uint32_t sample_rate, uint32_t max_size);
+    bool is_inited();
+    void reset();
+    uint16_t size();
+    uint32_t get_ssrc();
+
+    int32_t set_rtp(const avformat::RTP_FIXED_HEADER*, uint16_t len, int32_t& status);
+    avformat::RTP_FIXED_HEADER* get_by_seq(uint16_t seq, uint16_t& len, int32_t& status_code);
+
+  protected:
+    void clean();
+    uint32_t _adjust();
+    int _fill_in(const avformat::RTP_FIXED_HEADER*, uint16_t);
+
+    StreamId_Ext _stream_id;
+    uint32_t _sample_rate;
+    uint16_t _max_size;
+    uint32_t _ssrc;
+    avformat::RTPAVType _av_type;
+    std::deque<fragment::RTPBlock> _circular_cache;
+  };
+
+  class RTPMediaCache {
+  public:
+    RTPMediaCache(const StreamId_Ext& stream_id);
+    ~RTPMediaCache();
+
+    int32_t set_sdp(const char* sdp, int32_t len);
+    avformat::SdpInfo* get_sdp();
+    int32_t set_rtp(const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);
+    RTPCircularCache* get_audio_cache();
+    RTPCircularCache* get_video_cache();
+
+    time_t get_push_active_time();
+
+  protected:
+    StreamId_Ext _stream_id;
+    avformat::SdpInfo* _sdp;
+    RTPCircularCache* _audio_cache;
+    RTPCircularCache* _video_cache;
+
+    time_t _push_active;
+  };
+}
 
 using namespace fragment;
 using namespace avformat;
@@ -46,18 +98,12 @@ namespace {
 namespace media_manager {
 
   RTPCircularCache::RTPCircularCache(const StreamId_Ext& stream_id) {
-    _media_manager = NULL;
     _stream_id = stream_id;
     reset();
   }
 
   RTPCircularCache::~RTPCircularCache() {
     clean();
-  }
-
-  int32_t RTPCircularCache::set_manager(MediaManagerRTPInterface* media_manager_interface) {
-    _media_manager = media_manager_interface;
-    return 0;
   }
 
   void RTPCircularCache::init(uint32_t sample_rate, uint32_t max_size) {
@@ -253,11 +299,6 @@ namespace media_manager {
 
     if (block.is_valid()) {
       if (seq == block.get_seq()) {
-        //int32_t status = 0;
-        //StreamStore* store = ((CacheManager *)_media_manager)->get_stream_store(_stream_id, status);
-        //if (store && status == STATUS_SUCCESS) {
-        //  store->set_req_active();
-        //}
         status_code = STATUS_SUCCESS;
         return block.get(len);
       }
@@ -279,8 +320,7 @@ namespace media_manager {
   RTPMediaCache::RTPMediaCache(const StreamId_Ext& stream_id)
     :_stream_id(stream_id),
     _sdp(NULL),
-    _push_active(0),
-    _media_manager(NULL) {
+    _push_active(0) {
     _video_cache = new RTPCircularCache(stream_id);
     _audio_cache = new RTPCircularCache(stream_id);
   }
@@ -293,13 +333,6 @@ namespace media_manager {
 
     delete _audio_cache;
     delete _video_cache;
-  }
-
-  int32_t RTPMediaCache::set_manager(MediaManagerRTPInterface* media_manager_interface) {
-    _media_manager = media_manager_interface;
-    _video_cache->set_manager(_media_manager);
-    _audio_cache->set_manager(_media_manager);
-    return 0;
   }
 
   int32_t RTPMediaCache::set_sdp(const char* sdp, int32_t len) {
@@ -331,18 +364,11 @@ namespace media_manager {
       }
     }
 
-    //if (_media_manager != NULL) {
-    //  _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_SDP);
-    //}
+    _push_active = time(NULL);
     return 0;
   }
 
   SdpInfo* RTPMediaCache::get_sdp() {
-    //int32_t status = 0;
-    //StreamStore* store = ((CacheManager *)_media_manager)->get_stream_store(_stream_id, status);
-    //if (store && status == STATUS_SUCCESS) {
-    //  store->set_req_active();
-    //}
     return _sdp;
   }
 
@@ -352,23 +378,6 @@ namespace media_manager {
 
   RTPCircularCache* RTPMediaCache::get_video_cache() {
     return _video_cache->is_inited() ? _video_cache : NULL;
-  }
-
-  bool RTPMediaCache::rtp_empty() {
-    bool audio_empty = false;
-    bool video_empty = false;
-
-    RTPCircularCache* audio_cache = get_audio_cache();
-    if (audio_cache == NULL || audio_cache->size() == 0) {
-      audio_empty = true;
-    }
-
-    RTPCircularCache* video_cache = get_video_cache();
-    if (video_cache == NULL || video_cache->size() == 0) {
-      video_empty = true;
-    }
-
-    return audio_empty && video_empty;
   }
 
   int32_t RTPMediaCache::set_rtp(const RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status) {
@@ -383,15 +392,9 @@ namespace media_manager {
     case RTP_AV_MP3:
     case RTP_AV_AAC:
       _audio_cache->set_rtp(rtp, len, status);
-      //if (status == STATUS_SUCCESS && _media_manager != NULL) {
-      //  _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_RTP_BLOCK);
-      //}
       break;
     case RTP_AV_H264:
       _video_cache->set_rtp(rtp, len, status);
-      //if (status == STATUS_SUCCESS && _media_manager != NULL) {
-      //  _media_manager->notify_watcher(_stream_id, CACHE_WATCHING_RTP_BLOCK);
-      //}
       break;
     default:
       status = RTP_CACHE_SET_RTP_FAILED;
@@ -413,7 +416,6 @@ namespace media_manager {
 
 //////////////////////////////////////////////////////////////////////////
 #include "media_manager/rtp2flv_remuxer.h"
-//#include "media_manager/rtp_block_cache.h"
 #include "backend_new/module_backend.h"
 
 RtpCacheManager * RtpCacheManager::m_inst = NULL;
@@ -440,13 +442,13 @@ int RtpCacheManager::Init(struct event_base *ev_base) {
   return 0;
 }
 
-void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
-  m_watches.insert(watcher);
-}
-
-void RtpCacheManager::RemoveWatcher(RtpCacheWatcher *watcher) {
-  m_watches.erase(watcher);
-}
+//void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
+//  m_watches.insert(watcher);
+//}
+//
+//void RtpCacheManager::RemoveWatcher(RtpCacheWatcher *watcher) {
+//  m_watches.erase(watcher);
+//}
 
 int RtpCacheManager::set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len) {
   auto it = m_caches.find(stream_id.get_32bit_stream_id());
@@ -463,11 +465,11 @@ int RtpCacheManager::set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_
   media_manager::RTPMediaCache *cache = it->second;
   int32_t status_code = 0;
   int ret = cache->set_rtp(rtp, len, status_code);
-  if (ret >= 0) {
-    for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
-      (*it)->OnRtp();
-    }
-  }
+  //if (ret >= 0) {
+  //  for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
+  //    (*it)->OnRtp();
+  //  }
+  //}
   return ret;
 }
 
@@ -492,11 +494,11 @@ int RtpCacheManager::set_sdp(const StreamId_Ext& stream_id, const char* sdp, int
   }
 
   int ret = cache->set_sdp(sdp, len);
-  if (ret >= 0) {
-    for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
-      (*it)->OnSdp();
-    }
-  }
+  //if (ret >= 0) {
+  //  for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
+  //    (*it)->OnSdp();
+  //  }
+  //}
   return ret;
 }
 

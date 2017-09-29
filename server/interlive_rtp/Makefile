@@ -84,7 +84,7 @@ AVCODEC_OBJS = $(AVCODEC_DIR)/aac.o $(AVCODEC_DIR)/h264.o
 TRANSPORTOBJS = $(TRANSPORT_DIR)/rtp_send_queue.o $(TRANSPORT_DIR)/event_pump_libevent.o \
 				$(TRANSPORT_DIR)/udp_socket.o
 
-RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_media_manager_helper.o $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTPTRANS_DIR)/rtp_trans_manager.o \
+RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTPTRANS_DIR)/rtp_trans_manager.o \
                  $(RTPTRANS_DIR)/rtp_sender_session.o $(RTPTRANS_DIR)/rtp_receiver_session.o $(RTPTRANS_DIR)/rtp_sender_trans.o $(RTPTRANS_DIR)/rtp_receiver_trans.o
 
 COMMONOBJS = hls.o stream_manager.o media_buffer.o stream_recorder.o perf.o info_collector.o\

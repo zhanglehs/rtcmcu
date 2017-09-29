@@ -65,24 +65,24 @@ namespace media_manager {
     bool is_check_frame;
     buffer *_avc0_buffer;
     buffer *_aac0_buffer;
-    RTPMediaCache *_media_cache;
+    //RTPMediaCache *_media_cache;
 
     std::deque<flv_tag *> _audio_out_queue;
     std::deque<flv_tag *> _video_out_queue;
 
   public:
-    media_manager::RTPMediaCache *get_media_cache();
+    //media_manager::RTPMediaCache *get_media_cache();
     Rtp2FlvTransformInfo(StreamId_Ext stream_id);
     ~Rtp2FlvTransformInfo();
   };
 
-  RTPMediaCache *Rtp2FlvTransformInfo::get_media_cache() {
-    if (_media_cache == NULL) {
-      int status_code;
-      _media_cache = CacheManager::get_rtp_cache_instance()->get_rtp_media_cache(_stream_id, status_code, true);
-    }
-    return _media_cache;
-  }
+  //RTPMediaCache *Rtp2FlvTransformInfo::get_media_cache() {
+  //  if (_media_cache == NULL) {
+  //    int status_code;
+  //    _media_cache = CacheManager::get_rtp_cache_instance()->get_rtp_media_cache(_stream_id, status_code, true);
+  //  }
+  //  return _media_cache;
+  //}
 
   Rtp2FlvTransformInfo::Rtp2FlvTransformInfo(StreamId_Ext stream_id) {
     TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
@@ -113,7 +113,7 @@ namespace media_manager {
     _video_inc_req = 0;
     _audio_inc_req = 0;
     _audio_channel = 0;
-    _media_cache = NULL;
+    //_media_cache = NULL;
     _last_video_seq = 0;
     _last_rtp_video_ts = 0;
     _last_rtp_audio_ts = 0;

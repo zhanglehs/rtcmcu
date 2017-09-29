@@ -59,7 +59,7 @@ public:
   RtpManagerBase *manager;
   uint32_t audio_ssrc;
   uint32_t video_ssrc;
-  media_manager::RTPMediaCache *rtp_cache;
+  //media_manager::RTPMediaCache *rtp_cache;
 
   uint32_t send_bytes;
   uint32_t recv_bytes;
