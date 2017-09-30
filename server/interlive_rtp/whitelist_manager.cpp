@@ -13,11 +13,10 @@
 #include "backend_new/module_backend.h"
 #include "media_manager/cache_manager.h"
 #include "player/module_player.h"
-#include "stream_manager.h"
+//#include "stream_manager.h"
 #include "target_player.h"
 #include "target_backend.h"
 #include "uploader/RtpTcpConnectionManager.h"
-#include "stream_recorder.h"    // for stop_record_stream
 #include "define.h" // for MAX_STREAM_CNT
 
 using namespace  media_manager;
@@ -218,41 +217,41 @@ f2p_keepalive* build_f2p_keepalive(f2p_keepalive* ka)
 
 f2p_keepalive* WhitelistManager::build_f2p_keepalive(f2p_keepalive* ka)
 {
-  inet_aton(_conf.player.player_listen_ip,
-    (struct in_addr *) &ka->listen_player_addr.ip);
-  ka->listen_player_addr.ip = ntohl(ka->listen_player_addr.ip);
-  ka->listen_player_addr.port = _conf.player.player_listen_port;
-  ka->out_speed = 0;
-  ka->stream_cnt = 0;
+  //inet_aton(_conf.player.player_listen_ip,
+  //  (struct in_addr *) &ka->listen_player_addr.ip);
+  //ka->listen_player_addr.ip = ntohl(ka->listen_player_addr.ip);
+  //ka->listen_player_addr.port = _conf.player.player_listen_port;
+  //ka->out_speed = 0;
+  //ka->stream_cnt = 0;
 
-  forward_stream_status *fss = NULL;
+  //forward_stream_status *fss = NULL;
 
-  for (WhiteListMap::iterator it = _white_list.begin(); it != _white_list.end(); it++)
-  {
-    WhiteListItem& item = it->second;
+  //for (WhiteListMap::iterator it = _white_list.begin(); it != _white_list.end(); it++)
+  //{
+  //  WhiteListItem& item = it->second;
 
-    if (!stream_manager_is_has_stream(item.streamid.get_32bit_stream_id()))
-      continue;
-    fss = ka->stream_status + ka->stream_cnt;
-    fss->streamid = item.streamid.get_32bit_stream_id();
-    fss->player_cnt = fss->forward_cnt = 0;
-    fss->last_ts = -1;
-    fss->last_block_seq = (uint64_t)-1;
+  //  if (!stream_manager_is_has_stream(item.streamid.get_32bit_stream_id()))
+  //    continue;
+  //  fss = ka->stream_status + ka->stream_cnt;
+  //  fss->streamid = item.streamid.get_32bit_stream_id();
+  //  fss->player_cnt = fss->forward_cnt = 0;
+  //  fss->last_ts = -1;
+  //  fss->last_block_seq = (uint64_t)-1;
 
-    block_map *bm = (block_map *)stream_manager_get_last_block(item.streamid.get_32bit_stream_id(), NULL);
+  //  block_map *bm = (block_map *)stream_manager_get_last_block(item.streamid.get_32bit_stream_id(), NULL);
 
-    if (NULL != bm)
-    {
-      fss->last_block_seq = bm->data.seq;
-      fss->last_ts = bm->last_ts;
-    }
+  //  if (NULL != bm)
+  //  {
+  //    fss->last_block_seq = bm->data.seq;
+  //    fss->last_ts = bm->last_ts;
+  //  }
 
-    ka->out_speed +=
-      DEFAULT_BPS * (fss->player_cnt + fss->forward_cnt) / 8;
-    ka->stream_cnt++;
-    if (ka->stream_cnt >= MAX_STREAM_CNT)
-      break;
-  }
+  //  ka->out_speed +=
+  //    DEFAULT_BPS * (fss->player_cnt + fss->forward_cnt) / 8;
+  //  ka->stream_cnt++;
+  //  if (ka->stream_cnt >= MAX_STREAM_CNT)
+  //    break;
+  //}
   return ka;
 }
 
@@ -323,27 +322,27 @@ boolean WhitelistManager::tb_is_src_stream_v2(StreamId_Ext streamid)
 
 int WhitelistManager::notify_need_stream(uint32_t streamid)
 {
-  StreamId_Ext streamid_ext(streamid, 0);
-  if (_white_list.find(streamid_ext) == _white_list.end())
-  {
-    WRN("been notified with invalid streamid = %u", streamid);
-    return -1;
-  }
+  //StreamId_Ext streamid_ext(streamid, 0);
+  //if (_white_list.find(streamid_ext) == _white_list.end())
+  //{
+  //  WRN("been notified with invalid streamid = %u", streamid);
+  //  return -1;
+  //}
 
-  int ret = -1;
-  WhiteListItem& ls = _white_list[streamid_ext];
-  ls.is_idle = FALSE;
-  if (!ls.stream_mng_created) {
-    ret = stream_manager_create_stream(streamid);
-    if (0 != ret && -1 != ret) {
-      ERR("stream_manager_create_stream failed. streamid = %u",
-        streamid);
-      return -1;
-    }
-    ls.stream_mng_created = TRUE;
-    if (-1 == ret)
-      DBG("stream already in stream manager. streamid = %u", streamid);
-  }
+  //int ret = -1;
+  //WhiteListItem& ls = _white_list[streamid_ext];
+  //ls.is_idle = FALSE;
+  //if (!ls.stream_mng_created) {
+  //  ret = stream_manager_create_stream(streamid);
+  //  if (0 != ret && -1 != ret) {
+  //    ERR("stream_manager_create_stream failed. streamid = %u",
+  //      streamid);
+  //    return -1;
+  //  }
+  //  ls.stream_mng_created = TRUE;
+  //  if (-1 == ret)
+  //    DBG("stream already in stream manager. streamid = %u", streamid);
+  //}
   return 0;
 }
 

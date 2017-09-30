@@ -9,7 +9,7 @@
 #include "forward_server.h"
 #include "cmd_fsm.h"
 #include "utils/buffer.hpp"
-#include "stream_manager.h"
+//#include "stream_manager.h"
 #include "player/module_player.h"
 
 #include "common/protobuf/f2t_register_req.pb.h"

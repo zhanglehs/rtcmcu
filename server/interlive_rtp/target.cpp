@@ -55,11 +55,11 @@
 #include "util/levent.h"
 #include "util/report.h"
 #include "util/report_stats.h"
-#include "stream_manager.h"
+//#include "stream_manager.h"
 #include "streamid.h"
 #include "common/proto.h"
 #include "define.h"
-#include "stream_recorder.h"
+//#include "stream_recorder.h"
 #include "cache_manager.h"
 #include "portal.h"
 #include "perf.h"
@@ -327,8 +327,8 @@ server_exit()
   backend_fini();
   INF("access fini...");
   access_fini();
-  INF("stream manager fini...");
-  stream_manager_fini();
+  //INF("stream manager fini...");
+  //stream_manager_fini();
   INF("portal fini...");
   Portal::destroy();
   INF("tracker fini...");
@@ -645,11 +645,11 @@ int main_proc() {
   }
 #endif
 
-  if (0 != stream_manager_init(g_conf.target_conf.media_buffer_size))
-  {
-    ERR("stream manager init failed.");
-    return 1;
-  }
+  //if (0 != stream_manager_init(g_conf.target_conf.media_buffer_size))
+  //{
+  //  ERR("stream manager init failed.");
+  //  return 1;
+  //}
 
   if (0 != session_manager_init(&g_session_mng))
   {
@@ -720,10 +720,6 @@ int main_proc() {
   if (0 != backend_init(main_base, &g_session_mng, &(g_conf.backend))) {
     ERR("backend init failed.");
     return 1;
-  }
-
-  if (strlen(g_conf.target_conf.record_dir) > 0) {
-    stream_recorder_init(g_conf.target_conf.record_dir);
   }
 
   std::stringstream ss;

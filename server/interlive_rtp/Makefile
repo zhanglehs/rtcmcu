@@ -87,7 +87,7 @@ TRANSPORTOBJS = $(TRANSPORT_DIR)/rtp_send_queue.o $(TRANSPORT_DIR)/event_pump_li
 RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTPTRANS_DIR)/rtp_trans_manager.o \
                  $(RTPTRANS_DIR)/rtp_sender_session.o $(RTPTRANS_DIR)/rtp_receiver_session.o $(RTPTRANS_DIR)/rtp_sender_trans.o $(RTPTRANS_DIR)/rtp_receiver_trans.o
 
-COMMONOBJS = hls.o stream_manager.o media_buffer.o stream_recorder.o perf.o info_collector.o\
+COMMONOBJS = hls.o media_buffer.o perf.o info_collector.o\
 			 whitelist_manager.o libcachemanager.a libfragment.a portal.o config_manager.o \
 			 $(UTIL_DIR)/connection.o\
 			 $(NETWORK_DIR)/base_tcp_server.o $(NETWORK_DIR)/tcp_connection.o $(NETWORK_DIR)/ip_access_control.o\

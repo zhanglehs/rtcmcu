@@ -12,12 +12,13 @@
 #include <unistd.h>
 #include <assert.h>
 #include <string.h>
-#include "stream_manager.h"
+//#include "stream_manager.h"
 #include "util/flv.h"
 #include "utils/memory.h"
 #include "util/log.h"
 #include "utils/buffer.hpp"
 #include "util/flv2ts.h"
+#include "common/proto_define.h"
 
 #define DURATION_OFFSET 5
 
@@ -259,7 +260,8 @@ using namespace std;
 static int
 convert_flv2ts(hls_ctx * ctx)
 {
-  const media_header *hdr = stream_manager_get_header(ctx->streamid, FLV_FLAG_BOTH);
+  // TODO: zhangle
+  const media_header *hdr = NULL;// stream_manager_get_header(ctx->streamid, FLV_FLAG_BOTH);
 
   if (NULL == hdr) {
     WRN("get media header failed.");

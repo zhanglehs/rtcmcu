@@ -1,24 +1,22 @@
 ﻿#ifndef __UPLOADER_H__
 #define __UPLOADER_H__
 
-#include <stdint.h>
-#include <event.h>
-#include <time.h>
 #include "streamid.h"
-#include <json.h>
 #include "utils/buffer.hpp"
 #include "target.h"
 #include "portal.h"
 #include "util/flv.h"
 #include "config_manager.h"
-//#include "media_manager/cache_manager.h"
 #include "uploader_config.h"
-#include <set>
-#include <list>
 #include "whitelist_manager.h"
-//#include "uploader/RtpTcpConnectionManager.h"
 #include "avformat/rtcp.h"
 #include "transport/rtp_send_queue.h"
+#include <stdint.h>
+#include <event.h>
+#include <json.h>
+#include <time.h>
+#include <set>
+#include <list>
 
 typedef void(*LibEventCb)(const int, const short, void *);
 

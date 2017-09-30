@@ -23,7 +23,6 @@
 #include "util/levent.h"
 #include "util/report.h"
 #include "testcase/delay_test.h"
-#include "stream_manager.h"
 #include "util/connection.h"
 #include "hls.h"
 #include "player/flv_live_player.h"
