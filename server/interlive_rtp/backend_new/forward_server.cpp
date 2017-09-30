@@ -163,7 +163,7 @@ bool ForwardServer::create(const backend_config& backend_conf)
     _backend_conf = &backend_conf;
 
     _dump_time_last = time(0);
-    PlayerCacheManagerInterface * cache_manager = CacheManager::get_player_cache_instance();
+    FlvCacheManager * cache_manager = FlvCacheManager::Instance();
     if (cache_manager == NULL)
     {
       WRN("ForwardServer::create:cache_manager is null!");

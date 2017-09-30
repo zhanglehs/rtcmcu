@@ -169,7 +169,7 @@ namespace media_manager {
   RTP2FLVRemuxer *RTP2FLVRemuxer::_inst = NULL;
 
   RTP2FLVRemuxer::RTP2FLVRemuxer() {
-    _uploader_cache_instance = CacheManager::get_uploader_cache_instance();
+    _uploader_cache_instance = FlvCacheManager::Instance();
   }
 
   RTP2FLVRemuxer * RTP2FLVRemuxer::get_instance() {
@@ -570,9 +570,8 @@ namespace media_manager {
         (const uint8_t *)buffer_data_ptr(stream_meta->_aac0_buffer), buffer_data_len(stream_meta->_aac0_buffer), status);
       int32_t len = 0;
       flv_header* header = flv_hdr->get_header(len);
-      UploaderCacheManagerInterface* uploader_cache_instance = CacheManager::get_uploader_cache_instance();
-      uploader_cache_instance->init_stream(stream_meta->_stream_id);
-      uploader_cache_instance->set_flv_header(stream_meta->_stream_id, header, len);
+      //_uploader_cache_instance->init_stream(stream_meta->_stream_id);
+      _uploader_cache_instance->set_flv_header(stream_meta->_stream_id, header, len);
     }
   }
 

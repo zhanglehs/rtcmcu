@@ -30,7 +30,7 @@ namespace media_manager {
 
   private:
     __gnu_cxx::hash_map<StreamId_Ext, Rtp2FlvTransformInfo*> _meta_map;
-    UploaderCacheManagerInterface* _uploader_cache_instance;
+    FlvCacheManager* _uploader_cache_instance;
     static RTP2FLVRemuxer *_inst;
   };
 

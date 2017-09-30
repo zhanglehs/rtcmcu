@@ -23,11 +23,12 @@ BaseLivePlayer::~BaseLivePlayer() {
 
 //////////////////////////////////////////////////////////////////////////
 
-FlvLivePlayer::FlvLivePlayer(LiveConnection *c) : BaseLivePlayer(c), _cmng(media_manager::CacheManager::get_player_cache_instance()) {
+FlvLivePlayer::FlvLivePlayer(LiveConnection *c) : BaseLivePlayer(c) {
   m_written_header = false;
   m_written_first_tag = false;
   m_buffer_overuse = false;
   m_latest_blockid = -1;
+  _cmng = media_manager::FlvCacheManager::Instance();
 }
 
 void FlvLivePlayer::OnWrite() {
@@ -35,11 +36,9 @@ void FlvLivePlayer::OnWrite() {
   StreamId_Ext streamid = c->streamid;
 
   if (!m_written_header) {
-    int status_code = 0;
     fragment::FLVHeader flvheader(streamid);
-    if (!_cmng->get_miniblock_flv_header(streamid, flvheader, status_code)) {
-      WRN("req live header failed, streamid= %s, status code= %d",
-        streamid.unparse().c_str(), status_code);
+    if (_cmng->get_miniblock_flv_header(streamid, flvheader) < 0) {
+      WRN("req live header failed, streamid= %s", streamid.unparse().c_str());
       return;
     }
 
@@ -77,9 +76,8 @@ void FlvLivePlayer::OnWrite() {
   }
 
   if (!m_written_first_tag) {
-    int status_code;
-    fragment::FLVMiniBlock* block = _cmng->get_latest_miniblock(streamid, status_code);
-    if (status_code >= 0) {
+    fragment::FLVMiniBlock* block = _cmng->get_latest_miniblock(streamid);
+    if (block) {
       m_latest_blockid = block->get_seq();
       uint32_t timeoffset = 0;
       block->copy_payload_to_buffer(c->wb, timeoffset, FLV_FLAG_BOTH);
@@ -90,14 +88,11 @@ void FlvLivePlayer::OnWrite() {
     }
   }
 
-  int status_code = 0;
-  while (status_code >= 0){
-    fragment::FLVMiniBlock* block = _cmng->get_miniblock_by_seq(streamid, m_latest_blockid + 1, status_code);
-    if (status_code >= 0) {
-      m_latest_blockid = block->get_seq();
-      uint32_t timeoffset = 0;
-      block->copy_payload_to_buffer(c->wb, timeoffset, FLV_FLAG_BOTH);
-    }
+  fragment::FLVMiniBlock* block = NULL;
+  while ((block = _cmng->get_miniblock_by_seq(streamid, m_latest_blockid + 1)) != NULL) {
+    m_latest_blockid = block->get_seq();
+    uint32_t timeoffset = 0;
+    block->copy_payload_to_buffer(c->wb, timeoffset, FLV_FLAG_BOTH);
   }
 }
 

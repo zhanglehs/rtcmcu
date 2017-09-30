@@ -322,7 +322,7 @@ server_exit()
   RtpUdpServerManager::DestroyInstance();
   RtpTcpServerManager::DestroyInstance();
   INF("cache manager fini...");
-  CacheManager::Destroy();
+  FlvCacheManager::DestroyInstance();
   INF("backend fini...");
   backend_fini();
   INF("access fini...");
@@ -667,13 +667,9 @@ int main_proc() {
     module_type = MODULE_TYPE_UPLOADER;
   }
 
-  WhiteListMap *white_list = SINGLETON(WhitelistManager)->get_white_list();
+  //WhiteListMap *white_list = SINGLETON(WhitelistManager)->get_white_list();
 
-  new CacheManager(module_type, &(g_conf.cache_manager_config));
-  CacheManager* cache = CacheManager::get_cache_manager();
-
-  cache->set_event_base(main_base);
-  cache->start_timer();
+  FlvCacheManager::Instance()->Init(main_base, module_type, &(g_conf.cache_manager_config));
 
   /* ignore SIGPIPE when write to closing fd
    * otherwise EPIPE error will cause transporter to terminate unexpectedly
@@ -696,7 +692,7 @@ int main_proc() {
   base_http_server->init(main_base);
   base_http_server->register_self_handle();
 
-  cache->set_http_server(base_http_server);
+  FlvCacheManager::Instance()->set_http_server(base_http_server);
 
   // Perf initialization
   perf = Perf::get_instance();
@@ -705,24 +701,6 @@ int main_proc() {
   RtpTcpServerManager::Instance()->Init(main_base);
   RtpUdpServerManager::Instance()->Init(main_base);
   RtpTcpServerManager::Instance()->set_http_server(base_http_server);
-
-  //if (0 != RtpTcpConnectionManager::get_inst()->init(main_base, &(g_conf.uploader))) {
-  //  ERR("uploader init failed.");
-  //  return 1;
-  //}
-  //if (g_conf.target_conf.enable_rtp) {
-  //  if (RtpUdpConnectionManager::get_inst()->init(main_base) < 0) {
-  //    ERR("rtp udp init failed.");
-  //    return 1;
-  //  }
-
-  //  RTPUDPUploader::getInst()->set_http_server(base_http_server);
-  //  RTPUDPPlayer::getInst()->set_http_server(base_http_server);
-  //  RTPTCPUploaderMgr::get_inst()->set_http_server(base_http_server);
-  //  RTPTCPPlayerMgr::get_inst()->set_http_server(base_http_server);
-  //}
-
-  
 
   if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
     ERR("player init failed.");

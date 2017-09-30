@@ -33,7 +33,7 @@ namespace media_manager
 
   class CircularCache
   {
-    friend class CacheManager;
+    friend class FlvCacheManager;
   public:
     CircularCache(StreamId_Ext& stream_id);
 
@@ -75,7 +75,7 @@ namespace media_manager
   };
 
   class FLVMiniBlockCircularCache : public CircularCache {
-    friend class CacheManager;
+    friend class FlvCacheManager;
   public:
     FLVMiniBlockCircularCache(StreamId_Ext& stream_id);
     int32_t set_flv_header(flv_header* input_flv_header, uint32_t flv_header_len);

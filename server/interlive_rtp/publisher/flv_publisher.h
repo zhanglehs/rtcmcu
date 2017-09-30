@@ -7,6 +7,7 @@
 #include <common/proto.h>
 #include "cache_manager.h"
 #include "../whitelist_manager.h"
+#include "config_manager.h"
 #include <list>
 
 int publisher_init(struct event_base *main_base);
@@ -63,7 +64,7 @@ struct FLVPublisher {
 
 class FLVPublisherManager :  public WhitelistObserver {
 public:
-	void registerWatcher(media_manager::PlayerCacheManagerInterface * cmng);
+  void registerWatcher(media_manager::FlvCacheManager * cmng);
 	FLVPublisher* startStream(const StreamId_Ext &sid);
 	void stopStream(const StreamId_Ext &sid);
 	void processPacket(FLVPublisher* client,uint16_t cmd,uint32_t pkt_size);
@@ -80,6 +81,6 @@ private:
 	FLVPublisher* findPublisherByStreamid(const StreamId_Ext &sid);
 private:
 	std::map<StreamId_Ext,FLVPublisher *> publishermap;
-	media_manager::PlayerCacheManagerInterface * _cmng;
+  media_manager::FlvCacheManager * _cmng;
 };
 #endif

@@ -87,7 +87,7 @@ class PlayerCacheManagerImp : public PlayerCacheManagerInterface
 
 };
 
-PlayerCacheManagerInterface* CacheManager::get_player_cache_instance()
+PlayerCacheManagerInterface* FlvCacheManager::get_player_cache_instance()
 {
 	return new PlayerCacheManagerImp();
 }

@@ -1,12 +1,13 @@
 #ifndef LOG_H__
 #define LOG_H__
 
+#include "common.h"
 #include <stddef.h>
 #include <limits.h>
 #include <time.h>
 #include <stdio.h>
 #include <string.h>
-#include "common.h"
+#include <assert.h>
 
 #if (defined __cplusplus && !defined _WIN32)
 extern "C"

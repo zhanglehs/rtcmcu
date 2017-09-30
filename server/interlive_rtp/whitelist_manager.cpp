@@ -147,7 +147,7 @@ void WhitelistManager::del_stream(const StreamId_Ext& streamid) {
     }
   }
 
-  UploaderCacheManagerInterface* uploader_cache_instance = CacheManager::get_uploader_cache_instance();
+  FlvCacheManager* uploader_cache_instance = FlvCacheManager::Instance();
   uploader_cache_instance->destroy_stream(streamid);
 }
 

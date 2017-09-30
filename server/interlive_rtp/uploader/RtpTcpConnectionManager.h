@@ -11,7 +11,7 @@
 #include "portal.h"
 #include "util/flv.h"
 #include "config_manager.h"
-#include "media_manager/cache_manager.h"
+//#include "media_manager/cache_manager.h"
 #include "uploader_config.h"
 #include <set>
 #include <list>
@@ -99,7 +99,6 @@ protected:
 protected:
 public:
   static RTPTransManager *m_trans_mgr;
-  //static RtpCacheManager *m_rtp_cache;
   struct event_base* m_ev_base;
 };
 
@@ -123,6 +122,10 @@ protected:
   // 临时连接管理。在交给RTPTransManager之前，若RtpConnection超时，需要收尸
   std::set<RtpConnection*> m_connections;
 };
+
+namespace http {
+  class HTTPConnection;
+}
 
 class RtpTcpServerManager : public RtpTcpManager {
 public:

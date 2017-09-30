@@ -12,46 +12,22 @@
 
 #include "fragment.h"
 #include "cache_manager.h"
-
-using namespace fragment;
+#include "media_manager/circular_cache.h"
+#include "fragment/fragment_generator.h"
 
 namespace media_manager {
 
-  StreamStore::StreamStore(const StreamId_Ext& stream_id_ext) {
+  StreamStore::StreamStore(const StreamId_Ext& stream_id_ext, uint8_t module_type) {
     stream_id = stream_id_ext;
-    flv_miniblock_generator = NULL;
-    flv_miniblock_cache = NULL;
-    //rtp_media_cache = NULL;
-    state = STREAM_STORE_CONSTRUCT;
-    this->set_push_active();
-    this->set_req_active();
-  }
-
-  int32_t StreamStore::init(uint8_t module_type, CacheManagerConfig* cache_manager_config, CacheManager* cache_manager) {
-    if (state != STREAM_STORE_CONSTRUCT) {
-      ERR("StreamStore state is wrong, state = %d", state);
-      return -1;
+    flv_miniblock_cache = new FLVMiniBlockCircularCache(stream_id);
+    if (true/*MODULE_TYPE_UPLOADER == module_type*/) {
+      flv_miniblock_generator = new fragment::FLVMiniBlockGenerator(stream_id);
     }
-
-    switch (module_type) {
-    case MODULE_TYPE_UPLOADER:
-      flv_miniblock_generator = new FLVMiniBlockGenerator(stream_id);
-      // no break here
-    case MODULE_TYPE_BACKEND:
-      flv_miniblock_cache = new FLVMiniBlockCircularCache(stream_id);
-      //rtp_media_cache = new RTPMediaCache(stream_id);
-      //rtp_media_cache->set_manager(cache_manager);
-      break;
-
-    default:
-      break;
+    else {
+      flv_miniblock_generator = NULL;
     }
-
     set_push_active();
     set_req_active();
-
-    state = STREAM_STORE_INIT;
-    return state;
   }
 
   void StreamStore::set_push_active() {
@@ -73,7 +49,6 @@ namespace media_manager {
   StreamStore::~StreamStore() {
     SAFE_DELETE(flv_miniblock_generator);
     SAFE_DELETE(flv_miniblock_cache);
-    //SAFE_DELETE(rtp_media_cache);
     INF("destruct StreamStore for stream: %s", stream_id.unparse().c_str());
   }
 };

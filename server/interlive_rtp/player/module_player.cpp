@@ -468,7 +468,7 @@ int LiveConnectionManager::Init(struct event_base *ev_base, const player_config 
   #endif
   m_ev_socket.Start(ev_base, fd_socket, &LiveConnectionManager::OnSocketAccept, this);
 
-  media_manager::PlayerCacheManagerInterface *cache = media_manager::CacheManager::get_player_cache_instance();
+  media_manager::FlvCacheManager *cache = media_manager::FlvCacheManager::Instance();
   cache->register_watcher(&LiveConnectionManager::OnRecvStreamData, media_manager::CACHE_WATCHING_ALL, this);
   return 0;
 }
@@ -561,8 +561,9 @@ void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short whic
       char query[1024] = { 0 };
       {
         // 一大堆http协议的处理代码，写得很丑陋
+        const int max_http_header_len = 16 * 1024;
         buffer *rb = c->rb;
-        int len = buffer_read_fd_max(rb, c->ev_socket.fd, MAX_HTTP_REQ_LINE);
+        int len = buffer_read_fd_max(rb, c->ev_socket.fd, max_http_header_len);
         if (len < 0) {
           LiveConnection::Destroy(c);
           return;
@@ -576,7 +577,7 @@ void LiveConnectionManager::OnSocketDataImpl(LiveConnection *c, const short whic
         len = (int)buffer_data_len(rb);
         const char *header_end = (const char *)memmem(buf, len, "\r\n\r\n", strlen("\r\n\r\n"));
         if (header_end == NULL) {
-          if (len >= MAX_HTTP_REQ_LINE) {
+          if (len >= max_http_header_len) {
             //PLAYER_WRN("http req line too long");
             HttpErrorResponse(c, HTTP_414);
           }

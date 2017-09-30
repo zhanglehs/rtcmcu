@@ -13,7 +13,7 @@ protected:
 };
 
 namespace media_manager {
-  class PlayerCacheManagerInterface;
+  class FlvCacheManager;
 }
 class FlvLivePlayer : public BaseLivePlayer {
 public:
@@ -26,7 +26,7 @@ protected:
 
   bool m_buffer_overuse;
   int m_latest_blockid;
-  media_manager::PlayerCacheManagerInterface * _cmng;
+  media_manager::FlvCacheManager * _cmng;
 };
 
 class player_config;

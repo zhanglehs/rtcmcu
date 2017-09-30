@@ -77,7 +77,7 @@ protected:
 
 	virtual void SetUp()
 	{
-		cache = new CacheManager(MODULE_TYPE_UPLOADER);
+		cache = new FlvCacheManager(MODULE_TYPE_UPLOADER);
 		uploader_cache = cache;
 		player_cache = cache;
 
@@ -116,7 +116,7 @@ protected:
 	}
 
 public:
-	CacheManager* cache;
+	FlvCacheManager* cache;
 	UploaderCacheManagerInterface* uploader_cache;
 	PlayerCacheManagerInterface* player_cache;
 

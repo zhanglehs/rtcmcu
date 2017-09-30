@@ -779,7 +779,7 @@ namespace media_manager
 
     bool CacheManagerConfig::reload() const
     {
-        return (CacheManager::get_cache_manager()->load_config(this) == 0);
+        return (FlvCacheManager::Instance()->load_config(this) == 0);
     }
 
     const char* CacheManagerConfig::module_name() const

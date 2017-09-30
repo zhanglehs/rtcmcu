@@ -30,13 +30,13 @@
 
 namespace media_manager
 {
-  class CacheManager;
+  class FlvCacheManager;
 }
 
 namespace fragment
 {
   class FragmentGenerator {
-    friend  class media_manager::CacheManager;
+    friend  class media_manager::FlvCacheManager;
 
   public:
     FragmentGenerator(StreamId_Ext& stream_id);

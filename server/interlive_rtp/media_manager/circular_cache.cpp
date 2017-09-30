@@ -11,6 +11,7 @@
 
 #include "circular_cache.h"
 #include "cache_manager.h"
+#include "media_manager/media_manager_state.h"
 
 using namespace std;
 using namespace fragment;

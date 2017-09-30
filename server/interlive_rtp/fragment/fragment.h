@@ -33,7 +33,7 @@
 
 namespace media_manager
 {
-  class CacheManager;
+  class FlvCacheManager;
 }
 
 namespace fragment
@@ -89,7 +89,7 @@ namespace fragment
 
   class FLVMiniBlock : public BaseBlock
   {
-    friend class media_manager::CacheManager;
+    friend class media_manager::FlvCacheManager;
   public:
     FLVMiniBlock(flv_miniblock_header* input_block_buffer, bool malloc_flag = true);
     uint32_t		get_seq();

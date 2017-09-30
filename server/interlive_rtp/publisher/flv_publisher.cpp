@@ -5,6 +5,7 @@
 #include "fragment.h"
 #include "../appframe/singleton.hpp"
 #include <netinet/tcp.h>
+#include <netinet/in.h>
 
 using namespace fragment;
 static struct event_base * g_ev_base = NULL;
@@ -355,11 +356,10 @@ void FLVPublisherManager::notifyStreamData(StreamId_Ext &streamid) {
 		if (p->state == FLV_PUBLISHER_STATE_STREAMING_HEADER)
 		{
 			FLVHeader flvheader(streamid);
-			int status_code;
-			if (!_cmng->get_miniblock_flv_header(streamid, flvheader, status_code))
+			if (_cmng->get_miniblock_flv_header(streamid, flvheader) < 0)
 			{
-				WRN("req live header failed, streamid= %s, status code= %d streamid %s",
-					streamid.unparse().c_str(), status_code,p->stream_id.unparse().c_str());
+				WRN("req live header failed, streamid= %s, streamid %s",
+					streamid.unparse().c_str(), p->stream_id.unparse().c_str());
 				return;
 			}
 			else {
@@ -379,10 +379,8 @@ void FLVPublisherManager::notifyStreamData(StreamId_Ext &streamid) {
 		} 
 		if (p->state == FLV_PUBLISHER_STATE_STREAMING_FIRST_TAG)
 		{
-			int status_code;
-
-			FLVMiniBlock* block = _cmng->get_latest_miniblock(streamid, status_code);
-			if (status_code >= 0)
+			FLVMiniBlock* block = _cmng->get_latest_miniblock(streamid);
+      if (block)
 			{
 				int bid = block->get_seq();
 				p->seq = bid + 1;
@@ -402,29 +400,25 @@ void FLVPublisherManager::notifyStreamData(StreamId_Ext &streamid) {
 		} 
 		if (p->state == FLV_PUBLISHER_STATE_STREAMING_STREAM_TAG)
 		{
-			int status_code = 0;
-			int count = 0;
-			while (status_code >= 0){
-				FLVMiniBlock* block = _cmng->get_miniblock_by_seq(streamid, p->seq, status_code);
-				if (status_code >= 0)
-				{
-					int bid = block->get_seq();
-					p->seq = bid + 1;
+      int count = 0;
+      fragment::FLVMiniBlock* block = NULL;
+      while ((block = _cmng->get_miniblock_by_seq(streamid, p->seq)) != NULL) {
+        int bid = block->get_seq();
+        p->seq = bid + 1;
 
-					buffer *buf = p->buf;
-					u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
-					memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
-					stream->payload_type = PAYLOAD_TYPE_FLV;
-					buffer_append_ptr(buf,stream,sizeof(u2r_streaming_v2));
-					block->copy_payload_to_buffer(buf, p->timeoffset, FLV_FLAG_BOTH);
-					stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
-					encode_u2r_streaming_v2(stream,p->wb);
-					buffer_reset(buf);
+        buffer *buf = p->buf;
+        u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
+        memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
+        stream->payload_type = PAYLOAD_TYPE_FLV;
+        buffer_append_ptr(buf, stream, sizeof(u2r_streaming_v2));
+        block->copy_payload_to_buffer(buf, p->timeoffset, FLV_FLAG_BOTH);
+        stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
+        encode_u2r_streaming_v2(stream, p->wb);
+        buffer_reset(buf);
 
-					count++;
-					
-				}
+        count++;
 			}
+
 			if (count > 0)
 			{
 				enable_write(p);
@@ -490,7 +484,7 @@ FLVPublisher* FLVPublisherManager::findPublisherByStreamid(const StreamId_Ext &s
 	return ret;
 }
 
-void FLVPublisherManager::registerWatcher(media_manager::PlayerCacheManagerInterface * cmng) {
+void FLVPublisherManager::registerWatcher(media_manager::FlvCacheManager * cmng) {
 	_cmng = cmng;
 	cmng->register_watcher(publisher_notify_stream_data, media_manager::CACHE_WATCHING_FLV_MINIBLOCK, this);
 }
@@ -541,7 +535,7 @@ void FLVPublisherManager::onTimer(time_t t) {
 
 int publisher_init(struct event_base *main_base) {
 	FLVPublisherManager::getInst()->set_main_base(main_base);
-	FLVPublisherManager::getInst()->registerWatcher(media_manager::CacheManager::get_player_cache_instance());
+	FLVPublisherManager::getInst()->registerWatcher(media_manager::FlvCacheManager::Instance());
 	SINGLETON(WhitelistManager)->add_observer(FLVPublisherManager::getInst(), WHITE_LIST_EV_STOP);
   return 0;
 }

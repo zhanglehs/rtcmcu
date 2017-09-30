@@ -377,7 +377,7 @@ void ForwardClientRtpTCPMgr::stopStream(const StreamId_Ext& streamid) {
     m_clients.erase(it);
   }
   // TODO: zhangle, really need this
-  media_manager::CacheManager::get_cache_manager()->destroy_stream(streamid);
+  media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
 
 ForwardClientRtpTCPMgr* ForwardClientRtpTCPMgr::Instance() {
