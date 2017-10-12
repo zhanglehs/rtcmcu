@@ -113,39 +113,9 @@ static Portal *portal = NULL;
 static Perf *perf = NULL;
 static InfoCollector& g_info_collector(InfoCollector::get_inst());
 
-EventLoop* tcp_event_loop = NULL;
-
 int main_proc();
 static void sec_timer_service();
 static void timer_service(const int fd, short which, void *arg);
-
-class TimerS : public EventLoop::TimerWatcher
-{
-public:
-  TimerS()
-  {
-  }
-
-  ~TimerS()
-  {
-  }
-
-  virtual void on_timer()
-  {
-    static int last_timer = time(NULL);
-    time_t now = time(NULL);
-    if (now - last_timer >= 1)
-    {
-      sec_timer_service();
-      last_timer = now;
-    }
-
-    backend_on_millsecond(now);
-    publisher_on_millsecond(now);
-  }
-};
-
-TimerS* g_timer_s = NULL;
 
 static void init_config_manager(ConfigManager& config_manager, config& conf) {
   config_manager.set_config_module(&(conf.target_conf));
@@ -363,51 +333,6 @@ static void exit_sig_handler(int sig) {
   return;
 }
 
-static void sec_timer_service(const int fd, short which, void *arg) {
-  TRC("timer...");
-  g_timer = time(NULL);
-  if (g_stop) {
-    INF("begin to exit...");
-    server_exit();
-    exit(0);
-  }
-
-  if (g_reload_config) {
-    g_reload_config = FALSE;
-    INF("begin to reload config...");
-
-    ConfigManager& config_manager(ConfigManager::get_inst());
-
-    INF("dump old config...");
-    config_manager.dump_config();
-
-    int ret = parse_config_file(config_manager, g_configfile);
-    if (ret != 0)
-    {
-      ERR("sec_timer_service(), reload config failed, ret = %d", ret);
-      return;
-    }
-
-    config_manager.reload();
-
-    INF("dump reloaded config...");
-    config_manager.dump_config();
-  }
-
-  if (g_timer % 3 == 0)
-  {
-    portal->keepalive();
-    perf->keep_update();
-  }
-  session_manager_on_second(&g_session_mng, util_get_curr_tick());
-
-  //RtpTcpConnectionManager::get_inst()->on_second(g_timer);
-
-  ModTracker::get_inst().tracker_on_second(g_timer);
-  backend_on_second(g_timer);
-  g_info_collector.on_second(g_timer);
-}
-
 void sec_timer_service()
 {
   TRC("sec_timer_service");
@@ -455,25 +380,21 @@ void sec_timer_service()
 //  g_info_collector.on_second(g_timer);
 }
 
-static void timer_service(const int fd, short which, void *arg)
-{
+static void timer_service(const int fd, short which, void *arg) {
   static int last_timer = time(NULL);
-  static bool first_run = true;
   time_t now = time(NULL);
-  if (first_run || now - last_timer >= 1)
-  {
-    sec_timer_service(fd, which, arg);
+  if (now - last_timer >= 1) {
+    sec_timer_service();
     last_timer = now;
-    first_run = false;
   }
+  publisher_on_millsecond(now);
 
-  backend_on_millsecond(now);
   struct timeval tv;
   tv.tv_sec = 0;
   tv.tv_usec = 10000;
-  levtimer_set(&g_ev_timer, timer_service, NULL);
+  evtimer_set(&g_ev_timer, timer_service, NULL);
   event_base_set(main_base, &g_ev_timer);
-  levtimer_add(&g_ev_timer, &tv);
+  evtimer_add(&g_ev_timer, &tv);
 }
 
 static int get_pid(pid_t * pid) {
@@ -717,7 +638,7 @@ int main_proc() {
     return 1;
   }
 
-  if (0 != backend_init(main_base, &g_session_mng, &(g_conf.backend))) {
+  if (0 != backend_init(main_base, &(g_conf.backend))) {
     ERR("backend init failed.");
     return 1;
   }
@@ -749,9 +670,8 @@ int main_proc() {
     server_exit();
     exit(1);
   }
-  g_timer_s = new TimerS();
-  tcp_event_loop->run_forever(10, g_timer_s);
-  tcp_event_loop->loop();
+
+  timer_service(0, 0, NULL);
   return 0;
 }
 

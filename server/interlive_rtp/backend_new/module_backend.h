@@ -7,22 +7,14 @@
 
 #ifndef MODULE_BACKEND_
 #define MODULE_BACKEND_
+
+#include "config_manager.h"
 #include <stdint.h>
 #include <event.h>
-#include "util/session.h"
-#include "cache_manager.h"
-#include "common_defs.h"
-#include "config_manager.h"
-#include "rtp_backend_config.h"
 
+class StreamId_Ext;
 
-#if (defined __cplusplus && !defined _WIN32)
-//extern "C"
-//{
-#endif
-
-class backend_config : public ConfigModule
-{
+class backend_config : public ConfigModule {
 private:
   bool inited;
 
@@ -56,34 +48,13 @@ private:
   bool resove_config();
 };
 
-typedef struct backend_state
-{
-  uint32_t streamid;
-  uint32_t bps;
-  uint32_t forward_cnt;
-} backend_state;
-
-void backend_on_second(time_t t);
-int backend_init(struct event_base *mainbase,
-struct session_manager *smng,
-  const backend_config * backend_conf);
-
-uint32_t backend_server_online_cnt(uint32_t streamid);
+int backend_init(struct event_base *mainbase, const backend_config *backend_conf);
 
 void backend_fini();
-int backend_dump_state(uint32_t * total_used_out_bps,
-  backend_state * states,
-  uint32_t total_cnt,
-  uint32_t * real_cnt);
-
-void backend_on_millsecond(time_t t);
 
 int32_t backend_start_stream_rtp(const StreamId_Ext& stream_id);
 int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id);
 
-void backend_del_stream_from_tracker_v3(StreamId_Ext stream_id, int level);
+void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level);
 
-#if (defined __cplusplus && !defined _WIN32)
-//}
-#endif
 #endif

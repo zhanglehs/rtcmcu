@@ -18,7 +18,6 @@
 
 #include "module_backend.h"
 #include "target.h"
-//#include "http_server.h"
 #include "forward_common.h"
 #include "util/util.h"
 #include "util/log.h"
@@ -27,59 +26,24 @@
 #include "module_tracker.h"
 #include "../util/access.h"
 #include "../target_config.h"
-
-
-#include "event_loop.h"
-#include "ip_endpoint.h"
-#include "cmd_server.h"
 #include "forward_server.h"
+
 using namespace lcdn;
 using namespace lcdn::net;
 using namespace lcdn::base;
 using namespace interlive;
 using namespace interlive::forward_server;
-extern EventLoop* tcp_event_loop;
-static CMDServer* cmd_server = NULL;
 
-void forward_server_init(struct event_base* mainbase, const backend_config* backend_conf) {
-  if ((NULL == mainbase) || (NULL == backend_conf)) {
-    WRN("forward_server_init:mainbase or backend_conf is null!");
-    return;
-  }
-  tcp_event_loop = new EventLoop(mainbase);
-
-  ForwardServer* fs = ForwardServer::get_server();
-  if (fs == NULL) {
-    delete cmd_server;
-    cmd_server = NULL;
-    return;
-  }
-
-  fs->create(*backend_conf);
-}
-
-void forward_server_stop() {
-}
-
-int backend_init(struct event_base *mainbase, struct session_manager *smng,
-  const backend_config * backend_conf) {
-  if (!mainbase || !backend_conf)
+int backend_init(struct event_base *mainbase, const backend_config *backend_conf) {
+  if (!mainbase || !backend_conf) {
     return -1;
+  }
 
   TRC("backend_init");
   set_event_base(mainbase);
-  forward_server_init(mainbase, backend_conf);
+  ForwardServer::get_server()->create(*backend_conf);
 
-  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-
-  if (common_config->enable_rtp) {
-    ForwardClientRtpTCPMgr *fcrtptcp = ForwardClientRtpTCPMgr::Instance();
-    if (fcrtptcp)
-    {
-      fcrtptcp->set_main_base(mainbase);
-      //fcrtptcp->init();
-    }
-  }
+  ForwardClientRtpTCPMgr::Instance()->set_main_base(mainbase);
 
   g_forward_stat.stream_count = 0;
 
@@ -89,35 +53,7 @@ int backend_init(struct event_base *mainbase, struct session_manager *smng,
 void backend_fini() {
 }
 
-void forward_server_on_second(time_t t) {
-}
-
-void backend_on_second(time_t t) {
-  if (t % 30 == 0) {
-    REPORT("FORWARD", "%hu\t%hu %hu %hu %hu", (uint16_t)FORWARD_STAT,
-      g_forward_stat.stream_count, g_forward_stat.stream_alive_count,
-      g_forward_stat.fc_conn_count, g_forward_stat.fs_conn_count);
-  }
-  ForwardServer::get_server()->on_second(t);
-}
-
-uint32_t backend_server_online_cnt(uint32_t streamid) {
-  return 0;
-}
-
-void forward_server_on_millsecond(time_t t) {
-}
-
-void backend_on_millsecond(time_t t) {
-  forward_server_on_millsecond(t);
-
-  //TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  //if (common_config->enable_rtp) {
-  //  ForwardClientRtpTCPMgr::get_inst()->onTimer();
-  //}
-}
-
-void backend_del_stream_from_tracker_v3(StreamId_Ext stream_id, int level) {
+void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level) {
   ForwardServer::get_server()->del_stream_from_tracker(stream_id, level);
 }
 
@@ -140,6 +76,8 @@ int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id) {
   }
   return -1;
 }
+
+//////////////////////////////////////////////////////////////////////////
 
 backend_config::backend_config()
 {
