@@ -9,7 +9,7 @@ endif
 include $(XM_SERVER_LIB_SOURCE_PATH)/makefile.incl
 include $(source_dir)/makefile.incl
 
-CXXFLAGS += $(INC_LOG4CPP) -I../include -I../
+CXXFLAGS += -I../include -I../
 
 API_OBJS = buffer.o buffer_queue.o hashtable.o md5.o memory.o rbtree.o util.o logging.o stacktrace.o
 API_LIB=libutils.a

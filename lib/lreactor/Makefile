@@ -19,8 +19,8 @@ API_OBJS = event_loop.o channel.o  ip_endpoint.o socket.o sockets_ops.o \
 API_LIB=libreactor.a
 API_INCLUDES:=$(wildcard ./*.h ./*.hpp)
 UTILS_INCLUDES:=$(wildcard $(DIR_LIB_UTILS)/*.h $(DIR_LIB_UTILS)/*.hpp)
-CINCS = -I$(API_INCLUDES) $(INC_LOG4CPP) -I$(UTILS_INCLUDES) -I$(INC_UTILS)
-CXXFLAGS+=-I../include $(INC_UTILS) -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include
+CINCS = -I$(API_INCLUDES) -I$(UTILS_INCLUDES) -I$(INC_UTILS)
+CXXFLAGS+=-I../include $(INC_UTILS) -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include
 
 SOCK_SERVER = sample_server
 SOCK_SERVER_OBJS = sample_server.o ../utils/buffer.o ../utils/memory.o ../utils/logging.o $(API_OBJS) $(THIRD_PARTY_LIB)
@@ -39,10 +39,10 @@ $(API_LIB): $(API_OBJS)
 	ar rcs $(API_LIB) $(API_OBJS)
 
 $(SOCK_SERVER) : $(SOCK_SERVER_OBJS)
-	$(CXX) -g -o $@ $(SOCK_SERVER_OBJS) $(INC_EVENT) $(INC_LOG4CPP) -L. -lrt -lpthread
+	$(CXX) -g -o $@ $(SOCK_SERVER_OBJS) $(INC_EVENT) -L. -lrt -lpthread
 
 $(SOCK_CLIENT) : $(SOCK_CLIENT_OBJS)
-	$(CXX) -g -o $@ $(SOCK_CLIENT_OBJS) $(INC_EVENT) $(INC_LOG4CPP) -L. -lrt -lpthread
+	$(CXX) -g -o $@ $(SOCK_CLIENT_OBJS) $(INC_EVENT) -L. -lrt -lpthread
 
 clean:
 	$(RM) $(API_LIB) $(SOCK_SERVER) $(SOCK_CLIENT) *.o 
