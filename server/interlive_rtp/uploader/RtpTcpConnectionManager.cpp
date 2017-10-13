@@ -692,8 +692,7 @@ void RtpTcpServerManager::http_put_sdp(http::HTTPConnection* conn, void* args) {
   sdp_str.assign(buffer_data_ptr(conn->_read_buffer), buffer_data_len(conn->_read_buffer));
 
   RtpTcpServerManager* pThis = (RtpTcpServerManager*)args;
-  int status_code = -1;
-  pThis->m_trans_mgr->set_sdp_str(stream_id, sdp_str, status_code);
+  pThis->m_trans_mgr->set_sdp_str(stream_id, sdp_str);
 
   INF("http put sdp complete, stream_id: %s, sdp_len: %ld sdp:%s", stream_id.unparse().c_str(), sdp_str.length(), sdp_str.c_str());
   util_http_rsp_error_code(conn->get_fd(), HTTP_200);
@@ -730,9 +729,8 @@ void RtpTcpServerManager::http_get_sdp_handle(http::HTTPConnection* conn, void* 
     return;
   }
 
-  int status_code = -1;
   RtpTcpServerManager *pThis = (RtpTcpServerManager*)args;
-  string sdp_str = pThis->m_trans_mgr->get_sdp_str(stream_id, status_code);
+  string sdp_str = pThis->m_trans_mgr->get_sdp_str(stream_id);
   if (sdp_str.length() > 0) {
     char rsp[1024];
     snprintf(rsp, sizeof(rsp),

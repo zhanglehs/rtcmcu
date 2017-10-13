@@ -119,9 +119,7 @@ void RtpPullClient::OnSdp(struct evhttp_request* req, void* arg) {
 void RtpPullClient::OnSdpImpl(int httpcode, const char *content, int len) {
   if (httpcode == HTTP_OK && content && len > 0) {
     std::string sdp(content, len);
-    int status_code = -1;
-    m_trans_mgr->set_sdp_str(m_streamid, sdp, status_code);
-    if (status_code == 0) {
+    if (m_trans_mgr->set_sdp_str(m_streamid, sdp) >= 0) {
       ConnectRtpServer(m_next_node_host.c_str(), m_next_node_rtp_port);
       return;
     }

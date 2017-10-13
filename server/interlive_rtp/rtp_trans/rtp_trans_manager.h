@@ -34,9 +34,9 @@ public:
 
   void on_timer();
 
-  int32_t set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len, int32_t& status_code);
-  int32_t set_sdp_str(const StreamId_Ext& stream_id, const std::string& sdp, int32_t& status_code);
-  std::string get_sdp_str(const StreamId_Ext& stream_id, int32_t& status_code);
+  int32_t set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len);
+  int32_t set_sdp_str(const StreamId_Ext& stream_id, const std::string& sdp);
+  std::string get_sdp_str(const StreamId_Ext& stream_id);
 
 protected:
   void _send_fec(RtpConnection *c, const avformat::RTP_FIXED_HEADER *pkt, uint32_t pkt_len);

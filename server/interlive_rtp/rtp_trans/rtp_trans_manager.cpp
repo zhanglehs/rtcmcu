@@ -78,7 +78,7 @@ void RTPTransManager::on_timer() {
 }
 
 int32_t RTPTransManager::set_sdp_char(const StreamId_Ext& stream_id,
-  const char* sdp, int32_t len, int32_t& status_code) {
+  const char* sdp, int32_t len) {
   int32_t ret = _mm_helper->set_sdp(stream_id, sdp, len);
 
   uint32_t audio_time_base = 0;
@@ -109,11 +109,11 @@ int32_t RTPTransManager::set_sdp_char(const StreamId_Ext& stream_id,
 }
 
 int32_t RTPTransManager::set_sdp_str(const StreamId_Ext& stream_id,
-  const std::string& sdp, int32_t& status_code) {
-  return set_sdp_char(stream_id, sdp.c_str(), sdp.length(), status_code);
+  const std::string& sdp) {
+  return set_sdp_char(stream_id, sdp.c_str(), sdp.length());
 }
 
-std::string RTPTransManager::get_sdp_str(const StreamId_Ext& stream_id, int32_t& status_code) {
+std::string RTPTransManager::get_sdp_str(const StreamId_Ext& stream_id) {
   return _mm_helper->get_sdp(stream_id);
 }
 
@@ -124,8 +124,7 @@ int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config)
 
     uint32_t audio_time_base = 0;
     uint32_t video_time_base = 0;
-    int32_t status_code = 0;
-    std::string sdp = get_sdp_str(c->streamid, status_code);
+    std::string sdp = get_sdp_str(c->streamid);
     avformat::SdpInfo sdpinfo;
     sdpinfo.parse_sdp_str(sdp.c_str(), sdp.length());
     std::vector<avformat::rtp_media_info*> medias = sdpinfo.get_media_infos();
