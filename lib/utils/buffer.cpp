@@ -118,19 +118,18 @@ int Buffer::read_fd_max(int fd, size_t max)
     {
         toread = 1;
     }
-    toread = toread <= max ? toread : max;
+    toread = (toread <= (int)max) ? toread : (int)max;
     if (_max > 0)
     {
-        toread = toread <= _max - data_len() ?
-            toread : _max - data_len();
+      toread = (toread <= ((int)_max - (int)data_len())) ? toread : ((int)_max - (int)data_len());
     }
 
-    if (toread >= free_size())
+    if (toread >= (int)free_size())
     {
         return -2; // expand receive Buffer 
     }
 
-    toread = toread < capacity() ? toread : capacity();
+    toread = toread < (int)capacity() ? toread : (int)capacity();
 
     //r = read(fd, _ptr + _end, toread);
     r = read(fd, free_ptr(), toread);
@@ -496,8 +495,7 @@ int buffer_read_fd_max(buffer * b, int fd, size_t max)
         toread = 1;
     toread = toread <= (int)max ? toread : (int)max;
     if (b->_max > 0)
-        toread = toread <= (int)b->_max - buffer_data_len(b) ? toread : (int)b->_max
-        - buffer_data_len(b);
+      toread = (toread <= ((int)b->_max - (int)buffer_data_len(b))) ? toread : ((int)b->_max - (int)buffer_data_len(b));
 
     if (toread >= (int)(b->_size - b->_end))
     {

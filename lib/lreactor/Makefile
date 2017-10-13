@@ -19,8 +19,8 @@ API_OBJS = event_loop.o channel.o  ip_endpoint.o socket.o sockets_ops.o \
 API_LIB=libreactor.a
 API_INCLUDES:=$(wildcard ./*.h ./*.hpp)
 UTILS_INCLUDES:=$(wildcard $(DIR_LIB_UTILS)/*.h $(DIR_LIB_UTILS)/*.hpp)
-CINCS = -I$(API_INCLUDES) -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include $(INC_LOG4CPP) -I$(UTILS_INCLUDES) -I$(INC_UTILS)
-CXXFLAGS+=-I../include $(INC_UTILS)
+CINCS = -I$(API_INCLUDES) $(INC_LOG4CPP) -I$(UTILS_INCLUDES) -I$(INC_UTILS)
+CXXFLAGS+=-I../include $(INC_UTILS) -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include
 
 SOCK_SERVER = sample_server
 SOCK_SERVER_OBJS = sample_server.o ../utils/buffer.o ../utils/memory.o ../utils/logging.o $(API_OBJS) $(THIRD_PARTY_LIB)
@@ -29,7 +29,8 @@ SOCK_CLIENT_OBJS = sample_client.o ../utils/buffer.o ../utils/memory.o ../utils/
 
 .PHONEY = all clean 
 
-all: $(API_LIB) $(SOCK_SERVER) $(SOCK_CLIENT) 
+all: $(API_LIB)
+#all: $(API_LIB) $(SOCK_SERVER) $(SOCK_CLIENT) 
 
 #$(STATIC_LIB_EVENT):
 #	make -C $(XM_SERVER_LIB_SOURCE_PATH) static-libevent

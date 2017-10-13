@@ -2,7 +2,10 @@
 #define _LCDN_NET_EVENT_LOOP_H_
 
 #include <deque>
-#include <event.h>
+#include <stdint.h>
+
+struct event;
+struct event_base;
 
 namespace lcdn
 {

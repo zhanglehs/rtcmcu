@@ -1,4 +1,6 @@
 #include "channel.h"
+
+#include <event.h>
 #include <stddef.h>
  
 using namespace lcdn;

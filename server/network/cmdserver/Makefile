@@ -45,7 +45,8 @@ $(DIR_SER)/%.o:$(DIR_SER)/%.cc
 $(DIR_CLI)/%.o:$(DIR_CLI)/%.cpp
 	$(CC) -g -c $(CFLAGS) $(CINCS) $^ -o $@
 
-all: $(API_LIB) $(SERVER) $(RPC_CLIENT)
+all: $(API_LIB)
+#all: $(API_LIB) $(SERVER) $(RPC_CLIENT)
 #$(CLIENT)
 
 $(SERVER): $(SERVER_OBJS) ../../util/log.o ../../util/statfile.o

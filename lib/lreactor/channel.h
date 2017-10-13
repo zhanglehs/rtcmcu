@@ -1,8 +1,9 @@
 #ifndef _LCDN_NET_CHANNEL_H_
 #define _LCDN_NET_CHANNEL_H_
 
-#include "event.h"
 #include "event_loop.h"
+
+struct event;
 
 namespace lcdn
 {
