@@ -438,8 +438,6 @@ void InfoCollector::collect_info_10s()
     //if (player_stat != nullptr)
     //{
     //  g_InfoStore.buss_player_online_cnt = player_stat->get_online_cnt();
-    //  DBG("InfoCollector::collect_info_10s: buss_stream_count: %d, buss_player_online_cnt: %d", \
-    //    g_InfoStore.buss_fcv2_stream_count, g_InfoStore.buss_player_online_cnt);
     //}
   }
 
