@@ -47,7 +47,10 @@ int util_get_exe_absolute_path(char *full_path, int len)
 }
 
 
-
+#ifdef __GNUC__
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
+#endif
 
 void log_initialize_default()
 {
@@ -63,6 +66,9 @@ void log_initialize_default()
     }
 }
 
+#ifdef __GNUC__
+#pragma GCC diagnostic pop
+#endif
 
 void log_initialize_file()
 {
