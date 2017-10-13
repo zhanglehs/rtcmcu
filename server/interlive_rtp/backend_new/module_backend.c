@@ -384,3 +384,53 @@ bool backend_config::resove_config()
 
   return true;
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+RelayManager* RelayManager::m_inst = NULL;
+
+RelayManager* RelayManager::Instance() {
+  if (m_inst) {
+    return m_inst;
+  }
+  m_inst = new RelayManager();
+  return m_inst;
+}
+
+void RelayManager::DestroyInstance() {
+  if (m_inst) {
+    delete m_inst;
+    m_inst = NULL;
+  }
+}
+
+RelayManager::RelayManager() {
+  m_ev_base = NULL;
+}
+
+RelayManager::~RelayManager() {
+}
+
+int RelayManager::Init(struct event_base *ev_base) {
+  m_ev_base = ev_base;
+  ForwardClientRtpTCPMgr::Instance()->set_main_base(ev_base);
+  return 0;
+}
+
+int RelayManager::StartPullRtp(const StreamId_Ext& stream_id) {
+  ForwardClientRtpTCPMgr::Instance()->startStream(stream_id);
+  return 0;
+}
+
+int RelayManager::StopPullRtp(const StreamId_Ext& stream_id) {
+  ForwardClientRtpTCPMgr::Instance()->stopStream(stream_id);
+  return 0;
+}
+
+int RelayManager::StartPushRtp(const StreamId_Ext& stream_id) {
+  return 0;
+}
+
+int RelayManager::StopPushRtp(const StreamId_Ext& stream_id) {
+  return 0;
+}

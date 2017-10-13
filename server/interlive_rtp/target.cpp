@@ -26,24 +26,17 @@
 #include <common/type_defs.h>
 #include "target_player.h"
 #include "player/module_player.h"
-//#include "player/rtp_tcp_player.h"
 #include "player/rtp_player_config.h"
 
-//#ifdef MODULE_UPLOADER
 #include "uploader/uploader_config.h"
 #include "uploader/RtpTcpConnectionManager.h"
 #include "uploader/rtp_uploader_config.h"
-//#include "uploader/rtp_udp_uploader.h"
-//#include "uploader/rtp_tcp_uploader.h"
-//#include "player/rtp_udp_player.h"
-//#endif
 
 #include "target_backend.h"
 #include "module_tracker.h"
 #include "config_manager.h"
 
 #include "util/access.h"
-//#include "http_server.h"
 #include "util/common.h"
 #include "util/log.h"
 #include "util/xml.h"
@@ -55,11 +48,9 @@
 #include "util/levent.h"
 #include "util/report.h"
 #include "util/report_stats.h"
-//#include "stream_manager.h"
 #include "streamid.h"
 #include "common/proto.h"
 #include "define.h"
-//#include "stream_recorder.h"
 #include "cache_manager.h"
 #include "portal.h"
 #include "perf.h"
@@ -94,13 +85,11 @@ INIT_SINGLETON(WhitelistManager);
 
 INIT_SINGLETON(config);
 static config &g_conf = *SINGLETON(config);
-static char   g_configfile[PATH_MAX];
+static char g_configfile[PATH_MAX];
 
 static struct event_base *main_base = NULL;
 static struct event g_ev_timer;
-static time_t g_timer = 0;
 
-static session_manager g_session_mng;
 static volatile sig_atomic_t g_stop = 0;
 static volatile sig_atomic_t g_reload_config = 0;
 char g_public_ip[1][32];
@@ -109,13 +98,7 @@ char g_private_ip[1][32];
 int  g_private_cnt;
 char g_ver_str[64];
 
-static Portal *portal = NULL;
 static Perf *perf = NULL;
-static InfoCollector& g_info_collector(InfoCollector::get_inst());
-
-int main_proc();
-static void sec_timer_service();
-static void timer_service(const int fd, short which, void *arg);
 
 static void init_config_manager(ConfigManager& config_manager, config& conf) {
   config_manager.set_config_module(&(conf.target_conf));
@@ -134,60 +117,6 @@ static void init_config_manager(ConfigManager& config_manager, config& conf) {
 
   config_manager.set_default_config();
 }
-
-//static void request_public_ip_done(struct evhttp_request* req, void* arg) {
-//  if (!req) {
-//    ERR("get public_ip error req NULL");
-//    strcpy(g_public_ip[0], "error");
-//    return;
-//  }
-//
-//  if (req->response_code != 200) {
-//    ERR("get public_ip error ret %d", req->response_code);
-//    strcpy(g_public_ip[0], "error");
-//    return;
-//  }
-//
-//  if (!EVBUFFER_LENGTH(req->input_buffer)) {
-//    ERR("get public_ip error length %d", (int)EVBUFFER_LENGTH(req->input_buffer));
-//    strcpy(g_public_ip[0], "error");
-//    return;
-//  }
-//
-//  const char *public_ip = reinterpret_cast<char*>(EVBUFFER_DATA(req->input_buffer));
-//  strcpy(g_public_ip[0], public_ip);
-//  int len = strlen(g_public_ip[0]);
-//  for (int i = len - 1; i >= 0; i--) {
-//    if ((int)g_public_ip[0][i] < 48 || (int)g_public_ip[0][i] > 57) {
-//      g_public_ip[0][i] = 0;
-//    }
-//    else {
-//      break;
-//    }
-//  }
-//  g_public_cnt = 1;
-//  main_proc();
-//}
-
-//// 请求接口，获取本机的外网地址
-//static void request_public_ip() {
-//  memset(g_public_ip[0], 0, 32);
-//  const char *host = "100.100.100.200";
-//  struct evhttp_connection *_evcon_get_public_ip = evhttp_connection_new(host, 80);
-//  evhttp_connection_set_base(_evcon_get_public_ip, main_base);
-//  evhttp_connection_set_timeout(_evcon_get_public_ip, 3);
-//  evhttp_connection_set_retries(_evcon_get_public_ip, 3);
-//
-//  struct evhttp_request *req = evhttp_request_new(request_public_ip_done, NULL);
-//  evhttp_add_header(req->output_headers, "User-Agent", "InterliveRTP");
-//  evhttp_add_header(req->output_headers, "Host", host);
-//  const char *path = "/latest/meta-data/eipv4";
-//  DBG("get public_ip %s", path);
-//  int ret = 0;
-//  if ((ret = evhttp_make_request(_evcon_get_public_ip, req, EVHTTP_REQ_GET, path)) != 0) {
-//    ERR("get public_ip error ret %d", ret);
-//  }
-//}
 
 static int resolv_ip_addr() {
   int ret = 0;
@@ -278,8 +207,7 @@ static void show_help(void) {
     " -v verbose\n\n", PROCESS_NAME, g_ver_str, PROCESS_NAME);
 }
 
-static void
-server_exit()
+static void server_exit()
 {
   INF("hash destroy...");
   SINGLETON(WhitelistManager)->clear();
@@ -333,19 +261,15 @@ static void exit_sig_handler(int sig) {
   return;
 }
 
-void sec_timer_service()
-{
+static void sec_timer_service() {
   TRC("sec_timer_service");
-  g_timer = time(NULL);
-  if (g_stop)
-  {
+  if (g_stop) {
     DBG("sec_timer_service: begin to exit...");
     server_exit();
     exit(0);
   }
 
-  if (g_reload_config)
-  {
+  if (g_reload_config) {
     g_reload_config = FALSE;
     DBG("sec_timer_service: begin to reload config...");
 
@@ -355,8 +279,7 @@ void sec_timer_service()
     config_manager.dump_config();
 
     int ret = parse_config_file(config_manager, g_configfile);
-    if (ret != 0)
-    {
+    if (ret != 0) {
       ERR("sec_timer_service: reload config failed, ret = %d", ret);
       return;
     }
@@ -367,17 +290,9 @@ void sec_timer_service()
     config_manager.dump_config();
   }
 
-  if (g_timer % 3 == 0)
-  {
-    portal->keepalive();
+  if (time(NULL) % 3 == 0) {
     perf->keep_update();
   }
-  session_manager_on_second(&g_session_mng, util_get_curr_tick());
-
-// 与tracker交互的地方，暂时不需要了
-//  ModTracker::get_inst().tracker_on_second(g_timer);
-//  backend_on_second(g_timer);
-//  g_info_collector.on_second(g_timer);
 }
 
 static void timer_service(const int fd, short which, void *arg) {
@@ -439,8 +354,7 @@ static int get_pid(pid_t * pid) {
   return 0;
 }
 
-static void
-signal_to_reload()
+static void signal_to_reload()
 {
   pid_t pid = 0;
   int ret = get_pid(&pid);
@@ -456,14 +370,7 @@ signal_to_reload()
   }
 }
 
-void register_portal_handler(Portal* portal) {
-  portal->register_f2p_keepalive_handler(build_f2p_keepalive);
-  portal->register_r2p_keepalive_handler(build_r2p_keepalive);
-  portal->register_create_stream(target_insert_list_seat);
-  portal->register_destroy_stream(target_close_list_seat);
-}
-
-int main_proc() {
+static int main_proc() {
   ConfigManager& config_manager(ConfigManager::get_inst());
   g_conf.cache_manager_config.init(true);
   init_config_manager(config_manager, g_conf);
@@ -529,27 +436,12 @@ int main_proc() {
       "%s:%hu\tACCESS\t%s", host_ip, g_conf.backend.backend_listen_port, PROCESS_NAME);
   }
 
-
   log_set_level(g_conf.target_conf.log_level);
   log_set_max_size(g_conf.target_conf.log_cut_size_MB * 1024 * 1024);
   access_set_max_size(g_conf.target_conf.access_cut_size_MB * 1024 * 1024);
 
   INF("on boot.after resolv...");
   config_manager.dump_config();
-
-  ret = report_init(g_conf.target_conf.remote_logger_path, PROCESS_NAME, g_ver_str,
-    host_ip, g_conf.backend.backend_listen_port);
-  if (0 != ret) {
-    ERR("report_init failed. ret = %d", ret);
-    return 1;
-  }
-
-  ret = ReportStats::get_instance()->init(g_conf.target_conf.remote_logger_path, PROCESS_NAME, g_ver_str,
-    host_ip, g_conf.backend.backend_listen_port);
-  if (0 != ret) {
-    ERR("ReportStats::init failed. ret = %d", ret);
-    return 1;
-  }
 
   // TODO hechao
   /*
@@ -559,36 +451,16 @@ int main_proc() {
   }
   */
 #ifdef HAVE_SCHED_GETAFFINITY
-  if (0 != util_unmask_cpu0())
-  {
+  if (0 != util_unmask_cpu0()) {
     ERR("unmask cpu0 failed.");
     return 1;
   }
 #endif
 
-  //if (0 != stream_manager_init(g_conf.target_conf.media_buffer_size))
-  //{
-  //  ERR("stream manager init failed.");
-  //  return 1;
-  //}
-
-  if (0 != session_manager_init(&g_session_mng))
-  {
-    ERR("session manager init failed.");
-    return 1;
-  }
-
-  base::EventPumpLibevent::get_inst()->init(main_base);
-
-  uint8_t module_type;
-
-  module_type = MODULE_TYPE_BACKEND;
-  if (g_conf.target_conf.enable_uploader)
-  {
+  uint8_t module_type = MODULE_TYPE_BACKEND;
+  if (g_conf.target_conf.enable_uploader) {
     module_type = MODULE_TYPE_UPLOADER;
   }
-
-  //WhiteListMap *white_list = SINGLETON(WhitelistManager)->get_white_list();
 
   FlvCacheManager::Instance()->Init(main_base, module_type, &(g_conf.cache_manager_config));
 
@@ -596,18 +468,6 @@ int main_proc() {
    * otherwise EPIPE error will cause transporter to terminate unexpectedly
    */
   signal(SIGPIPE, SIG_IGN);
-
-  bool enable_uploader = g_conf.target_conf.enable_uploader == 0 ? false : true;
-
-  bool enable_player = true;
-  portal = new Portal(enable_uploader, enable_player);
-
-  if (0 != portal->init()) {
-    ERR("portal init failed.");
-    return 1;
-  }
-
-  register_portal_handler(portal);
 
   http::HTTPServer* base_http_server = new http::HTTPServer(&(g_conf.http_ser_config), g_configfile);
   base_http_server->init(main_base);
@@ -628,30 +488,16 @@ int main_proc() {
     return 1;
   }
 
-  if (0 != publisher_init(main_base)) {
-    ERR("player init failed.");
-    return 1;
-  }
-
-  if (!ModTracker::get_inst().tracker_init(main_base, &(g_conf.tracker))) {
-    ERR("tracker init failed.");
-    return 1;
-  }
+  // INFO: zhangle, flv live pull/push?
+  //if (0 != publisher_init(main_base)) {
+  //  ERR("player init failed.");
+  //  return 1;
+  //}
 
   if (0 != backend_init(main_base, &(g_conf.backend))) {
     ERR("backend init failed.");
     return 1;
   }
-
-  std::stringstream ss;
-  ss << "interlive service " << std::string(PROCESS_NAME) << " " << g_ver_str << " started.";
-  ss << "listen player at 0.0.0.0:" << g_conf.player.player_listen_port;
-  //    if (g_conf.target_conf.enable_uploader)
-  //    {
-  //        ss << ", listen uploader at 0.0.0.0:" + g_conf.uploader.listen_port;
-  //    }
-  INF("%s", ss.str().c_str());
-
 
   TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
   string pid_dir = ".";
@@ -723,7 +569,6 @@ int main(int argc, char **argv) {
     exit(1);
   }
 
-  g_timer = time(NULL);
   int ret = 0;
   ret = backtrace_init(".", PROCESS_NAME, g_ver_str);
   if (0 != ret) {
@@ -737,9 +582,7 @@ int main(int argc, char **argv) {
   }
 
   main_base = event_base_new();
-
-  if (NULL == main_base)
-  {
+  if (NULL == main_base) {
     ERR("can't init libevent");
     return 1;
   }
@@ -754,7 +597,6 @@ int main(int argc, char **argv) {
   printf("HeapProfilerStart\n");
 #endif
 
-  //request_public_ip();
   strcpy(g_public_ip[0], "192.168.245.133");
   g_public_cnt = 1;
   main_proc();

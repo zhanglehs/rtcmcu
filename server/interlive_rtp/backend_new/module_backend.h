@@ -57,4 +57,26 @@ int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id);
 
 void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level);
 
+
+
+class RelayManager {
+public:
+  static RelayManager* Instance();
+  static void DestroyInstance();
+
+  int Init(struct event_base *ev_base);
+
+  int StartPullRtp(const StreamId_Ext& stream_id);
+  int StopPullRtp(const StreamId_Ext& stream_id);
+  int StartPushRtp(const StreamId_Ext& stream_id);
+  int StopPushRtp(const StreamId_Ext& stream_id);
+
+protected:
+  RelayManager();
+  ~RelayManager();
+
+  struct event_base* m_ev_base;
+  static RelayManager* m_inst;
+};
+
 #endif
