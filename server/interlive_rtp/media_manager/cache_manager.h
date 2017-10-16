@@ -32,9 +32,9 @@ namespace fragment {
   class FLVMiniBlock;
 }
 
-namespace http {
-  class HTTPServer;
-}
+//namespace http {
+//  class HTTPServer;
+//}
 
 struct flv_header;
 struct flv_tag;
@@ -123,7 +123,7 @@ namespace media_manager {
     static void DestroyInstance();
 
     void Init(event_base* base, uint8_t module_type, CacheManagerConfig* config = NULL);
-    void set_http_server(http::HTTPServer *server);
+    //void set_http_server(http::HTTPServer *server);
     int32_t load_config(const CacheManagerConfig* config);
 
     int32_t register_watcher(cache_watch_handler handler, uint8_t watch_type, void* arg);
@@ -177,7 +177,7 @@ namespace media_manager {
   class CircularCache;
   class FlvCacheManagerStatistic {
   public:
-    void set_http_server(http::HTTPServer *server);
+    //void set_http_server(http::HTTPServer *server);
     void http_state(char* query, char* param, json_object* rsp);
 
   protected:

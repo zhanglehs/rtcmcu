@@ -44,7 +44,7 @@ private:
   unsigned int m_next_node_rtp_port;   // TCP port
   int m_fd_socket;
   struct event m_ev_socket;
-  RTPTransManager *m_trans_mgr;
+  //RTPTransManager *m_trans_mgr;
   ForwardClientRtpTCPMgr *m_manager;
 };
 
@@ -56,7 +56,7 @@ RtpPullClient::RtpPullClient(struct event_base *ev_base, ForwardClientRtpTCPMgr 
   m_http_con = NULL;
   m_fd_socket = -1;
   m_manager = mgr;
-  m_trans_mgr = m_manager->m_trans_mgr;
+  //m_trans_mgr = m_manager->m_trans_mgr;
 }
 
 int RtpPullClient::Start() {
@@ -78,8 +78,7 @@ int RtpPullClient::GetSdp(const char *next_node_host, unsigned short next_node_h
     m_http_con = NULL;
   }
 
-  m_http_con = evhttp_connection_new(next_node_host, next_node_http_port);
-  evhttp_connection_set_base(m_http_con, m_ev_base);
+  m_http_con = evhttp_connection_base_new(m_ev_base, NULL, next_node_host, next_node_http_port);
   evhttp_connection_set_timeout(m_http_con, 3);
   evhttp_connection_set_retries(m_http_con, 3);
 
@@ -89,7 +88,7 @@ int RtpPullClient::GetSdp(const char *next_node_host, unsigned short next_node_h
   evhttp_add_header(req->output_headers, "Host", next_node_host);
 
   char path[256];
-  sprintf(path, "/download/sdp/%s?token=98765", m_streamid.unparse().c_str());
+  sprintf(path, "/download/sdp?streamid=%s", m_streamid.unparse().c_str());
   DBG("req sdp url %s streamid %s", path, m_streamid.unparse().c_str());
   int ret = 0;
   if ((ret = evhttp_make_request(m_http_con, req, EVHTTP_REQ_GET, path)) != 0) {
@@ -119,7 +118,7 @@ void RtpPullClient::OnSdp(struct evhttp_request* req, void* arg) {
 void RtpPullClient::OnSdpImpl(int httpcode, const char *content, int len) {
   if (httpcode == HTTP_OK && content && len > 0) {
     std::string sdp(content, len);
-    if (m_trans_mgr->set_sdp_str(m_streamid, sdp) >= 0) {
+    if (RTPTransManager::Instance()->set_sdp_str(m_streamid, sdp) >= 0) {
       ConnectRtpServer(m_next_node_host.c_str(), m_next_node_rtp_port);
       return;
     }
@@ -189,7 +188,7 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
 
   RTPBackendConfig* cfg_rtp_backend = (RTPBackendConfig*)ConfigManager::get_inst_config_module("rtp_backend");
   const RTPTransConfig* cfg_rtp_trans = cfg_rtp_backend->get_rtp_conf();
-  m_trans_mgr->_open_trans(c, const_cast<RTPTransConfig*>(cfg_rtp_trans));
+  RTPTransManager::Instance()->_open_trans(c, const_cast<RTPTransConfig*>(cfg_rtp_trans));
 }
 
 void RtpPullClient::OnError() {

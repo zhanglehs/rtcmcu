@@ -64,9 +64,9 @@ namespace media_manager {
     StartTimer();
   }
 
-  void FlvCacheManager::set_http_server(http::HTTPServer *server) {
-    m_statistic->set_http_server(server);
-  }
+  //void FlvCacheManager::set_http_server(http::HTTPServer *server) {
+  //  m_statistic->set_http_server(server);
+  //}
 
   int32_t FlvCacheManager::set_flv_header(StreamId_Ext stream_id, flv_header* input_flv_header, uint32_t flv_header_len) {
     INF("set_flv_header. streamid: %s", stream_id.unparse().c_str());

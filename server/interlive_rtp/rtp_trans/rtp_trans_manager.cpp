@@ -7,11 +7,26 @@
 
 using namespace std;
 
-RTPTransManager::RTPTransManager(RtpCacheManager *helper)
-:_mm_helper(helper) {
+
+RTPTransManager* RTPTransManager::Instance() {
+  if (m_inst) {
+    return m_inst;
+  }
+  m_inst = new RTPTransManager();
+  return m_inst;
+}
+
+void RTPTransManager::DestroyInstance() {
+  delete m_inst;
+  m_inst = NULL;
+}
+
+RTPTransManager::RTPTransManager() {
+  _mm_helper = new RtpCacheManager();
 }
 
 RTPTransManager::~RTPTransManager() {
+  delete _mm_helper;
 }
 
 int RTPTransManager::OnRecvRtp(RtpConnection *c, const void *rtp, uint16_t len) {
@@ -226,6 +241,8 @@ void RTPTransManager::ForwardRtcp(const StreamId_Ext& streamid, avformat::RTPAVT
     }
   }
 }
+
+RTPTransManager* RTPTransManager::m_inst = NULL;
 
 void RTPTransManager::_close_trans(RtpConnection *c) {
   auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());

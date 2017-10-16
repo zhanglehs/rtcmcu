@@ -9,12 +9,10 @@
 #include "forward_server.h"
 #include "cmd_fsm.h"
 #include "utils/buffer.hpp"
-//#include "stream_manager.h"
 #include "player/module_player.h"
 
 #include "common/protobuf/f2t_register_req.pb.h"
 #include "uploader_config.h"
-#include "../network/http_connection.h"
 #include "../network/base_http_server.h"
 
 #define F2T_PB_BUFFER_SIZE 1024
@@ -195,33 +193,33 @@ bool ForwardServer::create(const backend_config& backend_conf)
   return true;
 }
 
-void fs_get_streams_handler_wrapper(HTTPConnection* conn, void* data) {
-}
+//void fs_get_streams_handler_wrapper(HTTPConnection* conn, void* data) {
+//}
+//
+//void fs_get_streams_check_handler_wrapper(HTTPConnection* conn, void* data) {
+//  if (conn->get_to_read() != 0)
+//  {
+//    return;
+//  }
+//  json_object* rsp = json_object_new_object();
+//  conn->writeResponse(rsp);
+//  json_object_put(rsp);
+//  conn->stop();
+//}
 
-void fs_get_streams_check_handler_wrapper(HTTPConnection* conn, void* data) {
-  if (conn->get_to_read() != 0)
-  {
-    return;
-  }
-  json_object* rsp = json_object_new_object();
-  conn->writeResponse(rsp);
-  json_object_put(rsp);
-  conn->stop();
-}
-
-void ForwardServer::set_http_server(HTTPServer* http_server) {
-  HTTPHandle* handle = http_server->add_handle("/fs_get_streams",
-    fs_get_streams_handler_wrapper,
-    this,
-    fs_get_streams_check_handler_wrapper,
-    this,
-    NULL,
-    NULL);
-  if (handle == NULL)
-  {
-    ERR("add_handle error");
-  }
-}
+//void ForwardServer::set_http_server(HTTPServer* http_server) {
+//  HTTPHandle* handle = http_server->add_handle("/fs_get_streams",
+//    fs_get_streams_handler_wrapper,
+//    this,
+//    fs_get_streams_check_handler_wrapper,
+//    this,
+//    NULL,
+//    NULL);
+//  if (handle == NULL)
+//  {
+//    ERR("add_handle error");
+//  }
+//}
 
 void ForwardServer::_init_tracker_conn()
 {

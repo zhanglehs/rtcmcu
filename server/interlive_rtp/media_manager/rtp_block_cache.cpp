@@ -419,29 +419,29 @@ namespace media_manager {
 #include "media_manager/rtp2flv_remuxer.h"
 #include "backend_new/module_backend.h"
 
-RtpCacheManager * RtpCacheManager::m_inst = NULL;
+//RtpCacheManager * RtpCacheManager::m_inst = NULL;
 
-RtpCacheManager* RtpCacheManager::Instance() {
-  if (m_inst) {
-    return m_inst;
-  }
-  m_inst = new RtpCacheManager();
-  return m_inst;
-}
+//RtpCacheManager* RtpCacheManager::Instance() {
+//  if (m_inst) {
+//    return m_inst;
+//  }
+//  m_inst = new RtpCacheManager();
+//  return m_inst;
+//}
+//
+//void RtpCacheManager::DestroyInstance() {
+//  if (m_inst) {
+//    delete m_inst;
+//    m_inst = NULL;
+//  }
+//}
 
-void RtpCacheManager::DestroyInstance() {
-  if (m_inst) {
-    delete m_inst;
-    m_inst = NULL;
-  }
-}
+//RtpCacheManager::RtpCacheManager() {
+//}
 
-RtpCacheManager::RtpCacheManager() {
-}
-
-int RtpCacheManager::Init(struct event_base *ev_base) {
-  return 0;
-}
+//int RtpCacheManager::Init(struct event_base *ev_base) {
+//  return 0;
+//}
 
 //void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
 //  m_watches.insert(watcher);

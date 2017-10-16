@@ -20,29 +20,29 @@
 #include "cache_manager.h"
 #include <appframe/singleton.hpp>
 #include "whitelist_manager.h"
-#include "../network/http_connection.h"
+#include <json.h>
 
 using namespace std;
 using namespace fragment;
 using namespace http;
 
 namespace {
-  void cache_manager_state(char* query, char* param, json_object* rsp, void* arg) {
-    media_manager::FlvCacheManagerStatistic* pThis = (media_manager::FlvCacheManagerStatistic*)arg;
-    pThis->http_state(query, param, rsp);
-  }
+  //void cache_manager_state(char* query, char* param, json_object* rsp, void* arg) {
+  //  media_manager::FlvCacheManagerStatistic* pThis = (media_manager::FlvCacheManagerStatistic*)arg;
+  //  pThis->http_state(query, param, rsp);
+  //}
 
-  void cache_manager_state_handle(HTTPConnection* conn, void* arg) {
-  }
+  //void cache_manager_state_handle(HTTPConnection* conn, void* arg) {
+  //}
 
-  void cache_manager_state_check_handle(HTTPConnection* conn, void* arg) {
-    json_object* rsp = json_object_new_object();
-    HTTPRequest* request = conn->request;
-    cache_manager_state((char *)(request->uri.c_str()), NULL, rsp, arg);
-    conn->writeResponse(rsp);
-    json_object_put(rsp);
-    conn->stop();
-  }
+  //void cache_manager_state_check_handle(HTTPConnection* conn, void* arg) {
+  //  json_object* rsp = json_object_new_object();
+  //  HTTPRequest* request = conn->request;
+  //  cache_manager_state((char *)(request->uri.c_str()), NULL, rsp, arg);
+  //  conn->writeResponse(rsp);
+  //  json_object_put(rsp);
+  //  conn->stop();
+  //}
 }
 
 namespace media_manager {
@@ -73,17 +73,17 @@ namespace media_manager {
   }
 
 
-  void FlvCacheManagerStatistic::set_http_server(http::HTTPServer *server)
-  {
-    _init_http_server();
-    server->add_handle("/cache_manager",
-      cache_manager_state_handle,
-      this,
-      cache_manager_state_check_handle,
-      this,
-      NULL,
-      NULL);
-  }
+  //void FlvCacheManagerStatistic::set_http_server(http::HTTPServer *server)
+  //{
+  //  _init_http_server();
+  //  server->add_handle("/cache_manager",
+  //    cache_manager_state_handle,
+  //    this,
+  //    cache_manager_state_check_handle,
+  //    this,
+  //    NULL,
+  //    NULL);
+  //}
 
   void FlvCacheManagerStatistic::_init_http_server()
   {

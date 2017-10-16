@@ -11,6 +11,7 @@
 #include "config_manager.h"
 #include <stdint.h>
 #include <event.h>
+#include <event2/http.h>
 
 class StreamId_Ext;
 
@@ -57,8 +58,6 @@ int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id);
 
 void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level);
 
-
-
 class RelayManager {
 public:
   static RelayManager* Instance();
@@ -77,6 +76,25 @@ protected:
 
   struct event_base* m_ev_base;
   static RelayManager* m_inst;
+};
+
+class HttpServerManager {
+public:
+  static HttpServerManager* Instance();
+  static void DestroyInstance();
+
+  int Init(struct event_base *ev_base, unsigned short port);
+  int AddHandler(const char *path,
+    void(*cb)(struct evhttp_request *, void *), void *cb_arg);
+
+protected:
+  HttpServerManager();
+  ~HttpServerManager();
+  static void DefaultHandler(struct evhttp_request *requset, void *arg);
+
+  struct event_base* m_ev_base;
+  struct evhttp *m_ev_http;
+  static HttpServerManager* m_inst;
 };
 
 #endif

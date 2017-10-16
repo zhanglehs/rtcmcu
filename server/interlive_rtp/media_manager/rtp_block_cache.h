@@ -21,10 +21,10 @@ namespace media_manager {
 // TODO: zhangle, 如果一路流很久没有收到数据，应从cache中删除
 class RtpCacheManager {
 public:
-  static RtpCacheManager* Instance();
-  static void DestroyInstance();
+  //static RtpCacheManager* Instance();
+  //static void DestroyInstance();
 
-  int Init(struct event_base *ev_base);
+  //int Init(struct event_base *ev_base);
   //class RtpCacheWatcher {
   //public:
   //  virtual ~RtpCacheWatcher() {}
@@ -42,8 +42,8 @@ public:
   // timer: check m_caches timeout
 
 protected:
-  RtpCacheManager();
-  static RtpCacheManager *m_inst;
+  //RtpCacheManager();
+  //static RtpCacheManager *m_inst;
   std::map<uint32_t, media_manager::RTPMediaCache*> m_caches;
   //std::set<RtpCacheWatcher*> m_watches;
 };

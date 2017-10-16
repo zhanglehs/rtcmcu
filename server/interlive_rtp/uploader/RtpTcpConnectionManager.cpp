@@ -24,6 +24,7 @@
 #include "media_manager/rtp2flv_remuxer.h"
 #include "media_manager/rtp_block_cache.h"
 #include "network/base_http_server.h"
+#include "backend_new/module_backend.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 
@@ -219,7 +220,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       c->streamid = req.streamid;
 
       RTPPlayerConfig *config = (RTPPlayerConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
-      if (0 != m_trans_mgr->_open_trans(c, &config->get_rtp_trans_config())) {
+      if (0 != RTPTransManager::Instance()->_open_trans(c, &config->get_rtp_trans_config())) {
         return -6;
       }
 
@@ -249,7 +250,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       c->streamid = req.streamid;
 
       RTPPlayerConfig *config = (RTPPlayerConfig *)ConfigManager::get_inst_config_module("rtp_player");
-      if (0 != m_trans_mgr->_open_trans(c, &config->get_rtp_trans_config())) {
+      if (0 != RTPTransManager::Instance()->_open_trans(c, &config->get_rtp_trans_config())) {
         return -5;
       }
 
@@ -272,7 +273,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
     }
     {
       int head_len = sizeof(proto_header)+sizeof(rtp_u2r_packet_header);
-      m_trans_mgr->OnRecvRtp(c, buffer_data_ptr(buf) + head_len, h.size - head_len);
+      RTPTransManager::Instance()->OnRecvRtp(c, buffer_data_ptr(buf) + head_len, h.size - head_len);
     }
     break;
   case CMD_RTCP_U2R_PACKET:
@@ -282,7 +283,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
     }
     {
       int head_len = sizeof(proto_header)+sizeof(rtp_u2r_packet_header);
-      m_trans_mgr->OnRecvRtcp(c, buffer_data_ptr(buf) + head_len, h.size - head_len);
+      RTPTransManager::Instance()->OnRecvRtcp(c, buffer_data_ptr(buf) + head_len, h.size - head_len);
     }
     break;
   default:
@@ -295,13 +296,98 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
   return 1;
 }
 
+void RtpManagerBase::InitHttpHandler() {
+  HttpServerManager::Instance()->AddHandler("/upload/sdp", &RtpManagerBase::HttpPutSdpHander, NULL);
+  HttpServerManager::Instance()->AddHandler("/download/sdp", &RtpManagerBase::HttpDownloadSdpHander, NULL);
+}
+
 RtpManagerBase::RtpManagerBase() {
 }
 
 RtpManagerBase::~RtpManagerBase() {
 }
 
-RTPTransManager * RtpManagerBase::m_trans_mgr = NULL;
+
+void RtpManagerBase::HttpPutSdpHander(struct evhttp_request *req, void *arg) {
+  const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(req);
+  if (uri == NULL) {
+    return;
+  }
+  const char *query = evhttp_uri_get_query(uri);
+  if (query == NULL) {
+    return;
+  }
+  struct evkeyvalq headers;
+  if (evhttp_parse_query_str(query, &headers) < 0) {
+    return;
+  }
+  const char *streamid = evhttp_find_header(&headers, "streamid");
+  if (streamid == NULL || !streamid[0]) {
+    return;
+  }
+
+  StreamId_Ext stream_id;
+  if (!util_check_hex(streamid, 32) || (stream_id.parse(streamid, 16) != 0)) {
+    ERR("wrong path, cannot get stream id.");
+    evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
+    return;
+  }
+
+  struct evbuffer *req_data = evhttp_request_get_input_buffer(req);
+  string sdp((char*)evbuffer_pullup(req_data, -1), evbuffer_get_length(req_data));
+  RTPTransManager::Instance()->set_sdp_str(stream_id, sdp);
+  INF("http put sdp complete, stream_id=%s, sdp=%s", stream_id.unparse().c_str(), sdp.c_str());
+
+  evhttp_send_reply(req, HTTP_OK, "OK", NULL);
+  return;
+}
+
+void RtpManagerBase::HttpDownloadSdpHander(struct evhttp_request *req, void *arg) {
+  const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(req);
+  if (uri == NULL) {
+    return;
+  }
+  const char *query = evhttp_uri_get_query(uri);
+  if (query == NULL) {
+    return;
+  }
+  struct evkeyvalq query_headers;
+  if (evhttp_parse_query_str(query, &query_headers) < 0) {
+    return;
+  }
+  const char *streamid = evhttp_find_header(&query_headers, "streamid");
+  if (streamid == NULL || !streamid[0]) {
+    return;
+  }
+
+  StreamId_Ext stream_id;
+  if (!util_check_hex(streamid, 32) || (stream_id.parse(streamid, 16) != 0)) {
+    ERR("wrong path, cannot get stream id.");
+    evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
+    return;
+  }
+
+  string sdp = RTPTransManager::Instance()->get_sdp_str(stream_id);
+  if (sdp.length() > 0) {
+    struct evkeyvalq *response_headers = evhttp_request_get_output_headers(req);
+    evhttp_add_header(response_headers, "Server", "zzy21");
+    evhttp_add_header(response_headers, "Content-Type", "application/sdp");
+    evhttp_add_header(response_headers, "Expires", "-1");
+    evhttp_add_header(response_headers, "Cache-Control", "private, max-age=0");
+    evhttp_add_header(response_headers, "Pragma", "no-cache");
+    evhttp_add_header(response_headers, "Connection", "Close");
+    struct evbuffer *buf = evbuffer_new();
+    evbuffer_add(buf, sdp.c_str(), sdp.length());
+    evhttp_send_reply(req, HTTP_OK, "OK", buf);
+    evbuffer_free(buf);
+  }
+  else {
+    ERR("failed to get sdp, empty sdpstr streamid = %u", stream_id.get_32bit_stream_id());
+    evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
+  }
+}
+
+//RTPTransManager * RtpManagerBase::m_trans_mgr = NULL;
 //RtpCacheManager * RtpManagerBase::m_rtp_cache = NULL;
 
 //////////////////////////////////////////////////////////////////////////
@@ -339,7 +425,7 @@ void RtpTcpManager::OnConnectionClosed(RtpConnection *c) {
   if (m_connections.empty()) {
     evtimer_del(&m_ev_timer);
   }
-  m_trans_mgr->_close_trans(c);
+  RTPTransManager::Instance()->_close_trans(c);
 }
 
 void RtpTcpManager::OnSocketData(const int fd, const short which, void *arg) {
@@ -531,7 +617,7 @@ int RtpUdpServerManager::SendUdpData(RtpConnection *c, const unsigned char *data
 
 void RtpUdpServerManager::OnConnectionClosed(RtpConnection *c) {
   m_connections.erase(c->remote);
-  m_trans_mgr->_close_trans(c);
+  RTPTransManager::Instance()->_close_trans(c);
 }
 
 RtpUdpServerManager* RtpUdpServerManager::m_inst = NULL;
@@ -612,7 +698,7 @@ int32_t RtpTcpServerManager::Init(struct event_base *ev_base) {
   //else {
   //  m_rtp_cache = new RTPMediaManagerHelper;
   //}
-  m_trans_mgr = new RTPTransManager(RtpCacheManager::Instance());
+  //m_trans_mgr = new RTPTransManager(RtpCacheManager::Instance());
 
   start_timer();
 
@@ -640,128 +726,128 @@ void RtpTcpServerManager::OnSocketAcceptImpl(const int fd, const short which) {
   }
 }
 
-int RtpTcpServerManager::set_http_server(http::HTTPServer *http_server) {
-  http_server->add_handle("/upload/sdp",
-    http_put_sdp,
-    this,
-    http_put_sdp_check,
-    this,
-    NULL,
-    NULL);
-  http_server->add_handle("/download/sdp",
-    http_get_sdp_handle,
-    this,
-    http_get_sdp_check_handle,
-    this,
-    NULL,
-    NULL);
-  http_server->add_handle("/rtp/count",
-    get_count_handler,
-    this,
-    get_count_check_handler,
-    this,
-    NULL,
-    NULL);
-  return 0;
-}
+//int RtpTcpServerManager::set_http_server(http::HTTPServer *http_server) {
+//  http_server->add_handle("/upload/sdp",
+//    http_put_sdp,
+//    this,
+//    http_put_sdp_check,
+//    this,
+//    NULL,
+//    NULL);
+//  http_server->add_handle("/download/sdp",
+//    http_get_sdp_handle,
+//    this,
+//    http_get_sdp_check_handle,
+//    this,
+//    NULL,
+//    NULL);
+//  http_server->add_handle("/rtp/count",
+//    get_count_handler,
+//    this,
+//    get_count_check_handler,
+//    this,
+//    NULL,
+//    NULL);
+//  return 0;
+//}
 
-void RtpTcpServerManager::http_put_sdp(http::HTTPConnection* conn, void* args) {
-  http::HTTPRequest* request = conn->request;
-  if (conn->get_to_read() != 0) {
-    return;
-  }
-
-  string path = request->uri;
-  char buf[128];
-  if (!util_path_str_get(path.c_str(), path.length(), 3, buf, sizeof(buf))) {
-    ERR("wrong path, cannot get stream id.");
-    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-    conn->stop();
-    return;
-  }
-  buf[32] = '\0';
-  StreamId_Ext stream_id;
-  if (!util_check_hex(buf, 32) || (stream_id.parse(buf, 16) != 0)) {
-    ERR("wrong path, cannot get stream id.");
-    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-    conn->stop();
-    return;
-  }
-
-  string sdp_str;
-  sdp_str.assign(buffer_data_ptr(conn->_read_buffer), buffer_data_len(conn->_read_buffer));
-
-  RtpTcpServerManager* pThis = (RtpTcpServerManager*)args;
-  pThis->m_trans_mgr->set_sdp_str(stream_id, sdp_str);
-
-  INF("http put sdp complete, stream_id: %s, sdp_len: %ld sdp:%s", stream_id.unparse().c_str(), sdp_str.length(), sdp_str.c_str());
-  util_http_rsp_error_code(conn->get_fd(), HTTP_200);
-  conn->stop();
-  return;
-}
-
-void RtpTcpServerManager::http_put_sdp_check(http::HTTPConnection*, void*) {
-}
-
-void RtpTcpServerManager::get_count_handler(http::HTTPConnection* conn, void* args) {
-}
-
-void RtpTcpServerManager::get_count_check_handler(http::HTTPConnection* conn, void* args) {
-}
-
-void RtpTcpServerManager::http_get_sdp_handle(http::HTTPConnection* conn, void* args) {
-  http::HTTPRequest* request = conn->request;
-
-  string path = request->uri;
-  char buf[128];
-  if (!util_path_str_get(path.c_str(), path.length(), 3, buf, sizeof(buf))) {
-    ERR("wrong path, cannot get stream id.");
-    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-    conn->stop();
-    return;
-  }
-  buf[32] = '\0';
-  StreamId_Ext stream_id;
-  if (!util_check_hex(buf, 32) || (stream_id.parse(buf, 16) != 0)) {
-    ERR("wrong path, cannot get stream id.");
-    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-    conn->stop();
-    return;
-  }
-
-  RtpTcpServerManager *pThis = (RtpTcpServerManager*)args;
-  string sdp_str = pThis->m_trans_mgr->get_sdp_str(stream_id);
-  if (sdp_str.length() > 0) {
-    char rsp[1024];
-    snprintf(rsp, sizeof(rsp),
-      "HTTP/1.0 200 OK\r\nServer: Youku Live Forward\r\n"
-      "Content-Type: application/sdp\r\n"
-      "Host: %s:%d\r\n"
-      "Connection: Close\r\n"
-      "Expires: -1\r\nCache-Control: private, max-age=0\r\nPragma: no-cache\r\n"
-      "Content-Length: %zu\r\n\r\n",
-      conn->get_remote_ip(), conn->get_remote_port(), sdp_str.length());
-
-    if (conn->writeResponseString(rsp) < 0) {
-      WRN("player-sdp %s:%6hu %d %s 404",
-        conn->get_remote_ip(), conn->get_remote_port(), request->method, request->uri.c_str());
-      return;
-    }
-
-    conn->writeResponseString(sdp_str);
-    DBG("player-sdp %s:%6hu %d %s 200",
-      conn->get_remote_ip(), conn->get_remote_port(), request->method, request->uri.c_str());
-    conn->stop();
-  }
-  else {
-    ERR("failed to get sdp, empty sdpstr streamid = %u", stream_id.get_32bit_stream_id());
-    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-    conn->stop();
-  }
-}
-
-void RtpTcpServerManager::http_get_sdp_check_handle(http::HTTPConnection* conn, void* args) {
-}
+//void RtpTcpServerManager::http_put_sdp(http::HTTPConnection* conn, void* args) {
+//  http::HTTPRequest* request = conn->request;
+//  if (conn->get_to_read() != 0) {
+//    return;
+//  }
+//
+//  string path = request->uri;
+//  char buf[128];
+//  if (!util_path_str_get(path.c_str(), path.length(), 3, buf, sizeof(buf))) {
+//    ERR("wrong path, cannot get stream id.");
+//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
+//    conn->stop();
+//    return;
+//  }
+//  buf[32] = '\0';
+//  StreamId_Ext stream_id;
+//  if (!util_check_hex(buf, 32) || (stream_id.parse(buf, 16) != 0)) {
+//    ERR("wrong path, cannot get stream id.");
+//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
+//    conn->stop();
+//    return;
+//  }
+//
+//  string sdp_str;
+//  sdp_str.assign(buffer_data_ptr(conn->_read_buffer), buffer_data_len(conn->_read_buffer));
+//
+//  //RtpTcpServerManager* pThis = (RtpTcpServerManager*)args;
+//  RTPTransManager::Instance()->set_sdp_str(stream_id, sdp_str);
+//
+//  INF("http put sdp complete, stream_id: %s, sdp_len: %ld sdp:%s", stream_id.unparse().c_str(), sdp_str.length(), sdp_str.c_str());
+//  util_http_rsp_error_code(conn->get_fd(), HTTP_200);
+//  conn->stop();
+//  return;
+//}
+//
+//void RtpTcpServerManager::http_put_sdp_check(http::HTTPConnection*, void*) {
+//}
+//
+//void RtpTcpServerManager::get_count_handler(http::HTTPConnection* conn, void* args) {
+//}
+//
+//void RtpTcpServerManager::get_count_check_handler(http::HTTPConnection* conn, void* args) {
+//}
+//
+//void RtpTcpServerManager::http_get_sdp_handle(http::HTTPConnection* conn, void* args) {
+//  http::HTTPRequest* request = conn->request;
+//
+//  string path = request->uri;
+//  char buf[128];
+//  if (!util_path_str_get(path.c_str(), path.length(), 3, buf, sizeof(buf))) {
+//    ERR("wrong path, cannot get stream id.");
+//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
+//    conn->stop();
+//    return;
+//  }
+//  buf[32] = '\0';
+//  StreamId_Ext stream_id;
+//  if (!util_check_hex(buf, 32) || (stream_id.parse(buf, 16) != 0)) {
+//    ERR("wrong path, cannot get stream id.");
+//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
+//    conn->stop();
+//    return;
+//  }
+//
+//  //RtpTcpServerManager *pThis = (RtpTcpServerManager*)args;
+//  string sdp_str = RTPTransManager::Instance()->get_sdp_str(stream_id);
+//  if (sdp_str.length() > 0) {
+//    char rsp[1024];
+//    snprintf(rsp, sizeof(rsp),
+//      "HTTP/1.0 200 OK\r\nServer: Youku Live Forward\r\n"
+//      "Content-Type: application/sdp\r\n"
+//      "Host: %s:%d\r\n"
+//      "Connection: Close\r\n"
+//      "Expires: -1\r\nCache-Control: private, max-age=0\r\nPragma: no-cache\r\n"
+//      "Content-Length: %zu\r\n\r\n",
+//      conn->get_remote_ip(), conn->get_remote_port(), sdp_str.length());
+//
+//    if (conn->writeResponseString(rsp) < 0) {
+//      WRN("player-sdp %s:%6hu %d %s 404",
+//        conn->get_remote_ip(), conn->get_remote_port(), request->method, request->uri.c_str());
+//      return;
+//    }
+//
+//    conn->writeResponseString(sdp_str);
+//    DBG("player-sdp %s:%6hu %d %s 200",
+//      conn->get_remote_ip(), conn->get_remote_port(), request->method, request->uri.c_str());
+//    conn->stop();
+//  }
+//  else {
+//    ERR("failed to get sdp, empty sdpstr streamid = %u", stream_id.get_32bit_stream_id());
+//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
+//    conn->stop();
+//  }
+//}
+//
+//void RtpTcpServerManager::http_get_sdp_check_handle(http::HTTPConnection* conn, void* args) {
+//}
 
 void RtpTcpServerManager::start_timer() {
   struct timeval tv;
@@ -774,7 +860,7 @@ void RtpTcpServerManager::start_timer() {
 
 void RtpTcpServerManager::timer_cb(const int fd, short which, void *arg) {
   RtpTcpServerManager *p = (RtpTcpServerManager*)arg;
-  p->m_trans_mgr->on_timer();
+  RTPTransManager::Instance()->on_timer();
   p->start_timer();
 }
 

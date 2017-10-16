@@ -93,7 +93,7 @@ COMMONOBJS = hls.o media_buffer.o perf.o info_collector.o\
 			 whitelist_manager.o libcachemanager.a libfragment.a portal.o config_manager.o \
 			 $(UTIL_DIR)/connection.o\
 			 $(NETWORK_DIR)/base_tcp_server.o $(NETWORK_DIR)/tcp_connection.o $(NETWORK_DIR)/ip_access_control.o\
-			 $(NETWORK_DIR)/http_connection.o $(NETWORK_DIR)/http_request.o $(NETWORK_DIR)/base_http_server.o\
+			 $(NETWORK_DIR)/base_http_server.o\
 			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
 			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
 			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o $(DIR_LIB_UTILS)/memory.o $(UTIL_DIR)/session.o \

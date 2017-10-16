@@ -83,7 +83,7 @@ public:
 
     uint32_t get_stream_count() const;
     bool has_register_tracker() const;
-	void set_http_server(http::HTTPServer* http_server);
+	//void set_http_server(http::HTTPServer* http_server);
  private:
     ForwardServer();
     virtual ~ForwardServer();

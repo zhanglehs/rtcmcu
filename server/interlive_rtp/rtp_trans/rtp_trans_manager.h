@@ -23,7 +23,10 @@ class RTPTransManager {
   friend class RTPTrans;
 
 public:
-  RTPTransManager(RtpCacheManager *helper);
+  static RTPTransManager* Instance();
+  static void DestroyInstance();
+
+  RTPTransManager();
   ~RTPTransManager();
 
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
@@ -59,6 +62,8 @@ private:
   RtpCacheManager *_mm_helper;
 
   std::map<uint32_t, std::set<RtpConnection*> > m_stream_groups;
+
+  static RTPTransManager* m_inst;
 };
 
 #endif

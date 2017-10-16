@@ -469,11 +469,14 @@ static int main_proc() {
    */
   signal(SIGPIPE, SIG_IGN);
 
-  http::HTTPServer* base_http_server = new http::HTTPServer(&(g_conf.http_ser_config), g_configfile);
-  base_http_server->init(main_base);
-  base_http_server->register_self_handle();
+  HttpServerManager::Instance()->Init(main_base, g_conf.http_ser_config.listen_port);
+  RtpManagerBase::InitHttpHandler();
 
-  FlvCacheManager::Instance()->set_http_server(base_http_server);
+  //http::HTTPServer* base_http_server = new http::HTTPServer(&(g_conf.http_ser_config), g_configfile);
+  //base_http_server->init(main_base);
+  //base_http_server->register_self_handle();
+
+  //FlvCacheManager::Instance()->set_http_server(base_http_server);
 
   // Perf initialization
   perf = Perf::get_instance();
@@ -481,7 +484,7 @@ static int main_proc() {
 
   RtpTcpServerManager::Instance()->Init(main_base);
   RtpUdpServerManager::Instance()->Init(main_base);
-  RtpTcpServerManager::Instance()->set_http_server(base_http_server);
+  //RtpTcpServerManager::Instance()->set_http_server(base_http_server);
 
   if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
     ERR("player init failed.");
@@ -563,7 +566,6 @@ int main(int argc, char **argv) {
       }
     }
   }
-
   if (to_daemon && daemon(TRUE, 0) == -1) {
     ERR("failed to be a daemon");
     exit(1);
