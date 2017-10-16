@@ -10,7 +10,7 @@ include $(XM_SERVER_LIB_SOURCE_PATH)/makefile.incl
 
 THIRD_PARTY_DIR = $(source_dir)/third_party
 
-THIRD_PARTY_LIB=$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/lib/libevent.a \
+THIRD_PARTY_LIB=$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/lib/libevent.a \
 				$(THIRD_PARTY_DIR)/protobuf-3.2.0/out/lib/libprotobuf.a \
 				$(STATIC_LIB_LOG4CPP)
 API_OBJS = event_loop.o channel.o  ip_endpoint.o socket.o sockets_ops.o \
@@ -20,7 +20,7 @@ API_LIB=libreactor.a
 API_INCLUDES:=$(wildcard ./*.h ./*.hpp)
 UTILS_INCLUDES:=$(wildcard $(DIR_LIB_UTILS)/*.h $(DIR_LIB_UTILS)/*.hpp)
 CINCS = -I$(API_INCLUDES) -I$(UTILS_INCLUDES) -I$(INC_UTILS)
-CXXFLAGS+=-I../include $(INC_UTILS) -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include
+CXXFLAGS+=-I../include $(INC_UTILS) -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include
 
 SOCK_SERVER = sample_server
 SOCK_SERVER_OBJS = sample_server.o ../utils/buffer.o ../utils/memory.o ../utils/logging.o $(API_OBJS) $(THIRD_PARTY_LIB)

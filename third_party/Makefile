@@ -1,5 +1,5 @@
 DIR_LIB_JSONC = "json-c-0.11"
-DIR_LIB_EVENT = "libevent-1.4.14b-stable"
+DIR_LIB_EVENT = "libevent-2.1.8-stable"
 DIR_LIB_PROTOBUF = "protobuf-3.2.0"
 DIR_LIB_SYSSTAT = "sysstat-11.1.6"
 DIR_LIB_LOG4CPLUS = "log4cplus-1.1.2"

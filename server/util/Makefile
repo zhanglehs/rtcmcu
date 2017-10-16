@@ -6,7 +6,7 @@ THIRD_PARTY_DIR = $(SOURCE_DIR)/third_party
 
 CFLAGS += $(OPSCFLAGS)
 CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
-         -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include \
+         -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include \
 		 $(INC_UTILS)
 SOURCES_C = $(wildcard *.c)
 SOURCES_CPP = $(wildcard *.cpp)

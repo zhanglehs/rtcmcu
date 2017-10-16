@@ -33,7 +33,7 @@ THIRD_PARTY_DIR = $(SOURCE_DIR)third_party
 #LIBXML = /usr/lib64/libexpat.a
 #LIBUUID = /usr/lib64/libuuid.a
 THIRD_PARTY_LIB = $(THIRD_PARTY_DIR)/json-c-0.11/.libs/libjson-c.a \
-                  $(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/lib/libevent.a \
+                  $(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/lib/libevent.a \
 				  $(THIRD_PARTY_DIR)/protobuf-3.2.0/out/lib/libprotobuf.a \
 				  $(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/lib/liblog4cplus.a \
 				  $(STATIC_LIB_STAT) $(STATIC_CMDSERVER) $(STATIC_LIB_REACTOR)
@@ -57,7 +57,7 @@ STATIC_CMDSERVER = $(CMDSERVER_DIR)/libserver.a
 CINCS += -I$(MEDIA_MANAGER_DIR)/ -I$(FRAGMENT_DIR)/ -I$(UPLOADER_DIR) -I$(BACKEND_DIR) -I$(PUBLISHER_DIR) -I$(COMMON_DIR)
 CINCS += -I. 
 CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
-         -I$(THIRD_PARTY_DIR)/libevent-1.4.14b-stable/out/include \
+         -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include \
 		 -I$(THIRD_PARTY_DIR)/protobuf-3.2.0/out/include \
 		 -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include \
 		 $(INC_STAT) $(INC_UTILS) $(INC_REACTOR) -I../network -I$(CMDSERVER_DIR)
