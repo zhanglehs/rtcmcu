@@ -62,6 +62,186 @@ namespace {
     }
     return fd;
   }
+
+  class RtpSdpHttpHandler : public RtpCacheManager::RtpCacheWatcher {
+  public:
+    static RtpSdpHttpHandler* Instance();
+    static void DestroyInstance();
+    RtpSdpHttpHandler();
+
+  protected:
+    static void HttpPutSdpHander(struct evhttp_request *req, void *arg);
+    static void HttpDownloadSdpHander(struct evhttp_request *req, void *arg);
+    static void OnHttpConnectionClosed(struct evhttp_connection *connection, void *arg);
+    virtual void OnSdp(const StreamId_Ext& streamid, const char *sdp);
+
+    static std::map<uint32_t, std::set<struct evhttp_request*> > m_sdp_requests;
+    static RtpSdpHttpHandler* m_inst;
+  };
+
+  RtpSdpHttpHandler* RtpSdpHttpHandler::m_inst = NULL;
+
+  RtpSdpHttpHandler* RtpSdpHttpHandler::Instance() {
+    if (m_inst) {
+      return m_inst;
+    }
+    m_inst = new RtpSdpHttpHandler();
+    return m_inst;
+  }
+
+  void RtpSdpHttpHandler::DestroyInstance() {
+    delete m_inst;
+    m_inst = NULL;
+  }
+
+  RtpSdpHttpHandler::RtpSdpHttpHandler() {
+    HttpServerManager::Instance()->AddHandler("/upload/sdp", &RtpSdpHttpHandler::HttpPutSdpHander, NULL);
+    HttpServerManager::Instance()->AddHandler("/download/sdp", &RtpSdpHttpHandler::HttpDownloadSdpHander, NULL);
+    RTPTransManager::Instance()->GetRtpCacheManager()->AddWatcher(this);
+  }
+
+  void RtpSdpHttpHandler::HttpPutSdpHander(struct evhttp_request *req, void *arg) {
+    const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(req);
+    if (uri == NULL) {
+      return;
+    }
+    const char *query = evhttp_uri_get_query(uri);
+    if (query == NULL) {
+      return;
+    }
+    struct evkeyvalq headers;
+    if (evhttp_parse_query_str(query, &headers) < 0) {
+      return;
+    }
+    const char *streamid = evhttp_find_header(&headers, "streamid");
+    if (streamid == NULL || !streamid[0]) {
+      return;
+    }
+
+    StreamId_Ext stream_id;
+    if (!util_check_hex(streamid, 32) || (stream_id.parse(streamid, 16) != 0)) {
+      ERR("wrong path, cannot get stream id.");
+      evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
+      return;
+    }
+
+    struct evbuffer *req_data = evhttp_request_get_input_buffer(req);
+    string sdp((char*)evbuffer_pullup(req_data, -1), evbuffer_get_length(req_data));
+    RTPTransManager::Instance()->set_sdp_str(stream_id, sdp);
+    INF("http put sdp complete, stream_id=%s, sdp=%s", stream_id.unparse().c_str(), sdp.c_str());
+
+    evhttp_send_reply(req, HTTP_OK, "OK", NULL);
+    return;
+  }
+
+  static void ReplySdpHttpDownload(struct evhttp_request *req, const char *sdp) {
+    struct evkeyvalq *response_headers = evhttp_request_get_output_headers(req);
+    evhttp_add_header(response_headers, "Server", "zzy21");
+    evhttp_add_header(response_headers, "Content-Type", "application/sdp");
+    evhttp_add_header(response_headers, "Expires", "-1");
+    evhttp_add_header(response_headers, "Cache-Control", "private, max-age=0");
+    evhttp_add_header(response_headers, "Pragma", "no-cache");
+    evhttp_add_header(response_headers, "Connection", "Close");
+    struct evbuffer *buf = evbuffer_new();
+    evbuffer_add(buf, sdp, strlen(sdp));
+    evhttp_send_reply(req, HTTP_OK, "OK", buf);
+    evbuffer_free(buf);
+  }
+
+  static int GetStreamidFromHttpRequest(struct evhttp_request *req, StreamId_Ext &stream_id) {
+    const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(req);
+    if (uri == NULL) {
+      return -1;
+    }
+    const char *query = evhttp_uri_get_query(uri);
+    if (query == NULL) {
+      return -1;
+    }
+    struct evkeyvalq query_headers;
+    if (evhttp_parse_query_str(query, &query_headers) < 0) {
+      return -1;
+    }
+    const char *streamid = evhttp_find_header(&query_headers, "streamid");
+    if (streamid == NULL || !streamid[0]) {
+      return -1;
+    }
+
+    if (!util_check_hex(streamid, 32) || (stream_id.parse(streamid, 16) != 0)) {
+      ERR("wrong path, cannot get stream id.");
+      evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
+      return -1;
+    }
+    return 0;
+  }
+
+  void RtpSdpHttpHandler::HttpDownloadSdpHander(struct evhttp_request *req, void *arg) {
+    StreamId_Ext stream_id;
+    if (GetStreamidFromHttpRequest(req, stream_id) < 0) {
+      ERR("wrong path, cannot get stream id.");
+      evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
+      return;
+    }
+
+    string sdp = RTPTransManager::Instance()->get_sdp_str(stream_id);
+    if (sdp.length() > 0) {
+      ReplySdpHttpDownload(req, sdp.c_str());
+    }
+    else {
+      struct evhttp_connection *connection = evhttp_request_get_connection(req);
+      if (connection == NULL) {
+        return;
+      }
+      evhttp_connection_set_closecb(connection, OnHttpConnectionClosed, req);
+      INF("no sdp info, wait for relay, streamid = %u", stream_id.get_32bit_stream_id());
+      m_sdp_requests[stream_id.get_32bit_stream_id()].insert(req);
+    }
+  }
+
+  void RtpSdpHttpHandler::OnHttpConnectionClosed(struct evhttp_connection *connection, void *arg) {
+    struct evhttp_request *req = (struct evhttp_request *)arg;
+    StreamId_Ext streamid;
+    if (GetStreamidFromHttpRequest(req, streamid) >= 0) {
+      auto it = m_sdp_requests.find(streamid.get_32bit_stream_id());
+      if (it != m_sdp_requests.end()) {
+        std::set<struct evhttp_request*> &requests = it->second;
+        requests.erase(req);
+        if (requests.empty()) {
+          m_sdp_requests.erase(it);
+        }
+      }
+    }
+    evhttp_request_free(req);
+  }
+
+  void RtpSdpHttpHandler::OnSdp(const StreamId_Ext& streamid, const char *sdp) {
+    auto it = m_sdp_requests.find(streamid.get_32bit_stream_id());
+    if (it == m_sdp_requests.end()) {
+      return;
+    }
+    std::set<struct evhttp_request*> &requests = it->second;
+    if (sdp) {
+      for (auto it2 = requests.begin(); it2 != requests.end(); it2++) {
+        struct evhttp_connection *connection = evhttp_request_get_connection(*it2);
+        if (connection) {
+          evhttp_connection_set_closecb(connection, NULL, NULL);
+        }
+        ReplySdpHttpDownload(*it2, sdp);
+      }
+    }
+    else {
+      for (auto it2 = requests.begin(); it2 != requests.end(); it2++) {
+        struct evhttp_connection *connection = evhttp_request_get_connection(*it2);
+        if (connection) {
+          evhttp_connection_set_closecb(connection, NULL, NULL);
+        }
+        evhttp_send_reply(*it2, HTTP_NOTFOUND, "Not Found", NULL);
+        // TODO: zhangle, 可以增加信息，告知什么失败（例如未开播等）
+      }
+    }
+    m_sdp_requests.erase(it);
+  }
+
+  std::map<uint32_t, std::set<struct evhttp_request*> > RtpSdpHttpHandler::m_sdp_requests;
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -296,99 +476,12 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
   return 1;
 }
 
-void RtpManagerBase::InitHttpHandler() {
-  HttpServerManager::Instance()->AddHandler("/upload/sdp", &RtpManagerBase::HttpPutSdpHander, NULL);
-  HttpServerManager::Instance()->AddHandler("/download/sdp", &RtpManagerBase::HttpDownloadSdpHander, NULL);
-}
-
 RtpManagerBase::RtpManagerBase() {
+  RtpSdpHttpHandler::Instance();
 }
 
 RtpManagerBase::~RtpManagerBase() {
 }
-
-
-void RtpManagerBase::HttpPutSdpHander(struct evhttp_request *req, void *arg) {
-  const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(req);
-  if (uri == NULL) {
-    return;
-  }
-  const char *query = evhttp_uri_get_query(uri);
-  if (query == NULL) {
-    return;
-  }
-  struct evkeyvalq headers;
-  if (evhttp_parse_query_str(query, &headers) < 0) {
-    return;
-  }
-  const char *streamid = evhttp_find_header(&headers, "streamid");
-  if (streamid == NULL || !streamid[0]) {
-    return;
-  }
-
-  StreamId_Ext stream_id;
-  if (!util_check_hex(streamid, 32) || (stream_id.parse(streamid, 16) != 0)) {
-    ERR("wrong path, cannot get stream id.");
-    evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
-    return;
-  }
-
-  struct evbuffer *req_data = evhttp_request_get_input_buffer(req);
-  string sdp((char*)evbuffer_pullup(req_data, -1), evbuffer_get_length(req_data));
-  RTPTransManager::Instance()->set_sdp_str(stream_id, sdp);
-  INF("http put sdp complete, stream_id=%s, sdp=%s", stream_id.unparse().c_str(), sdp.c_str());
-
-  evhttp_send_reply(req, HTTP_OK, "OK", NULL);
-  return;
-}
-
-void RtpManagerBase::HttpDownloadSdpHander(struct evhttp_request *req, void *arg) {
-  const struct evhttp_uri *uri = evhttp_request_get_evhttp_uri(req);
-  if (uri == NULL) {
-    return;
-  }
-  const char *query = evhttp_uri_get_query(uri);
-  if (query == NULL) {
-    return;
-  }
-  struct evkeyvalq query_headers;
-  if (evhttp_parse_query_str(query, &query_headers) < 0) {
-    return;
-  }
-  const char *streamid = evhttp_find_header(&query_headers, "streamid");
-  if (streamid == NULL || !streamid[0]) {
-    return;
-  }
-
-  StreamId_Ext stream_id;
-  if (!util_check_hex(streamid, 32) || (stream_id.parse(streamid, 16) != 0)) {
-    ERR("wrong path, cannot get stream id.");
-    evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
-    return;
-  }
-
-  string sdp = RTPTransManager::Instance()->get_sdp_str(stream_id);
-  if (sdp.length() > 0) {
-    struct evkeyvalq *response_headers = evhttp_request_get_output_headers(req);
-    evhttp_add_header(response_headers, "Server", "zzy21");
-    evhttp_add_header(response_headers, "Content-Type", "application/sdp");
-    evhttp_add_header(response_headers, "Expires", "-1");
-    evhttp_add_header(response_headers, "Cache-Control", "private, max-age=0");
-    evhttp_add_header(response_headers, "Pragma", "no-cache");
-    evhttp_add_header(response_headers, "Connection", "Close");
-    struct evbuffer *buf = evbuffer_new();
-    evbuffer_add(buf, sdp.c_str(), sdp.length());
-    evhttp_send_reply(req, HTTP_OK, "OK", buf);
-    evbuffer_free(buf);
-  }
-  else {
-    ERR("failed to get sdp, empty sdpstr streamid = %u", stream_id.get_32bit_stream_id());
-    evhttp_send_reply(req, HTTP_NOTFOUND, "Not Found", NULL);
-  }
-}
-
-//RTPTransManager * RtpManagerBase::m_trans_mgr = NULL;
-//RtpCacheManager * RtpManagerBase::m_rtp_cache = NULL;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -691,15 +784,6 @@ int32_t RtpTcpServerManager::Init(struct event_base *ev_base) {
   }
   m_ev_socket.Start(ev_base, fd_socket, &RtpTcpServerManager::OnSocketAccept, this);
 
-  //TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  //if (common_config->enable_rtp2flv) {
-  //  m_rtp_cache = media_manager::RTP2FLVRemuxer::get_instance();
-  //}
-  //else {
-  //  m_rtp_cache = new RTPMediaManagerHelper;
-  //}
-  //m_trans_mgr = new RTPTransManager(RtpCacheManager::Instance());
-
   start_timer();
 
   return 0;
@@ -726,129 +810,6 @@ void RtpTcpServerManager::OnSocketAcceptImpl(const int fd, const short which) {
   }
 }
 
-//int RtpTcpServerManager::set_http_server(http::HTTPServer *http_server) {
-//  http_server->add_handle("/upload/sdp",
-//    http_put_sdp,
-//    this,
-//    http_put_sdp_check,
-//    this,
-//    NULL,
-//    NULL);
-//  http_server->add_handle("/download/sdp",
-//    http_get_sdp_handle,
-//    this,
-//    http_get_sdp_check_handle,
-//    this,
-//    NULL,
-//    NULL);
-//  http_server->add_handle("/rtp/count",
-//    get_count_handler,
-//    this,
-//    get_count_check_handler,
-//    this,
-//    NULL,
-//    NULL);
-//  return 0;
-//}
-
-//void RtpTcpServerManager::http_put_sdp(http::HTTPConnection* conn, void* args) {
-//  http::HTTPRequest* request = conn->request;
-//  if (conn->get_to_read() != 0) {
-//    return;
-//  }
-//
-//  string path = request->uri;
-//  char buf[128];
-//  if (!util_path_str_get(path.c_str(), path.length(), 3, buf, sizeof(buf))) {
-//    ERR("wrong path, cannot get stream id.");
-//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-//    conn->stop();
-//    return;
-//  }
-//  buf[32] = '\0';
-//  StreamId_Ext stream_id;
-//  if (!util_check_hex(buf, 32) || (stream_id.parse(buf, 16) != 0)) {
-//    ERR("wrong path, cannot get stream id.");
-//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-//    conn->stop();
-//    return;
-//  }
-//
-//  string sdp_str;
-//  sdp_str.assign(buffer_data_ptr(conn->_read_buffer), buffer_data_len(conn->_read_buffer));
-//
-//  //RtpTcpServerManager* pThis = (RtpTcpServerManager*)args;
-//  RTPTransManager::Instance()->set_sdp_str(stream_id, sdp_str);
-//
-//  INF("http put sdp complete, stream_id: %s, sdp_len: %ld sdp:%s", stream_id.unparse().c_str(), sdp_str.length(), sdp_str.c_str());
-//  util_http_rsp_error_code(conn->get_fd(), HTTP_200);
-//  conn->stop();
-//  return;
-//}
-//
-//void RtpTcpServerManager::http_put_sdp_check(http::HTTPConnection*, void*) {
-//}
-//
-//void RtpTcpServerManager::get_count_handler(http::HTTPConnection* conn, void* args) {
-//}
-//
-//void RtpTcpServerManager::get_count_check_handler(http::HTTPConnection* conn, void* args) {
-//}
-//
-//void RtpTcpServerManager::http_get_sdp_handle(http::HTTPConnection* conn, void* args) {
-//  http::HTTPRequest* request = conn->request;
-//
-//  string path = request->uri;
-//  char buf[128];
-//  if (!util_path_str_get(path.c_str(), path.length(), 3, buf, sizeof(buf))) {
-//    ERR("wrong path, cannot get stream id.");
-//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-//    conn->stop();
-//    return;
-//  }
-//  buf[32] = '\0';
-//  StreamId_Ext stream_id;
-//  if (!util_check_hex(buf, 32) || (stream_id.parse(buf, 16) != 0)) {
-//    ERR("wrong path, cannot get stream id.");
-//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-//    conn->stop();
-//    return;
-//  }
-//
-//  //RtpTcpServerManager *pThis = (RtpTcpServerManager*)args;
-//  string sdp_str = RTPTransManager::Instance()->get_sdp_str(stream_id);
-//  if (sdp_str.length() > 0) {
-//    char rsp[1024];
-//    snprintf(rsp, sizeof(rsp),
-//      "HTTP/1.0 200 OK\r\nServer: Youku Live Forward\r\n"
-//      "Content-Type: application/sdp\r\n"
-//      "Host: %s:%d\r\n"
-//      "Connection: Close\r\n"
-//      "Expires: -1\r\nCache-Control: private, max-age=0\r\nPragma: no-cache\r\n"
-//      "Content-Length: %zu\r\n\r\n",
-//      conn->get_remote_ip(), conn->get_remote_port(), sdp_str.length());
-//
-//    if (conn->writeResponseString(rsp) < 0) {
-//      WRN("player-sdp %s:%6hu %d %s 404",
-//        conn->get_remote_ip(), conn->get_remote_port(), request->method, request->uri.c_str());
-//      return;
-//    }
-//
-//    conn->writeResponseString(sdp_str);
-//    DBG("player-sdp %s:%6hu %d %s 200",
-//      conn->get_remote_ip(), conn->get_remote_port(), request->method, request->uri.c_str());
-//    conn->stop();
-//  }
-//  else {
-//    ERR("failed to get sdp, empty sdpstr streamid = %u", stream_id.get_32bit_stream_id());
-//    util_http_rsp_error_code(conn->get_fd(), HTTP_404);
-//    conn->stop();
-//  }
-//}
-//
-//void RtpTcpServerManager::http_get_sdp_check_handle(http::HTTPConnection* conn, void* args) {
-//}
-
 void RtpTcpServerManager::start_timer() {
   struct timeval tv;
   evtimer_set(&m_ev_timer, timer_cb, (void *)this);
@@ -865,3 +826,5 @@ void RtpTcpServerManager::timer_cb(const int fd, short which, void *arg) {
 }
 
 RtpTcpServerManager* RtpTcpServerManager::m_inst = NULL;
+
+//////////////////////////////////////////////////////////////////////////

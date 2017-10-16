@@ -90,18 +90,12 @@ public:
 
   virtual void OnConnectionClosed(RtpConnection *c) = 0;
 
-  static void InitHttpHandler();  // rtp http server的总入口
-
 protected:
   RtpManagerBase();
   virtual ~RtpManagerBase();
 
-  static void HttpPutSdpHander(struct evhttp_request *req, void *arg);
-  static void HttpDownloadSdpHander(struct evhttp_request *req, void *arg);
-
 protected:
 public:
-  //static RTPTransManager *m_trans_mgr;
   struct event_base* m_ev_base;
 };
 
@@ -137,18 +131,9 @@ public:
 
   int32_t Init(struct event_base *ev_base);
 
-  //int set_http_server(http::HTTPServer *http_server); // rtp http server的总入口
-
 protected:
   static void OnSocketAccept(const int fd, const short which, void *arg);
   void OnSocketAcceptImpl(const int fd, const short which);
-
-  //static void http_put_sdp(http::HTTPConnection*, void*);
-  //static void http_put_sdp_check(http::HTTPConnection*, void*);
-  //static void get_count_handler(http::HTTPConnection* conn, void* args);
-  //static void get_count_check_handler(http::HTTPConnection* conn, void* args);
-  //static void http_get_sdp_handle(http::HTTPConnection* conn, void* args);
-  //static void http_get_sdp_check_handle(http::HTTPConnection* conn, void* args);
 
   void start_timer();
   static void timer_cb(const int fd, short which, void *arg);

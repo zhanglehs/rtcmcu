@@ -470,21 +470,13 @@ static int main_proc() {
   signal(SIGPIPE, SIG_IGN);
 
   HttpServerManager::Instance()->Init(main_base, g_conf.http_ser_config.listen_port);
-  RtpManagerBase::InitHttpHandler();
-
-  //http::HTTPServer* base_http_server = new http::HTTPServer(&(g_conf.http_ser_config), g_configfile);
-  //base_http_server->init(main_base);
-  //base_http_server->register_self_handle();
-
   //FlvCacheManager::Instance()->set_http_server(base_http_server);
 
-  // Perf initialization
   perf = Perf::get_instance();
   perf->set_cpu_rate_threshold(g_conf.target_conf.cpu_rate_threshold);
 
   RtpTcpServerManager::Instance()->Init(main_base);
   RtpUdpServerManager::Instance()->Init(main_base);
-  //RtpTcpServerManager::Instance()->set_http_server(base_http_server);
 
   if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
     ERR("player init failed.");

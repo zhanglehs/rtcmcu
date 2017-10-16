@@ -92,7 +92,7 @@ RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTP
 COMMONOBJS = hls.o media_buffer.o perf.o info_collector.o\
 			 whitelist_manager.o libcachemanager.a libfragment.a portal.o config_manager.o \
 			 $(UTIL_DIR)/connection.o\
-			 $(NETWORK_DIR)/base_tcp_server.o $(NETWORK_DIR)/tcp_connection.o $(NETWORK_DIR)/ip_access_control.o\
+			 $(NETWORK_DIR)/base_tcp_server.o $(NETWORK_DIR)/tcp_connection.o \
 			 $(NETWORK_DIR)/base_http_server.o\
 			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
 			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
@@ -110,13 +110,13 @@ TRACKEROBJS = module_tracker.o
 ifeq ($(BACKEND_DIR), backend_new)
 BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
 				$(BACKEND_DIR)/forward_common.o $(BACKEND_DIR)/forward_server.o \
-				$(NETWORK_DIR)/udp_server.o $(BACKEND_DIR)/rtp_backend_config.o \
+				$(BACKEND_DIR)/rtp_backend_config.o \
 				$(BACKEND_DIR)/forward_client_rtp_tcp.o
 else
 BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
 				$(BACKEND_DIR)/forward_common.o $(BACKEND_DIR)/forward_server.o $(BACKEND_DIR)/forward_client.o \
 				$(BACKEND_DIR)/forward_server_v2.o $(BACKEND_DIR)/forward_client_v2.o \
-				$(NETWORK_DIR)/udp_server.o $(BACKEND_DIR)/rtp_backend_config.o 
+				$(BACKEND_DIR)/rtp_backend_config.o
 endif
 
 UPLOADEROBJS = $(UPLOADER_DIR)/RtpTcpConnectionManager.o $(UPLOADER_DIR)/uploader_config.o $(UPLOADER_DIR)/rtp_uploader_config.o

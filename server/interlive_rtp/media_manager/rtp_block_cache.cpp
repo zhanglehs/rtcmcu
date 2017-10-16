@@ -443,13 +443,13 @@ namespace media_manager {
 //  return 0;
 //}
 
-//void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
-//  m_watches.insert(watcher);
-//}
-//
-//void RtpCacheManager::RemoveWatcher(RtpCacheWatcher *watcher) {
-//  m_watches.erase(watcher);
-//}
+void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
+  m_watches.insert(watcher);
+}
+
+void RtpCacheManager::RemoveWatcher(RtpCacheWatcher *watcher) {
+  m_watches.erase(watcher);
+}
 
 int RtpCacheManager::set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len) {
   auto it = m_caches.find(stream_id.get_32bit_stream_id());
@@ -495,11 +495,11 @@ int RtpCacheManager::set_sdp(const StreamId_Ext& stream_id, const char* sdp, int
   }
 
   int ret = cache->set_sdp(sdp, len);
-  //if (ret >= 0) {
-  //  for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
-  //    (*it)->OnSdp();
-  //  }
-  //}
+  if (ret >= 0) {
+    for (auto it = m_watches.begin(); it != m_watches.end(); it++) {
+      (*it)->OnSdp(stream_id, sdp);
+    }
+  }
   return ret;
 }
 
@@ -512,9 +512,7 @@ std::string RtpCacheManager::get_sdp(const StreamId_Ext& stream_id) {
 
   media_manager::RTPMediaCache *cache = it->second;
   SdpInfo* sdp = cache->get_sdp();
-  if (sdp == NULL) {
-    return std::string("");
-  }
+  assert(sdp);
   return sdp->get_sdp_str();
 }
 

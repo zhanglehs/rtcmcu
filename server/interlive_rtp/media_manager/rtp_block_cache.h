@@ -25,14 +25,14 @@ public:
   //static void DestroyInstance();
 
   //int Init(struct event_base *ev_base);
-  //class RtpCacheWatcher {
-  //public:
-  //  virtual ~RtpCacheWatcher() {}
-  //  virtual void OnRtp() {}
-  //  virtual void OnSdp() {}
-  //};
-  //void AddWatcher(RtpCacheWatcher *watcher);
-  //void RemoveWatcher(RtpCacheWatcher *watcher);
+  class RtpCacheWatcher {
+  public:
+    virtual ~RtpCacheWatcher() {}
+    virtual void OnRtp() {}
+    virtual void OnSdp(const StreamId_Ext& streamid, const char *sdp) {}
+  };
+  void AddWatcher(RtpCacheWatcher *watcher);
+  void RemoveWatcher(RtpCacheWatcher *watcher);
 
   int set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len);
   int set_sdp(const StreamId_Ext& stream_id, const char* sdp, int32_t len);
@@ -45,5 +45,5 @@ protected:
   //RtpCacheManager();
   //static RtpCacheManager *m_inst;
   std::map<uint32_t, media_manager::RTPMediaCache*> m_caches;
-  //std::set<RtpCacheWatcher*> m_watches;
+  std::set<RtpCacheWatcher*> m_watches;
 };

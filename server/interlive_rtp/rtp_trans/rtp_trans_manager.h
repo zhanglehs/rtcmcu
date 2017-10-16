@@ -29,6 +29,8 @@ public:
   RTPTransManager();
   ~RTPTransManager();
 
+  RtpCacheManager* GetRtpCacheManager();
+
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
   void _close_trans(RtpConnection *c);
 
@@ -59,7 +61,7 @@ private:
   static const uint32_t MAX_TRANS_NUM = 5000;
   static const uint32_t MAX_RTP_ITEM_NUM = 25000;
 
-  RtpCacheManager *_mm_helper;
+  RtpCacheManager *m_rtp_cache;
 
   std::map<uint32_t, std::set<RtpConnection*> > m_stream_groups;
 
