@@ -406,14 +406,17 @@ void RelayManager::DestroyInstance() {
 
 RelayManager::RelayManager() {
   m_ev_base = NULL;
+  m_push_manager = new RtpPushTcpManager();
 }
 
 RelayManager::~RelayManager() {
+  delete m_push_manager;
 }
 
 int RelayManager::Init(struct event_base *ev_base) {
   m_ev_base = ev_base;
   ForwardClientRtpTCPMgr::Instance()->set_main_base(ev_base);
+  m_push_manager->Init(ev_base);
   return 0;
 }
 
@@ -428,10 +431,12 @@ int RelayManager::StopPullRtp(const StreamId_Ext& stream_id) {
 }
 
 int RelayManager::StartPushRtp(const StreamId_Ext& stream_id) {
+  m_push_manager->StartPush(stream_id);
   return 0;
 }
 
 int RelayManager::StopPushRtp(const StreamId_Ext& stream_id) {
+  m_push_manager->StopPush(stream_id);
   return 0;
 }
 

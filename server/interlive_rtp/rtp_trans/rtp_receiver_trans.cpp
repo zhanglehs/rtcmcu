@@ -42,7 +42,7 @@ RTPRecvTrans::RTPRecvTrans(RtpConnection *connection, StreamId_Ext sid, RTPTrans
 				if (_sessions_map.find(pkt->get_ssrc()) == _sessions_map.end())
 				{
 					_sessions_map[pkt->get_ssrc()] = new RTPRecvSession(this, _config);
-					_sessions_array.push_back(_sessions_map[pkt->get_ssrc()]);
+					//_sessions_array.push_back(_sessions_map[pkt->get_ssrc()]);
 				}
 
 				RTPRecvSession* session = (RTPRecvSession*)_sessions_map[pkt->get_ssrc()];

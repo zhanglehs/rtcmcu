@@ -44,10 +44,22 @@ public:
 
   void startStream(const StreamId_Ext& streamid);
   void stopStream(const StreamId_Ext& streamid);
-  void set_main_base(struct event_base * main_base);
+  void set_main_base(struct event_base * ev_base);
 private:
   std::map<StreamId_Ext, RtpPullClient*> m_clients;
   static ForwardClientRtpTCPMgr *m_inst;
+};
+
+class RtpPushClient;
+// TODO: zhangle, rtp失败后应重试
+class RtpPushTcpManager : public RtpTcpManager {
+public:
+  int Init(struct event_base * ev_base);
+  void StartPush(const StreamId_Ext& streamid);
+  void StopPush(const StreamId_Ext& streamid);
+
+protected:
+  std::map<StreamId_Ext, RtpPushClient*> m_clients;
 };
 
 #endif

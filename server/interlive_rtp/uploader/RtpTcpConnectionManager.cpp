@@ -129,8 +129,9 @@ namespace {
     string sdp((char*)evbuffer_pullup(req_data, -1), evbuffer_get_length(req_data));
     RTPTransManager::Instance()->set_sdp_str(stream_id, sdp);
     INF("http put sdp complete, stream_id=%s, sdp=%s", stream_id.unparse().c_str(), sdp.c_str());
-
     evhttp_send_reply(req, HTTP_OK, "OK", NULL);
+
+    RelayManager::Instance()->StartPushRtp(stream_id);
     return;
   }
 
@@ -294,6 +295,9 @@ void RtpConnection::DisableWrite() {
 void RtpConnection::Destroy(RtpConnection *c) {
   if (!c->udp) {
     c->ev_socket.Stop();
+  }
+  if (c->IsUploader()) {
+    RelayManager::Instance()->StopPushRtp(c->streamid);
   }
   c->manager->OnConnectionClosed(c);
 }

@@ -10,9 +10,6 @@
 #include "target.h"
 #include "uploader/RtpTcpConnectionManager.h"
 
-//static struct event_base * g_ev_base = NULL;
-//static ForwardClientRtpTCPMgr *inst = NULL;
-
 #define MAX_LEN_PER_READ (1024 * 128)
 
 //////////////////////////////////////////////////////////////////////////
@@ -20,6 +17,7 @@
 class RtpPullClient {
 public:
   RtpPullClient(struct event_base *ev_base, ForwardClientRtpTCPMgr *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid);
+  ~RtpPullClient();
   int Start();
 
 private:
@@ -42,10 +40,9 @@ private:
   struct evhttp_connection *m_http_con;
   std::string m_next_node_host;
   unsigned int m_next_node_rtp_port;   // TCP port
-  int m_fd_socket;
   struct event m_ev_socket;
-  //RTPTransManager *m_trans_mgr;
   ForwardClientRtpTCPMgr *m_manager;
+  RtpConnection *m_rtp_connection;
 };
 
 RtpPullClient::RtpPullClient(struct event_base *ev_base, ForwardClientRtpTCPMgr *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid) {
@@ -54,9 +51,19 @@ RtpPullClient::RtpPullClient(struct event_base *ev_base, ForwardClientRtpTCPMgr 
   m_dispatch_port = dispatch_port;
   m_streamid = streamid;
   m_http_con = NULL;
-  m_fd_socket = -1;
   m_manager = mgr;
-  //m_trans_mgr = m_manager->m_trans_mgr;
+  m_rtp_connection = NULL;
+}
+
+RtpPullClient::~RtpPullClient() {
+  if (m_http_con) {
+    evhttp_connection_free(m_http_con);
+    m_http_con = NULL;
+  }
+  if (m_rtp_connection) {
+    RtpConnection::Destroy(m_rtp_connection);
+    m_rtp_connection = NULL;
+  }
 }
 
 int RtpPullClient::Start() {
@@ -144,7 +151,6 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
     return;
   }
   util_set_nonblock(fd_sock, TRUE);
-  //m_fd_socket = fd_sock;
 
   int sock_rcv_buf_sz = 512 * 1024;
   setsockopt(fd_sock, SOL_SOCKET, SO_RCVBUF,
@@ -161,7 +167,12 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
     }
   }
 
+  if (m_rtp_connection) {
+    RtpConnection::Destroy(m_rtp_connection);
+    m_rtp_connection = NULL;
+  }
   RtpConnection *c = m_manager->CreateConnection(&remote, fd_sock);
+  m_rtp_connection = c;
   c->streamid = m_streamid;
   c->type = RtpConnection::CONN_TYPE_UPLOADER;
   //INF("uploader accepted. socket=%d, remote=%s:%d", connection->fd_socket, connection->remote_ip,
@@ -184,7 +195,6 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   }
   buffer_append(c->wb, reqbuf);
   buffer_free(reqbuf);
-  //m_manager->SendData(c, )
 
   RTPBackendConfig* cfg_rtp_backend = (RTPBackendConfig*)ConfigManager::get_inst_config_module("rtp_backend");
   const RTPTransConfig* cfg_rtp_trans = cfg_rtp_backend->get_rtp_conf();
@@ -193,7 +203,7 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
 
 void RtpPullClient::OnError() {
   // TODO: zhangle
-  ForwardClientRtpTCPMgr::Instance()->stopStream(m_streamid);
+  m_manager->stopStream(m_streamid);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -359,6 +369,8 @@ void ForwardClientRtpTCPMgr::set_main_base(struct event_base *ev_base) {
 }
 
 void ForwardClientRtpTCPMgr::startStream(const StreamId_Ext& streamid) {
+  // TODO: zhangle, test
+  return;
   if (m_clients.find(streamid) != m_clients.end()) {
     return;
   }
@@ -391,3 +403,235 @@ void ForwardClientRtpTCPMgr::DestroyInstance() {
 }
 
 ForwardClientRtpTCPMgr * ForwardClientRtpTCPMgr::m_inst = NULL;
+
+//////////////////////////////////////////////////////////////////////////
+
+// IODO: zhangle, 需要注意循环push的问题
+class RtpPushClient {
+public:
+  RtpPushClient(struct event_base *ev_base, RtpPushTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid);
+  ~RtpPushClient();
+  int Start();
+
+private:
+  int GetNextNode();
+  static void OnNextNode(struct evhttp_request* req, void* arg);
+  void OnNextNodeImpl(int httpcode, const char *content, int len);
+
+  int PutSdp(const char *next_node_host, unsigned short next_node_http_port);
+  static void OnSdp(struct evhttp_request* req, void* arg);
+  void OnSdpImpl(int httpcode, const char *content, int len);
+
+  void ConnectRtpServer(const char *next_node_host, unsigned short next_node_rtp_port);
+
+  void OnError();
+
+  struct event_base *m_ev_base;
+  std::string m_dispatch_host;
+  unsigned short m_dispatch_port;
+  StreamId_Ext m_streamid;
+  struct evhttp_connection *m_http_con;
+  std::string m_next_node_host;
+  unsigned int m_next_node_rtp_port;   // TCP port
+  struct event m_ev_socket;
+  RtpPushTcpManager *m_manager;
+  RtpConnection *m_rtp_connection;
+};
+
+RtpPushClient::RtpPushClient(struct event_base *ev_base, RtpPushTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid) {
+  m_ev_base = ev_base;
+  m_dispatch_host = dispatch_host;
+  m_dispatch_port = dispatch_port;
+  m_streamid = streamid;
+  m_http_con = NULL;
+  m_manager = mgr;
+  m_rtp_connection = NULL;
+}
+
+RtpPushClient::~RtpPushClient() {
+  if (m_http_con) {
+    evhttp_connection_free(m_http_con);
+    m_http_con = NULL;
+  }
+  if (m_rtp_connection) {
+    RtpConnection::Destroy(m_rtp_connection);
+    m_rtp_connection = NULL;
+  }
+}
+
+int RtpPushClient::Start() {
+  return GetNextNode();
+}
+
+int RtpPushClient::GetNextNode() {
+  // TODO: zhangle, is just test code
+  uploader_config *config = (uploader_config *)ConfigManager::get_inst_config_module("uploader");
+  if (NULL == config) {
+    ERR("rtp uploader failed to get corresponding config information.");
+    return -1;
+  }
+  if (config->listen_port == 8103) {
+    return -1;
+  }
+
+  m_next_node_host = "127.0.0.1";
+  m_next_node_rtp_port = 8103;
+  PutSdp(m_next_node_host.c_str(), 8143);
+  return 0;
+}
+
+int RtpPushClient::PutSdp(const char *next_node_host, unsigned short next_node_http_port) {
+  std::string sdp = RTPTransManager::Instance()->get_sdp_str(m_streamid);
+  if (sdp.empty()) {
+    return -1;
+  }
+
+  if (m_http_con) {
+    evhttp_connection_free(m_http_con);
+    m_http_con = NULL;
+  }
+  m_http_con = evhttp_connection_base_new(m_ev_base, NULL, next_node_host, next_node_http_port);
+  evhttp_connection_set_timeout(m_http_con, 3);
+  evhttp_connection_set_retries(m_http_con, 3);
+
+  // TODO: zhangle, req maybe need delete
+  struct evhttp_request *req = evhttp_request_new(&RtpPushClient::OnSdp, this);
+  evhttp_add_header(req->output_headers, "User-Agent", "ForwardClientRtpTCP");
+  evhttp_add_header(req->output_headers, "Host", next_node_host);
+
+  char path[256];
+  sprintf(path, "/upload/sdp?streamid=%s", m_streamid.unparse().c_str());
+  DBG("put sdp url %s streamid %s", path, m_streamid.unparse().c_str());
+  evbuffer_add(req->output_buffer, sdp.c_str(), sdp.length());
+  int ret = 0;
+  if ((ret = evhttp_make_request(m_http_con, req, EVHTTP_REQ_POST, path)) != 0) {
+    ERR("get sdpinfo error streamid %s ret %d", m_streamid.unparse().c_str(), ret);
+    return -1;
+  }
+  return 0;
+}
+
+void RtpPushClient::OnSdp(struct evhttp_request* req, void* arg) {
+  int httpcode = 0;
+  const char *content = NULL;
+  int len = 0;
+
+  if (req) {
+    httpcode = req->response_code;
+    content = reinterpret_cast<const char*>(EVBUFFER_DATA(req->input_buffer));
+    len = EVBUFFER_LENGTH(req->input_buffer);
+  }
+
+  if (arg) {
+    RtpPushClient *pThis = (RtpPushClient*)arg;
+    pThis->OnSdpImpl(httpcode, content, len);
+  }
+}
+
+void RtpPushClient::OnSdpImpl(int httpcode, const char *content, int len) {
+  if (httpcode == HTTP_OK) {
+    ConnectRtpServer(m_next_node_host.c_str(), m_next_node_rtp_port);
+    return;
+  }
+
+  ERR("put sdp error, streamid=%s", m_streamid.unparse().c_str());
+  OnError();
+}
+
+void RtpPushClient::ConnectRtpServer(const char *next_node_host, unsigned short next_node_rtp_port) {
+  DBG("connect ip %s, player port %d, streamid %s", next_node_host,
+    (int)next_node_rtp_port, m_streamid.unparse().c_str());
+
+  struct sockaddr_in remote;
+  memset(&remote, 0, sizeof(remote));
+  remote.sin_family = AF_INET;
+  remote.sin_addr.s_addr = inet_addr(next_node_host);
+  remote.sin_port = htons(next_node_rtp_port);
+  int fd_sock = socket(AF_INET, SOCK_STREAM, 0);
+  if (fd_sock < 0) {
+    ERR("do_connect: create socket error, errno=%d, err=%s, streamid %s", errno, strerror(errno), m_streamid.unparse().c_str());
+    OnError();
+    return;
+  }
+  util_set_nonblock(fd_sock, TRUE);
+
+  int sock_rcv_buf_sz = 512 * 1024;
+  setsockopt(fd_sock, SOL_SOCKET, SO_RCVBUF,
+    (void*)&sock_rcv_buf_sz, sizeof(sock_rcv_buf_sz));
+  setsockopt(fd_sock, SOL_SOCKET, SO_SNDBUF,
+    (void*)&sock_rcv_buf_sz, sizeof(sock_rcv_buf_sz));
+
+  int ret = connect(fd_sock, (struct sockaddr*) &remote, sizeof(remote));
+  if (ret < 0) {
+    if ((errno != EINPROGRESS) && (errno != EINTR)) {
+      WRN("connect error: %d %s streamid %s", errno, strerror(errno), m_streamid.c_str());
+      OnError();
+      return;
+    }
+  }
+
+  if (m_rtp_connection) {
+    RtpConnection::Destroy(m_rtp_connection);
+    m_rtp_connection = NULL;
+  }
+  RtpConnection *c = m_manager->CreateConnection(&remote, fd_sock);
+  m_rtp_connection = c;
+  c->streamid = m_streamid;
+  c->type = RtpConnection::CONN_TYPE_PLAYER;
+  //INF("uploader accepted. socket=%d, remote=%s:%d", connection->fd_socket, connection->remote_ip,
+  //  (int)connection->remote.sin_port);
+
+  buffer *reqbuf = buffer_init(256);
+  rtp_u2r_req_state req;
+  req.payload_type = 2;
+  memcpy(req.streamid, &m_streamid, sizeof(m_streamid));
+  memset(req.token, 0, sizeof(req.token));
+  memcpy(req.token, "98765", 5);
+  req.version = 1;
+  req.user_id = 2;
+  //memset(req.useragent, 0, sizeof(req.useragent));
+  //const char *user_agent = "ForwardClientRtpTCP";
+  //memcpy(req.useragent, user_agent, strlen(user_agent));
+  if (encode_rtp_u2r_req_state(&req, reqbuf)) {
+    buffer_free(reqbuf);
+    OnError();
+    return;
+  }
+  buffer_append(c->wb, reqbuf);
+  buffer_free(reqbuf);
+
+  RTPBackendConfig* cfg_rtp_backend = (RTPBackendConfig*)ConfigManager::get_inst_config_module("rtp_backend");
+  const RTPTransConfig* cfg_rtp_trans = cfg_rtp_backend->get_rtp_conf();
+  RTPTransManager::Instance()->_open_trans(c, const_cast<RTPTransConfig*>(cfg_rtp_trans));
+}
+
+void RtpPushClient::OnError() {
+  // TODO: zhangle
+  m_manager->StopPush(m_streamid);
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+int RtpPushTcpManager::Init(struct event_base * ev_base) {
+  m_ev_base = ev_base;
+  return 0;
+}
+
+void RtpPushTcpManager::StartPush(const StreamId_Ext& streamid) {
+  if (m_clients.find(streamid) != m_clients.end()) {
+    return;
+  }
+  RtpPushClient *client = new RtpPushClient(m_ev_base, this, "xxx", 0, streamid);
+  m_clients[streamid] = client;
+  client->Start();
+}
+
+void RtpPushTcpManager::StopPush(const StreamId_Ext& streamid) {
+  auto it = m_clients.find(streamid);
+  if (it != m_clients.end()) {
+    delete it->second;
+    m_clients.erase(it);
+  }
+  // TODO: zhangle, really need this
+  //media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
+}

@@ -241,7 +241,7 @@ static void server_exit()
   INF("program stopping...");
   log_fini();
   levent_fini();
-  event_base_free(main_base);
+  //event_base_free(main_base);
 }
 
 static void reload_config_sig_handler(int sig) {
@@ -476,6 +476,7 @@ static int main_proc() {
 
   RtpTcpServerManager::Instance()->Init(main_base);
   RtpUdpServerManager::Instance()->Init(main_base);
+  RelayManager::Instance()->Init(main_base);
 
   if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
     ERR("player init failed.");

@@ -49,7 +49,6 @@ protected:
   // called by rtp_trans
   int SendNackRtp(RtpConnection *c, bool video, uint16_t seq);   // send nack
   void _send_rtcp_cb(RtpConnection *c, const avformat::RtcpPacket *rtcp);
-  void _close_trans_cb(RtpConnection *c);
 
   avformat::RTP_FIXED_HEADER* _get_rtp_by_ssrc_seq(RtpConnection *c,
     bool video, uint16_t seq, uint16_t &len, int32_t& status_code);

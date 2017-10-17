@@ -58,6 +58,8 @@ int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id);
 
 void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level);
 
+class RtpPushTcpManager;
+
 class RelayManager {
 public:
   static RelayManager* Instance();
@@ -74,6 +76,7 @@ protected:
   RelayManager();
   ~RelayManager();
 
+  RtpPushTcpManager *m_push_manager;
   struct event_base* m_ev_base;
   static RelayManager* m_inst;
 };

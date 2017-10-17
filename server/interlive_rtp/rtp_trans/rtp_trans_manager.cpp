@@ -87,12 +87,20 @@ int RTPTransManager::OnRecvRtcp(RtpConnection *c, const void *rtcp, uint32_t len
 
 void RTPTransManager::on_timer() {
   uint64_t now = avformat::Clock::GetRealTimeClock()->TimeInMilliseconds();
+  std::set<RtpConnection*> trash;
   for (auto it1 = m_stream_groups.begin(); it1 != m_stream_groups.end(); it1++) {
-    auto connections = it1->second;
+    auto &connections = it1->second;
     for (auto it = connections.begin(); it != connections.end(); it++) {
       RtpConnection *c = *it;
       c->trans->on_timer(now);
-    }    
+      if (!c->trans->is_alive()) {
+        trash.insert(c);
+      }
+    }
+  }
+
+  for (auto it = trash.begin(); it != trash.end(); it++) {
+    RtpConnection::Destroy(*it);
   }
 }
 
@@ -223,6 +231,9 @@ void RTPTransManager::ForwardRtcp(const StreamId_Ext& streamid, avformat::RTPAVT
 RTPTransManager* RTPTransManager::m_inst = NULL;
 
 void RTPTransManager::_close_trans(RtpConnection *c) {
+  if (c->trans == NULL) {
+    return;
+  }
   auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());
   if (it != m_stream_groups.end()) {
     std::set<RtpConnection*> &connections = it->second;
@@ -231,6 +242,8 @@ void RTPTransManager::_close_trans(RtpConnection *c) {
       m_stream_groups.erase(it);
     }
   }
+  delete c->trans;
+  c->trans = NULL;
 }
 
 void RTPTransManager::_send_fec(RtpConnection *c, const avformat::RTP_FIXED_HEADER *pkt, uint32_t pkt_len) {
@@ -260,10 +273,4 @@ int RTPTransManager::SendNackRtp(RtpConnection *c, bool video, uint16_t seq) {
 
 void RTPTransManager::_send_rtcp_cb(RtpConnection *c, const avformat::RtcpPacket *rtcp) {
   c->manager->SendRtcp(c, rtcp);
-}
-
-void RTPTransManager::_close_trans_cb(RtpConnection *c) {
-  //INF("_close_trans_cb. trans_name: %s", trans_name.unparse().c_str());
-  // TODO: zhangle, need delete RtpConnection
-  _close_trans(c);
 }

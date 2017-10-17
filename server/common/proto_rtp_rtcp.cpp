@@ -388,6 +388,28 @@ int encode_rtp_f2f_req_state_uint8(rtp_f2f_req_state* body, uint8_t* obuf, uint1
     return 0;
 }
 
+int encode_rtp_u2r_req_state(const rtp_u2r_req_state *body, buffer *obuf)
+{
+  if (body == NULL || obuf == NULL)
+  {
+    return -1;
+  }
+
+  uint32_t total_sz = sizeof(proto_header)+sizeof(rtp_u2r_req_state);
+  encode_header(obuf, CMD_RTP_U2R_REQ_STATE, total_sz);
+
+  uint32_t version = htonl(body->version);
+  uint64_t user_id = util_ntohll(body->user_id);
+
+  obuf->append_ptr(&version, sizeof(version));
+  obuf->append_ptr(&(body->streamid), sizeof(body->streamid));
+  obuf->append_ptr(&user_id, sizeof(user_id));
+  obuf->append_ptr(&body->token, sizeof(body->token));
+  obuf->append_ptr(&body->payload_type, sizeof(uint8_t));
+
+  return 0;
+}
+
 int encode_rtp_u2r_rsp_state(const rtp_u2r_rsp_state* body, buffer* obuf)
 {
     uint32_t total_sz = sizeof(proto_header)+sizeof(rtp_u2r_rsp_state);
