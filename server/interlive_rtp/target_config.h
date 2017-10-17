@@ -5,6 +5,7 @@
 #include <util/common.h>
 #include <string>
 #include "config_manager.h"
+#include "util/access.h"
 
 class TargetConfig : public ConfigModule
 {

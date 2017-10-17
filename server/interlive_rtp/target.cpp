@@ -56,7 +56,6 @@
 #include "perf.h"
 #include "info_collector.h"
 
-#include "transport/event_pump_libevent.h"
 #include "network/base_http_server.h"
 #include "whitelist_manager.h"
 #include "config.h"

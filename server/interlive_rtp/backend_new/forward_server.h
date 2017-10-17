@@ -21,9 +21,6 @@
 #include "util/hashtable.h"
 
 #include "tcp_connection.h"
-#include "cmd_fsm_state.h"
-#include "cmd_base_role_mgr.h"
-#include "cmd_fsm.h"
 #include "../network/base_http_server.h"
 
 typedef struct fs_stream
@@ -99,8 +96,6 @@ public:
     void _register_to_tracker();
     void _tracker_keepalive();
     static void _data_callback_by_cm(StreamId_Ext stream_id, uint8_t watch_type, void* arg);
-
-    lcdn::net::CMDFSMState* _get_init_state();
 
     void _destroy();
     void _write();

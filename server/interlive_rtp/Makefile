@@ -36,7 +36,7 @@ THIRD_PARTY_LIB = $(THIRD_PARTY_DIR)/json-c-0.11/.libs/libjson-c.a \
                   $(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/lib/libevent.a \
 				  $(THIRD_PARTY_DIR)/protobuf-3.2.0/out/lib/libprotobuf.a \
 				  $(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/lib/liblog4cplus.a \
-				  $(STATIC_LIB_STAT) $(STATIC_CMDSERVER) $(STATIC_LIB_REACTOR)
+				  $(STATIC_LIB_STAT) $(STATIC_LIB_REACTOR)
 
 MEDIA_MANAGER_DIR = media_manager
 PUBLISHER_DIR = publisher
@@ -52,7 +52,7 @@ TRANSPORT_DIR = transport
 RTPTRANS_DIR = rtp_trans
 CMDSERVER_DIR = ../network/cmdserver
 
-STATIC_CMDSERVER = $(CMDSERVER_DIR)/libserver.a
+#STATIC_CMDSERVER = $(CMDSERVER_DIR)/libserver.a
 
 CINCS += -I$(MEDIA_MANAGER_DIR)/ -I$(FRAGMENT_DIR)/ -I$(UPLOADER_DIR) -I$(BACKEND_DIR) -I$(PUBLISHER_DIR) -I$(COMMON_DIR)
 CINCS += -I. 
@@ -83,8 +83,7 @@ AVFORMAT_OBJS = $(AVFORMAT_DIR)/rtcp_dec.o $(AVFORMAT_DIR)/rtcp_enc.o $(AVFORMAT
 
 AVCODEC_OBJS = $(AVCODEC_DIR)/aac.o $(AVCODEC_DIR)/h264.o
 
-TRANSPORTOBJS = $(TRANSPORT_DIR)/rtp_send_queue.o $(TRANSPORT_DIR)/event_pump_libevent.o \
-				$(TRANSPORT_DIR)/udp_socket.o
+TRANSPORTOBJS = $(TRANSPORT_DIR)/rtp_send_queue.o
 
 RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTPTRANS_DIR)/rtp_trans_manager.o \
                  $(RTPTRANS_DIR)/rtp_sender_session.o $(RTPTRANS_DIR)/rtp_receiver_session.o $(RTPTRANS_DIR)/rtp_sender_trans.o $(RTPTRANS_DIR)/rtp_receiver_trans.o
@@ -201,8 +200,8 @@ $(STATIC_LIB_STAT):
 $(STATIC_LIB_REACTOR):
 	make -C $(DIR_LIB_REACTOR) all
 
-$(STATIC_CMDSERVER):
-	make -C $(CMDSERVER_DIR) all
+#$(STATIC_CMDSERVER):
+#	make -C $(CMDSERVER_DIR) all
 clean-lib:
 	@cd $(DIR_LIB); make clean-libevent; make clean-json-c; make clean-libstat; make clean-lreactor;
 	@cd $(DIR_LIB); rm -f version.h;
