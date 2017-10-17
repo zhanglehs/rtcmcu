@@ -131,7 +131,9 @@ namespace {
     INF("http put sdp complete, stream_id=%s, sdp=%s", stream_id.unparse().c_str(), sdp.c_str());
     evhttp_send_reply(req, HTTP_OK, "OK", NULL);
 
-    RelayManager::Instance()->StartPushRtp(stream_id);
+    // TODO: zhangle
+    // 这里不是一个好地方
+    //RelayManager::Instance()->StartPushRtp(stream_id);
     return;
   }
 
@@ -402,6 +404,10 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       memmove(&rsp.streamid, &req.streamid, sizeof(req.streamid));
 
       c->streamid = req.streamid;
+      RtpConnection *old_connection = RTPTransManager::Instance()->GetUploaderConnection(c->streamid);
+      if (old_connection) {
+        RtpConnection::Destroy(old_connection);
+      }
 
       RTPPlayerConfig *config = (RTPPlayerConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
       if (0 != RTPTransManager::Instance()->_open_trans(c, &config->get_rtp_trans_config())) {

@@ -179,9 +179,41 @@ int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config)
   }
 
   c->trans = trans;
-
   m_stream_groups[c->streamid.get_32bit_stream_id()].insert(c);
+  INF("open trans, streamid=%s, is_uploader=%d, remote=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
   return 0;
+}
+
+void RTPTransManager::_close_trans(RtpConnection *c) {
+  if (c->trans == NULL) {
+    return;
+  }
+  auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());
+  if (it != m_stream_groups.end()) {
+    std::set<RtpConnection*> &connections = it->second;
+    connections.erase(c);
+    if (connections.empty()) {
+      m_stream_groups.erase(it);
+    }
+  }
+  INF("close trans, streamid=%s, is_uploader=%d, remote=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
+  delete c->trans;
+  c->trans = NULL;
+}
+
+RtpConnection* RTPTransManager::GetUploaderConnection(const StreamId_Ext &streamid) {
+  auto it = m_stream_groups.find(streamid.get_32bit_stream_id());
+  if (it == m_stream_groups.end()) {
+    return NULL;
+  }
+  auto &connections = it->second;
+  for (auto it = connections.begin(); it != connections.end(); it++) {
+    RtpConnection *c = *it;
+    if (c->IsUploader()) {
+      return c;
+    }
+  }
+  return NULL;
 }
 
 avformat::RTP_FIXED_HEADER* RTPTransManager::_get_rtp_by_ssrc_seq(RtpConnection *c,
@@ -194,7 +226,7 @@ void RTPTransManager::ForwardRtp(const StreamId_Ext& streamid, avformat::RTP_FIX
   if (it == m_stream_groups.end()) {
     return;
   }
-  auto connections = it->second;
+  auto &connections = it->second;
   for (auto it = connections.begin(); it != connections.end(); it++) {
     RtpConnection *c = *it;
     if (c->IsPlayer()) {
@@ -219,7 +251,7 @@ void RTPTransManager::ForwardRtcp(const StreamId_Ext& streamid, avformat::RTPAVT
   if (it == m_stream_groups.end()) {
     return;
   }
-  auto connections = it->second;
+  auto &connections = it->second;
   for (auto it = connections.begin(); it != connections.end(); it++) {
     RtpConnection *c = *it;
     if (c->IsPlayer()) {
@@ -229,22 +261,6 @@ void RTPTransManager::ForwardRtcp(const StreamId_Ext& streamid, avformat::RTPAVT
 }
 
 RTPTransManager* RTPTransManager::m_inst = NULL;
-
-void RTPTransManager::_close_trans(RtpConnection *c) {
-  if (c->trans == NULL) {
-    return;
-  }
-  auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());
-  if (it != m_stream_groups.end()) {
-    std::set<RtpConnection*> &connections = it->second;
-    connections.erase(c);
-    if (connections.empty()) {
-      m_stream_groups.erase(it);
-    }
-  }
-  delete c->trans;
-  c->trans = NULL;
-}
 
 void RTPTransManager::_send_fec(RtpConnection *c, const avformat::RTP_FIXED_HEADER *pkt, uint32_t pkt_len) {
   c->manager->SendRtp(c, (const unsigned char *)pkt, pkt_len);

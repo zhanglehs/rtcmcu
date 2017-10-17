@@ -345,6 +345,10 @@ log_print(int level, const char *file, int line_num, const char *format, ...)
 
 	if (-1 != g_log_ctx.log_fd)
 		ret = write(g_log_ctx.log_fd, buf, ret);
+
+  if (level >= LOG_LEVEL_INF) {
+    printf("%s", buf);
+  }
 }
 
 void
