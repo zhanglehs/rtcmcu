@@ -30,8 +30,6 @@ COMMON_DIR = ../common
 
 THIRD_PARTY_DIR = $(SOURCE_DIR)third_party
 
-#LIBXML = /usr/lib64/libexpat.a
-#LIBUUID = /usr/lib64/libuuid.a
 THIRD_PARTY_LIB = $(THIRD_PARTY_DIR)/json-c-0.11/.libs/libjson-c.a \
                   $(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/lib/libevent.a \
 				  $(THIRD_PARTY_DIR)/protobuf-3.2.0/out/lib/libprotobuf.a \
@@ -51,8 +49,6 @@ UPLOADER_DIR = uploader
 TRANSPORT_DIR = transport
 RTPTRANS_DIR = rtp_trans
 CMDSERVER_DIR = ../network/cmdserver
-
-#STATIC_CMDSERVER = $(CMDSERVER_DIR)/libserver.a
 
 CINCS += -I$(MEDIA_MANAGER_DIR)/ -I$(FRAGMENT_DIR)/ -I$(UPLOADER_DIR) -I$(BACKEND_DIR) -I$(PUBLISHER_DIR) -I$(COMMON_DIR)
 CINCS += -I. 
@@ -91,7 +87,6 @@ RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTP
 COMMONOBJS = hls.o media_buffer.o perf.o info_collector.o\
 			 whitelist_manager.o libcachemanager.a libfragment.a portal.o config_manager.o \
 			 $(UTIL_DIR)/connection.o\
-			 $(NETWORK_DIR)/base_tcp_server.o $(NETWORK_DIR)/tcp_connection.o \
 			 $(NETWORK_DIR)/base_http_server.o\
 			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
 			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
@@ -126,13 +121,6 @@ FORWARDLIBS = $(LIBS) -luuid -lexpat -lpthread
 RECEIVEROBJS = receiver.o $(UPLOADEROBJS) $(PLAYEROBJS) $(TRACKEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
 RECEIVERLIBS = $(LIBS) -luuid -lexpat -lpthread
 
-#TESTOBJS = $(UPLOADEROBJS) $(PLAYEROBJS) $(BACKENDOBJS) $(COMMONOBJS)
-#TESTLIBS = $(LIBS)
-
-#FCTESTOBJS = forward_client_v2_tests.o forward_common.o  $(COMMONOBJS) -lrt $(LIBXML)
-
-#FCTESTLIBS = $(LIBS)
-
 #all:add_hook version_file $(FORWARD) $(RECEIVER)
 all: version_file $(FORWARD) $(RECEIVER)
 	@echo -e "\033[32m[INF] Make interlive successfully. \033[0m"
@@ -158,12 +146,10 @@ receiver.o:target.cpp
 	make version_file
 	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_TRACKER -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
 
-#$(FORWARD):libevent_hdr util_o common_o $(FORWARDOBJS)
 $(FORWARD):$(THIRD_PARTY_LIB) util_o common_o $(FORWARDOBJS)
 	$(CC) $(CFLAGS) $(FORWARDOBJS) $(FORWARDLIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
 	@echo -e "\033[32m[INF] Make forward successfully. \033[0m"
 	@echo
-#$(RECEIVER):libevent_hdr util_o common_o $(RECEIVEROBJS)
 $(RECEIVER):$(THIRD_PARTY_LIB) util_o common_o $(RECEIVEROBJS)
 	$(CC) $(CFLAGS) $(RECEIVEROBJS) $(RECEIVERLIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
 	@echo -e "\033[32m[INF] Make receiver successfully. \033[0m"
@@ -175,33 +161,12 @@ util_o:
 common_o:
 	@cd $(COMMON_DIR);make all;
 
-#test_objs: $(TESTOBJS)	
-
-#unit_tests: $(TESTOBJS)
-#	@cd unit_tests; \
-#	make; \
-#	make run
-	
-#forward_client_v2_tests.o:unit_tests/forward_client_v2_tests.cpp
-#	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"fctest"' $(DEFS) $^ -o $@ 
-
-#fctest:util_o common_o $(FCTESTOBJS)
-#	$(CC) $(CFLAGS) $(FCTESTOBJS) $(FCTIESTLIBS) -o $@
-
-#$(STATIC_LIB_JSONC):
-#	make -C $(DIR_LIB) static-json-c
-
-#$(STATIC_LIB_EVENT):
-#	make -C $(DIR_LIB) static-libevent
-
 $(STATIC_LIB_STAT):
 	make -C $(DIR_LIB) static-libstat
 
 $(STATIC_LIB_REACTOR):
 	make -C $(DIR_LIB_REACTOR) all
 
-#$(STATIC_CMDSERVER):
-#	make -C $(CMDSERVER_DIR) all
 clean-lib:
 	@cd $(DIR_LIB); make clean-libevent; make clean-json-c; make clean-libstat; make clean-lreactor;
 	@cd $(DIR_LIB); rm -f version.h;
@@ -211,8 +176,6 @@ clean-lib:
 	@echo
 
 clean:
-#	rm -f *.o *.a $(BIN) testcase/*.o
-#	@cd unit_tests; make clean
 	@cd $(UTIL_DIR);make clean
 	@cd $(COMMON_DIR);make clean
 	@cd $(MEDIA_MANAGER_DIR); rm -f *.o *.a
