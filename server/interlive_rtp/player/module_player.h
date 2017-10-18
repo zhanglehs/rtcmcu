@@ -98,6 +98,8 @@ public:
 
   void OnConnectionClosed(LiveConnection *c);
 
+  bool HasPlayer(const StreamId_Ext &streamid);
+
 protected:
   static void OnSocketAccept(const int fd, const short which, void *arg);
   void OnSocketAcceptImpl(const int fd, const short which);

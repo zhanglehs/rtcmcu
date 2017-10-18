@@ -230,18 +230,16 @@ namespace media_manager {
     if (!contains_stream(stream_id)) {
       if (_module_type != MODULE_TYPE_UPLOADER) {
         INF("get_miniblock_flv_header failed, require from backend, streamid: %s", stream_id.unparse().c_str());
-        _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
-        _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+        //_req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
+        //_req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+        // TODO: zhangle, 缓存和pull client的生命周期不一致会有问题，例如relay pull之后，pull client生命周期结束，close了rtp流，结果缓存中还有，不会再次pull
+        RelayManager::Instance()->StartPullRtp(stream_id);
       }
       return -1;
     }
 
     StreamStore* stream_store = _stream_store_map[stream_id];
     FLVMiniBlockCircularCache* cache = stream_store->flv_miniblock_cache;
-    if (cache == NULL) {
-      ERR("block_cache is NULL, streamid: %s", stream_id.unparse().c_str());
-      return -2;
-    }
 
     uint32_t header_len = 0;
     int32_t status_code = 0;
@@ -254,8 +252,7 @@ namespace media_manager {
     }
     else if (_module_type != MODULE_TYPE_UPLOADER) {
       INF("get_miniblock_flv_header failed, require from backend, streamid: %s", stream_id.unparse().c_str());
-      _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
-      _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+      assert(false);
     }
     return -3;
   }

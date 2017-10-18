@@ -34,6 +34,9 @@ public:
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
   void _close_trans(RtpConnection *c);
 
+  bool HasPlayer(const StreamId_Ext& streamid);
+  bool HasUploader(const StreamId_Ext& streamid);
+
   int OnRecvRtp(RtpConnection *c, const void *rtp, uint16_t len);
   int OnRecvRtcp(RtpConnection *c, const void *rtcp, uint32_t len);
 

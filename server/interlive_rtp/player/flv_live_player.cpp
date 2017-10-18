@@ -39,6 +39,7 @@ void FlvLivePlayer::OnWrite() {
     fragment::FLVHeader flvheader(streamid);
     if (_cmng->get_miniblock_flv_header(streamid, flvheader) < 0) {
       WRN("req live header failed, streamid= %s", streamid.unparse().c_str());
+      c->DisableWrite();
       return;
     }
 
@@ -50,7 +51,7 @@ void FlvLivePlayer::OnWrite() {
       "Content-Type: video/x-flv\r\n"
       NOCACHE_HEADER
       HTTP_CONNECTION_HEADER "\r\n");
-    if (0 != buffer_append_ptr(c->wb, rsp, len)) {
+    if (buffer_append_ptr(c->wb, rsp, len) < 0) {
       LiveConnection::Destroy(c);
       return;
     }

@@ -380,7 +380,6 @@ void RelayManager::DestroyInstance() {
 }
 
 RelayManager::RelayManager() {
-  m_ev_base = NULL;
   m_push_manager = new RtpPushTcpManager();
   m_pull_manager = new RtpPullTcpManager();
 }
@@ -391,7 +390,6 @@ RelayManager::~RelayManager() {
 }
 
 int RelayManager::Init(struct event_base *ev_base) {
-  m_ev_base = ev_base;
   m_pull_manager->Init(ev_base);
   m_push_manager->Init(ev_base);
   return 0;

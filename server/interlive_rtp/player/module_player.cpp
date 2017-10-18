@@ -484,6 +484,10 @@ void LiveConnectionManager::OnConnectionClosed(LiveConnection *c) {
   m_connections.erase(c);
 }
 
+bool LiveConnectionManager::HasPlayer(const StreamId_Ext &streamid) {
+  return m_stream_groups.find(streamid.get_32bit_stream_id()) != m_stream_groups.end();
+}
+
 void LiveConnectionManager::OnSocketAccept(const int fd, const short which, void *arg) {
   LiveConnectionManager *pThis = (LiveConnectionManager*)arg;
   pThis->OnSocketAcceptImpl(fd, which);

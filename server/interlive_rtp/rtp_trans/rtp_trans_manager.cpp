@@ -174,6 +174,11 @@ int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config)
     while (c->video_ssrc == 0) {
       c->video_ssrc = rand();
     }
+
+    if (!HasUploader(c->streamid)) {
+      // TODO: zhangle, 缓存和pull client的生命周期不一致导致的，是否需要优化
+      RelayManager::Instance()->StartPullRtp(c->streamid);
+    }
   }
   else {
     // 先销毁原先的上传
@@ -220,6 +225,36 @@ void RTPTransManager::_close_trans(RtpConnection *c) {
   }
   delete c->trans;
   c->trans = NULL;
+}
+
+bool RTPTransManager::HasPlayer(const StreamId_Ext& streamid) {
+  auto it = m_stream_groups.find(streamid.get_32bit_stream_id());
+  if (it == m_stream_groups.end()) {
+    return false;
+  }
+  auto &connections = it->second;
+  for (auto it2 = connections.begin(); it2 != connections.end(); it2++) {
+    RtpConnection *c = *it2;
+    if (c->IsPlayer()) {
+      return true;
+    }
+  }
+  return false;
+}
+
+bool RTPTransManager::HasUploader(const StreamId_Ext& streamid) {
+  auto it = m_stream_groups.find(streamid.get_32bit_stream_id());
+  if (it == m_stream_groups.end()) {
+    return false;
+  }
+  auto &connections = it->second;
+  for (auto it2 = connections.begin(); it2 != connections.end(); it2++) {
+    RtpConnection *c = *it2;
+    if (c->IsUploader()) {
+      return true;
+    }
+  }
+  return false;
 }
 
 avformat::RTP_FIXED_HEADER* RTPTransManager::_get_rtp_by_ssrc_seq(RtpConnection *c,

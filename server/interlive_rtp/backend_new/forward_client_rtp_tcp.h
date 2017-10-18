@@ -3,15 +3,13 @@
 
 #include <map>
 #include <common/proto.h>
-//#include "../rtp_trans/rtp_trans_id.h"
 #include "../rtp_trans/rtp_trans_manager.h"
 #include "../streamid.h"
 #include "event.h"
 #include "config_manager.h"
 #include "uploader/RtpTcpConnectionManager.h"
 
-class FCRTPConfig : public ConfigModule
-{
+class FCRTPConfig : public ConfigModule {
 private:
 	bool inited;
 
@@ -36,15 +34,22 @@ private:
 
 class RtpPullClient;
 
-// TODO: zhangle, 如果一路流没有人拉流（即同时没有rtp和flv拉取），那么pull应该断开
 class RtpPullTcpManager: public RtpTcpManager {
 public:
+  int Init(struct event_base * ev_base);
   void StartPull(const StreamId_Ext& streamid);
   void StopPull(const StreamId_Ext& streamid);
-  int Init(struct event_base * ev_base);
+
+  virtual void OnConnectionClosed(RtpConnection *c);
 
 protected:
+  static void OnPullTimer(evutil_socket_t fd, short flag, void *arg);
+  void OnPullTimerImpl(evutil_socket_t fd, short flag, void *arg);
+
+  // LiveConnectionManager
+  // RTPTransManager::HasPlayer
   std::map<StreamId_Ext, RtpPullClient*> m_clients;
+  struct event *m_ev_timer;
 };
 
 class RtpPushClient;
@@ -57,6 +62,33 @@ public:
 
 protected:
   std::map<StreamId_Ext, RtpPushClient*> m_clients;
+};
+
+template <class C>
+class SingletonBase {
+public:
+  static C* Instance();
+  static void DestroyInstance();
+
+protected:
+  SingletonBase();
+  static C* m_inst;
+};
+
+class TaskManger : public SingletonBase<TaskManger> {
+public:
+  TaskManger();
+  ~TaskManger();
+
+  void Init(struct event_base *ev_base);
+  void PostTask(std::function<void()> task, unsigned int delay_ms = 0);
+
+protected:
+  static void OnTask(evutil_socket_t fd, short event, void *arg);
+  void OnTaskImpl(evutil_socket_t fd, short event, void *arg);
+  struct event_base *m_ev_base;
+  std::set<struct event*> m_tasks;
+  struct event* m_trash_task;
 };
 
 #endif

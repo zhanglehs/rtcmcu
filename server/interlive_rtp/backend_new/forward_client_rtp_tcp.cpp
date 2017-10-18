@@ -1,4 +1,4 @@
-#include "forward_client_rtp_tcp.h"
+﻿#include "forward_client_rtp_tcp.h"
 #include "json.h"
 #include "levent.h"
 #include "evhttp.h"
@@ -9,19 +9,23 @@
 #include "module_tracker.h"
 #include "target.h"
 #include "uploader/RtpTcpConnectionManager.h"
+#include "player/module_player.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 
 //////////////////////////////////////////////////////////////////////////
 
+// TODO: zhangle, 系统中没有某个streamid时，应单独通知
 class RtpPullClient {
 public:
   RtpPullClient(struct event_base *ev_base, RtpPullTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid);
   ~RtpPullClient();
   int Start();
+  const StreamId_Ext& streamid();
+  bool IsUseless();
 
 private:
-  int GetNextNode();
+  void GetNextNode();
   static void OnNextNode(struct evhttp_request* req, void* arg);
   void OnNextNodeImpl(int httpcode, const char *content, int len);
 
@@ -43,6 +47,9 @@ private:
   struct event m_ev_socket;
   RtpPullTcpManager *m_manager;
   RtpConnection *m_rtp_connection;
+  unsigned int m_last_retry_time;   // 单位秒
+  unsigned int m_retry_delay;       // 单位秒
+  unsigned int m_start_time;        // 单位秒
 };
 
 RtpPullClient::RtpPullClient(struct event_base *ev_base, RtpPullTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid) {
@@ -53,6 +60,9 @@ RtpPullClient::RtpPullClient(struct event_base *ev_base, RtpPullTcpManager *mgr,
   m_http_con = NULL;
   m_manager = mgr;
   m_rtp_connection = NULL;
+  m_last_retry_time = 0;
+  m_retry_delay = 0;
+  m_start_time = time(NULL);
 }
 
 RtpPullClient::~RtpPullClient() {
@@ -67,14 +77,50 @@ RtpPullClient::~RtpPullClient() {
 }
 
 int RtpPullClient::Start() {
-  return GetNextNode();
+  // 这个地方无需调用RtpConnection::Destroy()，
+  // m_rtp_connection断开后RtpTcpManager会清理它，或超时时RTPTransManager会清理它
+  m_rtp_connection = NULL;
+
+  // 有一个重试机制：
+  // 1. 首次，无delay
+  // 2. 距离上次30s以上，通常表示这段时间成功过，那么再次重试时，也没有delay
+  // 3. 其它情况，重试的delay为1s、2s、4s、8s、8s、8s ...
+  if (!m_last_retry_time || time(NULL) - m_last_retry_time > 30) {
+    m_retry_delay = 0;
+    GetNextNode();
+  }
+  else {
+    unsigned int delay = m_retry_delay * 2;
+    if (delay <= 0) {
+      delay = 1;
+    }
+    else if (delay > 8) {
+      delay = 8;
+    }
+    m_retry_delay = delay;
+    TaskManger::Instance()->PostTask(std::bind(&RtpPullClient::GetNextNode, this), m_retry_delay);
+  }
+  return 0;
 }
 
-int RtpPullClient::GetNextNode() {
+const StreamId_Ext& RtpPullClient::streamid() {
+  return m_streamid;
+}
+
+// 如果一路流没有人拉流（即同时没有rtp和flv拉取），那么pull应该断开
+bool RtpPullClient::IsUseless() {
+  // 在最开始时的10s内，强制认为是有效的
+  // （因为此时rtp pull并没有创建RTPTrans, RTPTransManager::HasPlayer()必然是false）
+  return !LiveConnectionManager::Instance()->HasPlayer(m_streamid)
+    && !RTPTransManager::Instance()->HasPlayer(m_streamid)
+    && (time(NULL) - m_start_time > 10);
+}
+
+void RtpPullClient::GetNextNode() {
+  m_last_retry_time = time(NULL);
   m_next_node_host = "127.0.0.1";
   m_next_node_rtp_port = 8102;
   GetSdp(m_next_node_host.c_str(), 8142);
-  return 0;
 }
 
 int RtpPullClient::GetSdp(const char *next_node_host, unsigned short next_node_http_port) {
@@ -100,6 +146,7 @@ int RtpPullClient::GetSdp(const char *next_node_host, unsigned short next_node_h
   int ret = 0;
   if ((ret = evhttp_make_request(m_http_con, req, EVHTTP_REQ_GET, path)) != 0) {
     ERR("get sdpinfo error streamid %s ret %d", m_streamid.unparse().c_str(), ret);
+    OnError();
     return -1;
   }
   return 0;
@@ -167,10 +214,6 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
     }
   }
 
-  if (m_rtp_connection) {
-    RtpConnection::Destroy(m_rtp_connection);
-    m_rtp_connection = NULL;
-  }
   RtpConnection *c = m_manager->CreateConnection(&remote, fd_sock);
   m_rtp_connection = c;
   c->streamid = m_streamid;
@@ -188,11 +231,7 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   memset(req.useragent, 0, sizeof(req.useragent));
   const char *user_agent = "ForwardClientRtpTCP";
   memcpy(req.useragent, user_agent, strlen(user_agent));
-  if (encode_rtp_d2p_req_state(&req, reqbuf)) {
-    buffer_free(reqbuf);
-    OnError();
-    return;
-  }
+  encode_rtp_d2p_req_state(&req, reqbuf);
   buffer_append(c->wb, reqbuf);
   buffer_free(reqbuf);
 
@@ -202,8 +241,8 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
 }
 
 void RtpPullClient::OnError() {
-  // TODO: zhangle
-  m_manager->StopPull(m_streamid);
+  // 重试
+  Start();
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -366,6 +405,12 @@ void get_upstreamrinfo_done(struct evhttp_request* req, void* arg)
 
 int RtpPullTcpManager::Init(struct event_base *ev_base) {
   m_ev_base = ev_base;
+
+  m_ev_timer = event_new(m_ev_base, -1, EV_PERSIST, OnPullTimer, this);
+  struct timeval tv;
+  tv.tv_sec = 10;
+  tv.tv_usec = 0;
+  event_add(m_ev_timer, &tv);
   return 0;
 }
 
@@ -381,16 +426,47 @@ void RtpPullTcpManager::StartPull(const StreamId_Ext& streamid) {
 void RtpPullTcpManager::StopPull(const StreamId_Ext& streamid) {
   auto it = m_clients.find(streamid);
   if (it != m_clients.end()) {
-    delete it->second;
+    RtpPullClient* client = it->second;
     m_clients.erase(it);
+    delete client;
   }
   // TODO: zhangle, really need this
   media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
 
+void RtpPullTcpManager::OnConnectionClosed(RtpConnection *c) {
+  RtpTcpManager::OnConnectionClosed(c);
+
+  auto it = m_clients.find(c->streamid);
+  if (it != m_clients.end()) {
+    // 未调用RtpPullTcpManager::StopPull时，RtpConnection的断开均进行重试
+    RtpPullClient* client = it->second;
+    client->Start();
+  }
+}
+
+void RtpPullTcpManager::OnPullTimer(evutil_socket_t fd, short flag, void *arg) {
+  RtpPullTcpManager *pThis = (RtpPullTcpManager*)arg;
+  pThis->OnPullTimerImpl(fd, flag, arg);
+}
+
+void RtpPullTcpManager::OnPullTimerImpl(evutil_socket_t fd, short flag, void *arg) {
+  std::set<RtpPullClient*> trash;
+  for (auto it = m_clients.begin(); it != m_clients.end(); it++) {
+    RtpPullClient *c = it->second;
+    if (c->IsUseless()) {
+      trash.insert(c);
+    }
+  }
+  for (auto it = trash.begin(); it != trash.end(); it++) {
+    RtpPullClient *c = *it;
+    StopPull(c->streamid());
+  }
+}
+
 //////////////////////////////////////////////////////////////////////////
 
-// IODO: zhangle, ��Ҫע��ѭ��push������
+// IODO: zhangle, 需要注意循环push的问题
 class RtpPushClient {
 public:
   RtpPushClient(struct event_base *ev_base, RtpPushTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid);
@@ -608,9 +684,86 @@ void RtpPushTcpManager::StartPush(const StreamId_Ext& streamid) {
 void RtpPushTcpManager::StopPush(const StreamId_Ext& streamid) {
   auto it = m_clients.find(streamid);
   if (it != m_clients.end()) {
-    delete it->second;
+    RtpPushClient* client = it->second;
     m_clients.erase(it);
+    delete client;
   }
   // TODO: zhangle, really need this
   //media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
+
+//////////////////////////////////////////////////////////////////////////
+
+TaskManger::TaskManger() {
+  m_ev_base = NULL;
+  m_trash_task = NULL;
+}
+
+TaskManger::~TaskManger() {
+  for (auto it = m_tasks.begin(); it != m_tasks.end(); it++) {
+    event_free(*it);
+  }
+  m_tasks.clear();
+  if (m_trash_task) {
+    event_free(m_trash_task);
+    m_trash_task = NULL;
+  }
+}
+
+void TaskManger::Init(struct event_base *ev_base) {
+  m_ev_base = ev_base;
+}
+
+void TaskManger::PostTask(std::function<void()> task, unsigned int delay_ms /*= 0*/) {
+  struct event *ev = event_new(m_ev_base, -1, 0, &TaskManger::OnTask, new std::function<void()>(task));
+  m_tasks.insert(ev);
+  struct timeval tv;
+  tv.tv_sec = delay_ms / 1000;
+  tv.tv_usec = (delay_ms % 1000) * 1000;
+  event_add(ev, &tv);
+}
+
+void TaskManger::OnTask(evutil_socket_t fd, short event, void *arg) {
+  TaskManger::Instance()->OnTaskImpl(fd, event, arg);
+}
+
+void TaskManger::OnTaskImpl(evutil_socket_t fd, short event, void *arg) {
+  if (m_trash_task) {
+    event_free(m_trash_task);
+    m_trash_task = NULL;
+  }
+  
+  std::function<void()> *task = (std::function<void()> *)arg;
+  (*task)();
+  delete task;
+
+  struct event *ev = event_base_get_running_event(m_ev_base);
+  m_tasks.erase(ev);
+  m_trash_task = ev;
+}
+
+//////////////////////////////////////////////////////////////////////////
+
+template <class C>
+SingletonBase<C>::SingletonBase() {
+}
+
+template <class C>
+C* SingletonBase<C>::Instance() {
+  if (m_inst) {
+    return m_inst;
+  }
+  m_inst = new C();
+  return m_inst;
+}
+
+template <class C>
+void SingletonBase<C>::DestroyInstance() {
+  if (m_inst) {
+    delete m_inst;
+    m_inst = NULL;
+  }
+}
+
+template <class C>
+C* SingletonBase<C>::m_inst = NULL;

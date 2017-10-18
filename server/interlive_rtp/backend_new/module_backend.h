@@ -76,7 +76,6 @@ protected:
 
   RtpPushTcpManager *m_push_manager;
   RtpPullTcpManager *m_pull_manager;
-  struct event_base* m_ev_base;
   static RelayManager* m_inst;
 };
 
