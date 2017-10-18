@@ -1,9 +1,10 @@
 ﻿#include "rtp_trans_manager.h"
-//#include "media_manager/media_manager_rtp_interface.h"
+
 #include "media_manager/cache_manager.h"
 #include "media_manager/rtp_block_cache.h"
 #include <appframe/singleton.hpp>
 #include "uploader/RtpTcpConnectionManager.h"
+#include "backend_new/module_backend.h"
 
 using namespace std;
 
@@ -175,12 +176,27 @@ int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config)
     }
   }
   else {
+    // 先销毁原先的上传
+    auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());
+    if (it != m_stream_groups.end()) {
+      auto &connections = it->second;
+      for (auto it2 = connections.begin(); it2 != connections.end(); it2++) {
+        RtpConnection *con = *it2;
+        if (con->IsUploader()) {
+          RtpConnection::Destroy(con);
+        }
+      }
+    }
+
     trans = new RTPRecvTrans(c, c->streamid, this, const_cast<RTPTransConfig*>(config));
   }
 
   c->trans = trans;
   m_stream_groups[c->streamid.get_32bit_stream_id()].insert(c);
-  INF("open trans, streamid=%s, is_uploader=%d, remote=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
+  if (c->IsUploader()) {
+    RelayManager::Instance()->StartPushRtp(c->streamid);
+  }
+  INF("open trans, streamid=%s, is_uploader=%d, remote_ip=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
   return 0;
 }
 
@@ -188,6 +204,8 @@ void RTPTransManager::_close_trans(RtpConnection *c) {
   if (c->trans == NULL) {
     return;
   }
+  INF("close trans, streamid=%s, is_uploader=%d, remote_ip=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
+
   auto it = m_stream_groups.find(c->streamid.get_32bit_stream_id());
   if (it != m_stream_groups.end()) {
     std::set<RtpConnection*> &connections = it->second;
@@ -196,24 +214,12 @@ void RTPTransManager::_close_trans(RtpConnection *c) {
       m_stream_groups.erase(it);
     }
   }
-  INF("close trans, streamid=%s, is_uploader=%d, remote=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
+
+  if (c->IsUploader()) {
+    RelayManager::Instance()->StopPushRtp(c->streamid);
+  }
   delete c->trans;
   c->trans = NULL;
-}
-
-RtpConnection* RTPTransManager::GetUploaderConnection(const StreamId_Ext &streamid) {
-  auto it = m_stream_groups.find(streamid.get_32bit_stream_id());
-  if (it == m_stream_groups.end()) {
-    return NULL;
-  }
-  auto &connections = it->second;
-  for (auto it = connections.begin(); it != connections.end(); it++) {
-    RtpConnection *c = *it;
-    if (c->IsUploader()) {
-      return c;
-    }
-  }
-  return NULL;
 }
 
 avformat::RTP_FIXED_HEADER* RTPTransManager::_get_rtp_by_ssrc_seq(RtpConnection *c,

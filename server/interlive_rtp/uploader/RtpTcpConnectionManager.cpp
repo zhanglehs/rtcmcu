@@ -298,9 +298,6 @@ void RtpConnection::Destroy(RtpConnection *c) {
   if (!c->udp) {
     c->ev_socket.Stop();
   }
-  if (c->IsUploader()) {
-    RelayManager::Instance()->StopPushRtp(c->streamid);
-  }
   c->manager->OnConnectionClosed(c);
 }
 
@@ -404,17 +401,12 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       memmove(&rsp.streamid, &req.streamid, sizeof(req.streamid));
 
       c->streamid = req.streamid;
-      RtpConnection *old_connection = RTPTransManager::Instance()->GetUploaderConnection(c->streamid);
-      if (old_connection) {
-        RtpConnection::Destroy(old_connection);
-      }
+      INF("receive upload request, streamid=%s, remote_ip=%s", c->streamid.c_str(), c->remote_ip);
 
       RTPPlayerConfig *config = (RTPPlayerConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
       if (0 != RTPTransManager::Instance()->_open_trans(c, &config->get_rtp_trans_config())) {
         return -6;
       }
-
-      // TODO: zhangle, check streamid
 
       rsp.result = U2R_RESULT_SUCCESS;
 
@@ -438,6 +430,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       memmove(&rsp.streamid, &req.streamid, sizeof(req.streamid));
 
       c->streamid = req.streamid;
+      INF("receive download request, streamid=%s, remote_ip=%s", c->streamid.c_str(), c->remote_ip);
 
       RTPPlayerConfig *config = (RTPPlayerConfig *)ConfigManager::get_inst_config_module("rtp_player");
       if (0 != RTPTransManager::Instance()->_open_trans(c, &config->get_rtp_trans_config())) {
@@ -454,7 +447,8 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       SendData(c, rsp_buf, rsp_len);
     }
     break;
-  case CMD_RTP_D2P_RSP_STATE:   // pull/push client
+  case CMD_RTP_D2P_RSP_STATE:   // pull client
+  case CMD_RTP_U2R_RSP_STATE:   // push client
     break;
   case CMD_RTP_D2P_PACKET:      // pull client
   case CMD_RTP_U2R_PACKET:

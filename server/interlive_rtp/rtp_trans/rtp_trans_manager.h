@@ -33,8 +33,6 @@ public:
 
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
   void _close_trans(RtpConnection *c);
-  // 查找指定streamid的上传连接
-  RtpConnection* GetUploaderConnection(const StreamId_Ext &streamid);
 
   int OnRecvRtp(RtpConnection *c, const void *rtp, uint16_t len);
   int OnRecvRtcp(RtpConnection *c, const void *rtcp, uint32_t len);
