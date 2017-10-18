@@ -506,7 +506,7 @@ int RtpCacheManager::set_sdp(const StreamId_Ext& stream_id, const char* sdp, int
 std::string RtpCacheManager::get_sdp(const StreamId_Ext& stream_id) {
   auto it = m_caches.find(stream_id.get_32bit_stream_id());
   if (it == m_caches.end()) {
-    backend_start_stream_rtp(stream_id);
+    RelayManager::Instance()->StartPullRtp(stream_id);
     return "";
   }
 

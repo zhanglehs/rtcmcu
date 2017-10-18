@@ -344,11 +344,6 @@ namespace media_manager {
     return 0;
   }
 
-  int32_t FlvCacheManager::_req_from_backend_rtp(StreamId_Ext stream_id, int32_t request_state) {
-    backend_start_stream_rtp(stream_id);
-    return 0;
-  }
-
   int32_t FlvCacheManager::_req_stop_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq) {
     if (_module_type == MODULE_TYPE_UPLOADER) {
       return 0;
@@ -368,7 +363,7 @@ namespace media_manager {
 
   int32_t FlvCacheManager::_req_stop_from_backend_rtp(StreamId_Ext stream_id)
   {
-    backend_stop_stream_rtp(stream_id);
+    RelayManager::Instance()->StopPullRtp(stream_id);
     return 0;
   }
 

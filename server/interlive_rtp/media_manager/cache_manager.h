@@ -147,7 +147,6 @@ namespace media_manager {
     bool contains_stream(const StreamId_Ext& stream_id);
     int32_t _notify_watcher(StreamId_Ext& stream_id, uint8_t watch_type = CACHE_WATCHING_ALL);
     int32_t _req_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq = 0);
-    int32_t _req_from_backend_rtp(StreamId_Ext stream_id, int32_t request_state);
     int32_t _req_stop_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq = 0);
     int32_t _req_stop_from_backend(uint32_t stream_id);
     int32_t _req_stop_from_backend_rtp(StreamId_Ext stream_id);

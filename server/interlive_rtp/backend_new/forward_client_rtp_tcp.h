@@ -37,17 +37,14 @@ private:
 class RtpPullClient;
 
 // TODO: zhangle, 如果一路流没有人拉流（即同时没有rtp和flv拉取），那么pull应该断开
-class ForwardClientRtpTCPMgr: public RtpTcpManager {
+class RtpPullTcpManager: public RtpTcpManager {
 public:
-  static ForwardClientRtpTCPMgr* Instance();
-  static void DestroyInstance();
+  void StartPull(const StreamId_Ext& streamid);
+  void StopPull(const StreamId_Ext& streamid);
+  int Init(struct event_base * ev_base);
 
-  void startStream(const StreamId_Ext& streamid);
-  void stopStream(const StreamId_Ext& streamid);
-  void set_main_base(struct event_base * ev_base);
-private:
+protected:
   std::map<StreamId_Ext, RtpPullClient*> m_clients;
-  static ForwardClientRtpTCPMgr *m_inst;
 };
 
 class RtpPushClient;

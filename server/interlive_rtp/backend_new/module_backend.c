@@ -28,11 +28,8 @@
 #include "../target_config.h"
 #include "forward_server.h"
 
-using namespace lcdn;
-using namespace lcdn::net;
-using namespace lcdn::base;
-using namespace interlive;
-using namespace interlive::forward_server;
+#define ENABLE_RTP_PULL
+//#define ENABLE_RTP_PUSH
 
 int backend_init(struct event_base *mainbase, const backend_config *backend_conf) {
   if (!mainbase || !backend_conf) {
@@ -41,9 +38,7 @@ int backend_init(struct event_base *mainbase, const backend_config *backend_conf
 
   TRC("backend_init");
   set_event_base(mainbase);
-  ForwardServer::get_server()->create(*backend_conf);
-
-  ForwardClientRtpTCPMgr::Instance()->set_main_base(mainbase);
+  interlive::forward_server::ForwardServer::get_server()->create(*backend_conf);
 
   g_forward_stat.stream_count = 0;
 
@@ -54,27 +49,7 @@ void backend_fini() {
 }
 
 void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level) {
-  ForwardServer::get_server()->del_stream_from_tracker(stream_id, level);
-}
-
-int32_t backend_start_stream_rtp(const StreamId_Ext& stream_id) {
-  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  if (common_config->enable_rtp) {
-    ForwardClientRtpTCPMgr *fcrtptcp = ForwardClientRtpTCPMgr::Instance();
-    fcrtptcp->startStream(stream_id);
-  }
-
-  return -1;
-}
-
-int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id) {
-  //#todo fsrtp stop stream
-  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  if (common_config->enable_rtp) {
-    ForwardClientRtpTCPMgr *fcrtptcp = ForwardClientRtpTCPMgr::Instance();
-    fcrtptcp->stopStream(stream_id);
-  }
-  return -1;
+  interlive::forward_server::ForwardServer::get_server()->del_stream_from_tracker(stream_id, level);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -407,31 +382,37 @@ void RelayManager::DestroyInstance() {
 RelayManager::RelayManager() {
   m_ev_base = NULL;
   m_push_manager = new RtpPushTcpManager();
+  m_pull_manager = new RtpPullTcpManager();
 }
 
 RelayManager::~RelayManager() {
+  delete m_pull_manager;
   delete m_push_manager;
 }
 
 int RelayManager::Init(struct event_base *ev_base) {
   m_ev_base = ev_base;
-  ForwardClientRtpTCPMgr::Instance()->set_main_base(ev_base);
+  m_pull_manager->Init(ev_base);
   m_push_manager->Init(ev_base);
   return 0;
 }
 
 int RelayManager::StartPullRtp(const StreamId_Ext& stream_id) {
-  ForwardClientRtpTCPMgr::Instance()->startStream(stream_id);
+#ifdef ENABLE_RTP_PULL
+  m_pull_manager->StartPull(stream_id);
+#endif
   return 0;
 }
 
 int RelayManager::StopPullRtp(const StreamId_Ext& stream_id) {
-  ForwardClientRtpTCPMgr::Instance()->stopStream(stream_id);
+  m_pull_manager->StopPull(stream_id);
   return 0;
 }
 
 int RelayManager::StartPushRtp(const StreamId_Ext& stream_id) {
+#ifdef ENABLE_RTP_PUSH
   m_push_manager->StartPush(stream_id);
+#endif
   return 0;
 }
 

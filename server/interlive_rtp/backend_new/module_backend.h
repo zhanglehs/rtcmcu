@@ -53,12 +53,10 @@ int backend_init(struct event_base *mainbase, const backend_config *backend_conf
 
 void backend_fini();
 
-int32_t backend_start_stream_rtp(const StreamId_Ext& stream_id);
-int32_t backend_stop_stream_rtp(const StreamId_Ext& stream_id);
-
 void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level);
 
 class RtpPushTcpManager;
+class RtpPullTcpManager;
 
 class RelayManager {
 public:
@@ -77,6 +75,7 @@ protected:
   ~RelayManager();
 
   RtpPushTcpManager *m_push_manager;
+  RtpPullTcpManager *m_pull_manager;
   struct event_base* m_ev_base;
   static RelayManager* m_inst;
 };

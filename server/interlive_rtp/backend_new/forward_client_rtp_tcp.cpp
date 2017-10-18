@@ -16,7 +16,7 @@
 
 class RtpPullClient {
 public:
-  RtpPullClient(struct event_base *ev_base, ForwardClientRtpTCPMgr *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid);
+  RtpPullClient(struct event_base *ev_base, RtpPullTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid);
   ~RtpPullClient();
   int Start();
 
@@ -41,11 +41,11 @@ private:
   std::string m_next_node_host;
   unsigned int m_next_node_rtp_port;   // TCP port
   struct event m_ev_socket;
-  ForwardClientRtpTCPMgr *m_manager;
+  RtpPullTcpManager *m_manager;
   RtpConnection *m_rtp_connection;
 };
 
-RtpPullClient::RtpPullClient(struct event_base *ev_base, ForwardClientRtpTCPMgr *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid) {
+RtpPullClient::RtpPullClient(struct event_base *ev_base, RtpPullTcpManager *mgr, const char *dispatch_host, unsigned short dispatch_port, const StreamId_Ext &streamid) {
   m_ev_base = ev_base;
   m_dispatch_host = dispatch_host;
   m_dispatch_port = dispatch_port;
@@ -203,7 +203,7 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
 
 void RtpPullClient::OnError() {
   // TODO: zhangle
-  m_manager->stopStream(m_streamid);
+  m_manager->StopPull(m_streamid);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -364,13 +364,12 @@ void get_upstreamrinfo_done(struct evhttp_request* req, void* arg)
 	//}
 }
 
-void ForwardClientRtpTCPMgr::set_main_base(struct event_base *ev_base) {
+int RtpPullTcpManager::Init(struct event_base *ev_base) {
   m_ev_base = ev_base;
+  return 0;
 }
 
-void ForwardClientRtpTCPMgr::startStream(const StreamId_Ext& streamid) {
-  // TODO: zhangle, test
-  return;
+void RtpPullTcpManager::StartPull(const StreamId_Ext& streamid) {
   if (m_clients.find(streamid) != m_clients.end()) {
     return;
   }
@@ -379,7 +378,7 @@ void ForwardClientRtpTCPMgr::startStream(const StreamId_Ext& streamid) {
   client->Start();
 }
 
-void ForwardClientRtpTCPMgr::stopStream(const StreamId_Ext& streamid) {
+void RtpPullTcpManager::StopPull(const StreamId_Ext& streamid) {
   auto it = m_clients.find(streamid);
   if (it != m_clients.end()) {
     delete it->second;
@@ -388,21 +387,6 @@ void ForwardClientRtpTCPMgr::stopStream(const StreamId_Ext& streamid) {
   // TODO: zhangle, really need this
   media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
-
-ForwardClientRtpTCPMgr* ForwardClientRtpTCPMgr::Instance() {
-  if (m_inst) {
-    return m_inst;
-  }
-  m_inst = new ForwardClientRtpTCPMgr();
-  return m_inst;
-}
-
-void ForwardClientRtpTCPMgr::DestroyInstance() {
-  delete m_inst;
-  m_inst = NULL;
-}
-
-ForwardClientRtpTCPMgr * ForwardClientRtpTCPMgr::m_inst = NULL;
 
 //////////////////////////////////////////////////////////////////////////
 
@@ -578,8 +562,6 @@ void RtpPushClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   m_rtp_connection = c;
   c->streamid = m_streamid;
   c->type = RtpConnection::CONN_TYPE_PLAYER;
-  //INF("uploader accepted. socket=%d, remote=%s:%d", connection->fd_socket, connection->remote_ip,
-  //  (int)connection->remote.sin_port);
 
   buffer *reqbuf = buffer_init(256);
   rtp_u2r_req_state req;
@@ -589,9 +571,6 @@ void RtpPushClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   memcpy(req.token, "98765", 5);
   req.version = 1;
   req.user_id = 2;
-  //memset(req.useragent, 0, sizeof(req.useragent));
-  //const char *user_agent = "ForwardClientRtpTCP";
-  //memcpy(req.useragent, user_agent, strlen(user_agent));
   if (encode_rtp_u2r_req_state(&req, reqbuf)) {
     buffer_free(reqbuf);
     OnError();
