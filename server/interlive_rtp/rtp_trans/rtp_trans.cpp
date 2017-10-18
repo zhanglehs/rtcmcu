@@ -15,7 +15,9 @@ void RTPTrans::on_timer(uint64_t now) {
   else {
     bool is_alive = false;
     for (auto it = _sessions_map.begin(); it != _sessions_map.end(); it++) {
-      is_alive = is_alive || it->second->is_live(now);
+      RTPSession *session = it->second;
+      session->on_timer(now);
+      is_alive = is_alive || session->is_live(now);
     }
     _is_alive = is_alive;
   }
