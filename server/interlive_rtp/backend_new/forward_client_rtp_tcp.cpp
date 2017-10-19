@@ -6,7 +6,7 @@
 #include "proto_rtp_rtcp.h"
 #include "rtp_backend_config.h"
 #include "module_backend.h"
-#include "module_tracker.h"
+//#include "module_tracker.h"
 #include "target.h"
 #include "uploader/RtpTcpConnectionManager.h"
 #include "player/module_player.h"
@@ -443,8 +443,6 @@ void RtpPullTcpManager::StopPull(const StreamId_Ext& streamid) {
     m_clients.erase(it);
     delete client;
   }
-  // TODO: zhangle, really need this
-  //media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
 
 void RtpPullTcpManager::OnConnectionClosed(RtpConnection *c) {
@@ -701,8 +699,6 @@ void RtpPushTcpManager::StopPush(const StreamId_Ext& streamid) {
     m_clients.erase(it);
     delete client;
   }
-  // TODO: zhangle, really need this
-  //media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
 
 //////////////////////////////////////////////////////////////////////////

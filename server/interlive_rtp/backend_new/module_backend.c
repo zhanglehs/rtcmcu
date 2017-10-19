@@ -18,39 +18,16 @@
 
 #include "module_backend.h"
 #include "target.h"
-#include "forward_common.h"
 #include "util/util.h"
 #include "util/log.h"
 #include "util/report.h"
 #include "forward_client_rtp_tcp.h"
-#include "module_tracker.h"
 #include "../util/access.h"
 #include "../target_config.h"
-#include "forward_server.h"
+#include "common_defs.h"
 
 #define ENABLE_RTP_PULL
 //#define ENABLE_RTP_PUSH
-
-int backend_init(struct event_base *mainbase, const backend_config *backend_conf) {
-  if (!mainbase || !backend_conf) {
-    return -1;
-  }
-
-  TRC("backend_init");
-  set_event_base(mainbase);
-  interlive::forward_server::ForwardServer::get_server()->create(*backend_conf);
-
-  g_forward_stat.stream_count = 0;
-
-  return 0;
-}
-
-void backend_fini() {
-}
-
-void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level) {
-  interlive::forward_server::ForwardServer::get_server()->del_stream_from_tracker(stream_id, level);
-}
 
 //////////////////////////////////////////////////////////////////////////
 

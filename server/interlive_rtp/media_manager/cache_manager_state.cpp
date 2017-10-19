@@ -19,7 +19,7 @@
 
 #include "cache_manager.h"
 #include <appframe/singleton.hpp>
-#include "whitelist_manager.h"
+//#include "whitelist_manager.h"
 #include <json.h>
 
 using namespace std;
@@ -225,38 +225,38 @@ namespace media_manager {
 
   void FlvCacheManagerStatistic::_whitelist_fake(char* query, char* param, json_object* rsp)
   {
-    WhiteListMap &white_list = *SINGLETON(WhitelistManager)->get_white_list();
-    int nWhitelistSize = white_list.size();
-    json_object* store_map_size = json_object_new_int(nWhitelistSize);
-    json_object_object_add(rsp, "fake_whitelist_size", store_map_size);
+    //WhiteListMap &white_list = *SINGLETON(WhitelistManager)->get_white_list();
+    //int nWhitelistSize = white_list.size();
+    //json_object* store_map_size = json_object_new_int(nWhitelistSize);
+    //json_object_object_add(rsp, "fake_whitelist_size", store_map_size);
 
-    json_object* store_map = json_object_new_array();
-    WhiteListMap::iterator store_it = white_list.begin();
-    for (; store_it != white_list.end(); store_it++)
-    {
-      json_object* obj = json_object_new_object();
+    //json_object* store_map = json_object_new_array();
+    //WhiteListMap::iterator store_it = white_list.begin();
+    //for (; store_it != white_list.end(); store_it++)
+    //{
+    //  json_object* obj = json_object_new_object();
 
-      StreamId_Ext stream_id = store_it->first;
-      json_object* id = json_object_new_string(stream_id.unparse().c_str());
-      json_object_object_add(obj, "stream_id", id);
+    //  StreamId_Ext stream_id = store_it->first;
+    //  json_object* id = json_object_new_string(stream_id.unparse().c_str());
+    //  json_object_object_add(obj, "stream_id", id);
 
-      WhiteListItem whitelistItem = store_it->second;
-      long second = whitelistItem.stream_start_ts.tv_sec;
-      json_object* second_int = json_object_new_int64(second);
-      json_object_object_add(obj, "start_second_int64", second_int);
+    //  WhiteListItem whitelistItem = store_it->second;
+    //  long second = whitelistItem.stream_start_ts.tv_sec;
+    //  json_object* second_int = json_object_new_int64(second);
+    //  json_object_object_add(obj, "start_second_int64", second_int);
 
-      time_t tick = second;
-      struct tm tm;
-      char s[100];
-      tm = *localtime(&tick);
-      strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &tm);
-      //printf("gaoliwen %d: %s\n", (int)tick, s);
-      json_object* second_str = json_object_new_string(s);
-      json_object_object_add(obj, "start_second_str", second_str);
+    //  time_t tick = second;
+    //  struct tm tm;
+    //  char s[100];
+    //  tm = *localtime(&tick);
+    //  strftime(s, sizeof(s), "%Y-%m-%d %H:%M:%S", &tm);
+    //  //printf("gaoliwen %d: %s\n", (int)tick, s);
+    //  json_object* second_str = json_object_new_string(s);
+    //  json_object_object_add(obj, "start_second_str", second_str);
 
-      json_object_array_add(store_map, obj);
-    }
-    json_object_object_add(rsp, "fake_whitelist", store_map);
+    //  json_object_array_add(store_map, obj);
+    //}
+    //json_object_object_add(rsp, "fake_whitelist", store_map);
   }
 
   void FlvCacheManagerStatistic::_fragment_generator_state(fragment::FragmentGenerator* generator, json_object* rsp)

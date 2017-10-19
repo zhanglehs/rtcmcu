@@ -10,7 +10,7 @@
 
 #include "module_player.h"
 #include "target.h"
-#include "target_player.h"
+//#include "target_player.h"
 #include "utils/memory.h"
 #include "util/access.h"
 #include "util/util.h"
@@ -26,6 +26,7 @@
 #include "util/connection.h"
 #include "hls.h"
 #include "player/flv_live_player.h"
+#include "media_manager/cache_manager.h"
 
 #include <assert.h>
 #include <errno.h>
@@ -313,7 +314,7 @@ bool player_config::load_config_reloadable(xmlnode* xml_config)
   {
     TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
     //common_config->config_file.dir;
-    crossdomain_path = common_config->config_file.dir + string(q);
+    crossdomain_path = common_config->config_file.dir + std::string(q);
   }
 
   if (!parse_crossdomain_config())

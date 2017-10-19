@@ -8,7 +8,7 @@
 #include "backend_new/module_backend.h"
 #include "backend_new/rtp_backend_config.h"
 #include "backend_new/forward_client_rtp_tcp.h"
-#include "module_tracker.h"
+//#include "module_tracker.h"
 #include "media_manager/cache_manager_config.h"
 //#include "http_server.h"
 #include "network/base_http_server.h"
@@ -26,7 +26,7 @@ struct config
 //#endif
     backend_config      backend;
     RTPBackendConfig    rtp_backend_config;
-    ModTrackerConfig    tracker;
+    //ModTrackerConfig    tracker;
     media_manager::CacheManagerConfig cache_manager_config;
     //http_server_config  http_config;
     FCRTPConfig         fcrtp_config;
@@ -44,7 +44,7 @@ struct config
 //#endif
         backend             = rhv.backend;
         rtp_backend_config  = rhv.rtp_backend_config;
-        tracker             = rhv.tracker;
+        //tracker             = rhv.tracker;
         cache_manager_config= rhv.cache_manager_config;
         //http_config         = rhv.http_config;
         fcrtp_config        = rhv.fcrtp_config;

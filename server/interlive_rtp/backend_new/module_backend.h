@@ -49,12 +49,6 @@ private:
   bool resove_config();
 };
 
-int backend_init(struct event_base *mainbase, const backend_config *backend_conf);
-
-void backend_fini();
-
-void backend_del_stream_from_tracker_v3(const StreamId_Ext& stream_id, int level);
-
 class RtpPushTcpManager;
 class RtpPullTcpManager;
 

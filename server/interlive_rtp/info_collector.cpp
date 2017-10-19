@@ -2,7 +2,7 @@
 
 #include "common/type_defs.h"
 #include "util/log.h"
-#include "module_tracker.h"
+//#include "module_tracker.h"
 #include "target.h"
 #include <common/protobuf/InterliveServerStat.pb.h>
 
@@ -26,8 +26,8 @@ extern "C"
 #include <stat/stat_proc_pid.h>
 #include <stat/status_proc_pid.h>
 #ifdef NEW_FORWARD_SERVER
-#include "backend_new/forward_server.h"
-using namespace interlive::forward_server;
+//#include "backend_new/forward_server.h"
+//using namespace interlive::forward_server;
 #else
 #include "backend/forward_server_v2.h"
 #include "backend/forward_client_v2.h"
@@ -126,95 +126,95 @@ static size_t read_shell(const char* cmd, char* buffer, size_t buffer_size, int*
   return red;
 }
 
-class MTClientInfoCollector : public ModTrackerClientBase
-{
-public:
-  MTClientInfoCollector() : ModTrackerClientBase()
-  {
-  }
-
-  virtual ~MTClientInfoCollector()
-  {
-  }
-
-  virtual int encode(const void* data, buffer* wb)
-  {
-    ASSERTR(data != nullptr, -1);
-
-    const proto_wrapper* packet = reinterpret_cast<const proto_wrapper*>(data);
-    ASSERTR(packet->header != nullptr && packet->payload != nullptr, -1);
-
-    PBBuffer* pb_buff = (PBBuffer*)(packet->payload);
-    proto_t cmd = packet->header->cmd;
-    ASSERTR(cmd > 0, -1);
-
-    int status = -1;
-    int size = 0;
-
-    switch (cmd)
-    {
-    case CMD_IC2T_SERVER_STAT_REQ:
-      size = sizeof(proto_header)+pb_buff->size;
-      status = encode_header_v3(wb, CMD_IC2T_SERVER_STAT_REQ, size);
-      if (status != -1)
-        status = buffer_append_ptr(wb, (void *)(pb_buff->buff), pb_buff->size);
-      break;
-    default:
-      ASSERTR(false, -1);
-    }
-
-    if (status == -1)
-    {
-      DBG("MTClientInfoCollector::encode, cmd=%d, status=%d", int(cmd), int(status));
-      return -1;
-    }
-    else
-    {
-      return size;
-    }
-  }
-
-  virtual int decode(buffer* rb)
-  {
-    ASSERTR(rb != nullptr, -1);
-    int ret = 0;
-
-    proto_header header;
-    ASSERTR(decode_header(rb, &header) != -1, -1);
-    ret += sizeof(proto_header);
-
-    rb->_start += sizeof(proto_header);
-
-    switch (header.cmd)
-    {
-    case CMD_IC2T_SERVER_STAT_RSP:
-    {
-      f2t_server_stat_rsp msg;
-      ASSERTR(decode_f2t_server_stat_rsp(&msg, rb), -1);
-      ret += sizeof(f2t_server_stat_rsp);
-
-      if (msg.result != TRACKER_RSP_RESULT_OK)
-        ERR("tracker result wrong, result=%d", int(msg.result));
-    }
-      break;
-    default:
-      ASSERTR(false, -1);
-    }
-
-    rb->_start -= sizeof(proto_header);
-    return ret;
-  }
-
-  virtual void on_error(short which)
-  {
-    g_InfoCollector._0s_sent = false;
-
-    WRN("MTClientInfoCollector::on_error, which=%d, tc=%lu, ts=%lu",
-      int(which), g_InfoCollector.total_collect, g_InfoCollector.total_send);
-  }
-};
-
-static MTClientInfoCollector g_MTClientInfoCollector;
+//class MTClientInfoCollector : public ModTrackerClientBase
+//{
+//public:
+//  MTClientInfoCollector() : ModTrackerClientBase()
+//  {
+//  }
+//
+//  virtual ~MTClientInfoCollector()
+//  {
+//  }
+//
+//  virtual int encode(const void* data, buffer* wb)
+//  {
+//    ASSERTR(data != nullptr, -1);
+//
+//    const proto_wrapper* packet = reinterpret_cast<const proto_wrapper*>(data);
+//    ASSERTR(packet->header != nullptr && packet->payload != nullptr, -1);
+//
+//    PBBuffer* pb_buff = (PBBuffer*)(packet->payload);
+//    proto_t cmd = packet->header->cmd;
+//    ASSERTR(cmd > 0, -1);
+//
+//    int status = -1;
+//    int size = 0;
+//
+//    switch (cmd)
+//    {
+//    case CMD_IC2T_SERVER_STAT_REQ:
+//      size = sizeof(proto_header)+pb_buff->size;
+//      status = encode_header_v3(wb, CMD_IC2T_SERVER_STAT_REQ, size);
+//      if (status != -1)
+//        status = buffer_append_ptr(wb, (void *)(pb_buff->buff), pb_buff->size);
+//      break;
+//    default:
+//      ASSERTR(false, -1);
+//    }
+//
+//    if (status == -1)
+//    {
+//      DBG("MTClientInfoCollector::encode, cmd=%d, status=%d", int(cmd), int(status));
+//      return -1;
+//    }
+//    else
+//    {
+//      return size;
+//    }
+//  }
+//
+//  virtual int decode(buffer* rb)
+//  {
+//    ASSERTR(rb != nullptr, -1);
+//    int ret = 0;
+//
+//    proto_header header;
+//    ASSERTR(decode_header(rb, &header) != -1, -1);
+//    ret += sizeof(proto_header);
+//
+//    rb->_start += sizeof(proto_header);
+//
+//    switch (header.cmd)
+//    {
+//    case CMD_IC2T_SERVER_STAT_RSP:
+//    {
+//      f2t_server_stat_rsp msg;
+//      ASSERTR(decode_f2t_server_stat_rsp(&msg, rb), -1);
+//      ret += sizeof(f2t_server_stat_rsp);
+//
+//      if (msg.result != TRACKER_RSP_RESULT_OK)
+//        ERR("tracker result wrong, result=%d", int(msg.result));
+//    }
+//      break;
+//    default:
+//      ASSERTR(false, -1);
+//    }
+//
+//    rb->_start -= sizeof(proto_header);
+//    return ret;
+//  }
+//
+//  virtual void on_error(short which)
+//  {
+//    g_InfoCollector._0s_sent = false;
+//
+//    WRN("MTClientInfoCollector::on_error, which=%d, tc=%lu, ts=%lu",
+//      int(which), g_InfoCollector.total_collect, g_InfoCollector.total_send);
+//  }
+//};
+//
+//static MTClientInfoCollector g_MTClientInfoCollector;
 
 InfoCollector::InfoCollector() :
 _0s_collected(false), _0s_sent(false), total_collect(0), total_send(0)
@@ -426,8 +426,8 @@ void InfoCollector::collect_info_10s()
   }
 
   {
-    const ForwardServer* fsv2 = ForwardServer::get_server();
-    g_InfoStore.buss_fsv2_stream_count = fsv2->get_stream_count();
+    //const ForwardServer* fsv2 = ForwardServer::get_server();
+    //g_InfoStore.buss_fsv2_stream_count = fsv2->get_stream_count();
     g_InfoStore.buss_fsv2_total_session = 0;
     g_InfoStore.buss_fsv2_active_session = 0;
     g_InfoStore.buss_fsv2_connection_count = 0;
@@ -447,13 +447,13 @@ void InfoCollector::collect_info_10s()
 // 发送基本的cpu、内存占用信息给tracker
 void InfoCollector::send_info_0s()
 {
-  const ForwardServer* fsv2 = ForwardServer::get_server();
+  //const ForwardServer* fsv2 = ForwardServer::get_server();
 
-  if (!(fsv2->has_register_tracker()))
-  {
-    WRN("InfoCollector::send_info_0s, forward server not registered");
-    return;
-  }
+  //if (!(fsv2->has_register_tracker()))
+  //{
+  //  WRN("InfoCollector::send_info_0s, forward server not registered");
+  //  return;
+  //}
 
   PBBuffer pb_buff;
   InterliveServerStat pb;
@@ -467,18 +467,18 @@ void InfoCollector::send_info_0s()
 
   pb_buff.size = pb.ByteSize();
   pb.SerializeToArray(pb_buff.buff, pb_buff.size);
-  proto_header ph = { 0, 0, CMD_IC2T_SERVER_STAT_REQ, 0 };
-  proto_wrapper pw = { &ph, (void *)&pb_buff };
-  bool ret = ModTracker::get_inst().send_request(&pw, &g_MTClientInfoCollector);
-  if (ret)
-  {
-    _0s_sent = true;
-    total_send++;
-  }
-  else
-  {
-    WRN("InfoCollector::send_info_0s end error, send_data size=%lu", pb_buff.size);
-  }
+  //proto_header ph = { 0, 0, CMD_IC2T_SERVER_STAT_REQ, 0 };
+  //proto_wrapper pw = { &ph, (void *)&pb_buff };
+  //bool ret = ModTracker::get_inst().send_request(&pw, &g_MTClientInfoCollector);
+  //if (ret)
+  //{
+  //  _0s_sent = true;
+  //  total_send++;
+  //}
+  //else
+  //{
+  //  WRN("InfoCollector::send_info_0s end error, send_data size=%lu", pb_buff.size);
+  //}
 }
 
 // 发送cpu、内存、网络、流数目、连接数等基本信息给tracker
@@ -487,13 +487,13 @@ void InfoCollector::send_info_10s()
   if (!_0s_sent)
     return;
 
-  const ForwardServer* fsv2 = ForwardServer::get_server();
+  //const ForwardServer* fsv2 = ForwardServer::get_server();
 
-  if (!(fsv2->has_register_tracker()))
-  {
-    WRN("InfoCollector::send_info_10s, forward server not registered");
-    return;
-  }
+  //if (!(fsv2->has_register_tracker()))
+  //{
+  //  WRN("InfoCollector::send_info_10s, forward server not registered");
+  //  return;
+  //}
 
 
   PBBuffer pb_buff;
@@ -525,18 +525,18 @@ void InfoCollector::send_info_10s()
   pb_buff.size = pb.ByteSize();
   pb.SerializeToArray(pb_buff.buff, pb_buff.size);
 
-  proto_header ph = { 0, 0, CMD_IC2T_SERVER_STAT_REQ, 0 };
-  proto_wrapper pw = { &ph, (void *)&pb_buff };
-  bool ret = ModTracker::get_inst().send_request(&pw, &g_MTClientInfoCollector);
-  if (ret)
-  {
-    _0s_sent = true;
-    total_send++;
-  }
-  else
-  {
-    WRN("InfoCollector::send_info_10s end error, send_data size=%lu", pb_buff.size);
-  }
+  //proto_header ph = { 0, 0, CMD_IC2T_SERVER_STAT_REQ, 0 };
+  //proto_wrapper pw = { &ph, (void *)&pb_buff };
+  //bool ret = ModTracker::get_inst().send_request(&pw, &g_MTClientInfoCollector);
+  //if (ret)
+  //{
+  //  _0s_sent = true;
+  //  total_send++;
+  //}
+  //else
+  //{
+  //  WRN("InfoCollector::send_info_10s end error, send_data size=%lu", pb_buff.size);
+  //}
 }
 
 InfoCollector& InfoCollector::get_inst()

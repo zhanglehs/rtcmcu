@@ -4,11 +4,11 @@
 #include "streamid.h"
 #include "utils/buffer.hpp"
 #include "target.h"
-#include "portal.h"
+//#include "portal.h"
 #include "util/flv.h"
 #include "config_manager.h"
 #include "uploader_config.h"
-#include "whitelist_manager.h"
+//#include "whitelist_manager.h"
 #include "avformat/rtcp.h"
 #include "transport/rtp_send_queue.h"
 #include <stdint.h>

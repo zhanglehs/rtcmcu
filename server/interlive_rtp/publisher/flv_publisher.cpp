@@ -498,12 +498,12 @@ FLVPublisherManager* FLVPublisherManager::getInst() {
 }
 
 // 白名单通知某个流下线了，目前白名单通知机制被我注释掉了，所以该函数不会被调用
-void FLVPublisherManager::update(const StreamId_Ext &streamid, WhitelistEvent ev) {
-	if (ev == WHITE_LIST_EV_STOP)
-	{
-		FLVPublisherManager::getInst()->stopStream(streamid);
-	}
-}
+//void FLVPublisherManager::update(const StreamId_Ext &streamid, WhitelistEvent ev) {
+//	if (ev == WHITE_LIST_EV_STOP)
+//	{
+//		FLVPublisherManager::getInst()->stopStream(streamid);
+//	}
+//}
 
 void FLVPublisherManager::set_main_base(struct event_base * main_base) {
 	g_ev_base = main_base;
@@ -536,7 +536,7 @@ void FLVPublisherManager::onTimer(time_t t) {
 int publisher_init(struct event_base *main_base) {
 	FLVPublisherManager::getInst()->set_main_base(main_base);
 	FLVPublisherManager::getInst()->registerWatcher(media_manager::FlvCacheManager::Instance());
-	SINGLETON(WhitelistManager)->add_observer(FLVPublisherManager::getInst(), WHITE_LIST_EV_STOP);
+	//SINGLETON(WhitelistManager)->add_observer(FLVPublisherManager::getInst(), WHITE_LIST_EV_STOP);
   return 0;
 }
 

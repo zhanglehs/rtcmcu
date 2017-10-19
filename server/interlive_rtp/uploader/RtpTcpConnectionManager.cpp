@@ -16,7 +16,7 @@
 #include "util/access.h"
 #include "util/util.h"
 #include "assert.h"
-#include "target_uploader.h"
+//#include "target_uploader.h"
 #include "target_config.h"
 #include "perf.h"
 #include "player/rtp_player_config.h"
@@ -25,6 +25,7 @@
 #include "media_manager/rtp_block_cache.h"
 #include "network/base_http_server.h"
 #include "backend_new/module_backend.h"
+#include "common_defs.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 
@@ -126,14 +127,10 @@ namespace {
     }
 
     struct evbuffer *req_data = evhttp_request_get_input_buffer(req);
-    string sdp((char*)evbuffer_pullup(req_data, -1), evbuffer_get_length(req_data));
+    std::string sdp((char*)evbuffer_pullup(req_data, -1), evbuffer_get_length(req_data));
     RTPTransManager::Instance()->set_sdp_str(stream_id, sdp);
     INF("http put sdp complete, stream_id=%s, sdp=%s", stream_id.unparse().c_str(), sdp.c_str());
     evhttp_send_reply(req, HTTP_OK, "OK", NULL);
-
-    // TODO: zhangle
-    // 这里不是一个好地方
-    //RelayManager::Instance()->StartPushRtp(stream_id);
     return;
   }
 
@@ -185,7 +182,7 @@ namespace {
       return;
     }
 
-    string sdp = RTPTransManager::Instance()->get_sdp_str(stream_id);
+    std::string sdp = RTPTransManager::Instance()->get_sdp_str(stream_id);
     if (sdp.length() > 0) {
       ReplySdpHttpDownload(req, sdp.c_str());
     }

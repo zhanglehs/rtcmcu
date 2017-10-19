@@ -160,7 +160,7 @@ namespace media_manager {
 
       // notify tracker
       //int32_t level = _get_tracker_level(stream_id); //#todo
-      backend_del_stream_from_tracker_v3(stream_id, -1); //#todo level
+      //backend_del_stream_from_tracker_v3(stream_id, -1); //#todo level
     }
 
     for (it = _stream_store_map.begin(); it != _stream_store_map.end(); it++) {
@@ -187,7 +187,7 @@ namespace media_manager {
 
     // notify tracker
     //int32_t level = _get_tracker_level(stream_id);//#todo
-    backend_del_stream_from_tracker_v3(stream_id, -1);//#todo level
+    //backend_del_stream_from_tracker_v3(stream_id, -1);//#todo level
 
     StreamStore* stream_store = it->second;
     if (stream_store != NULL) {

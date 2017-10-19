@@ -84,8 +84,8 @@ TRANSPORTOBJS = $(TRANSPORT_DIR)/rtp_send_queue.o
 RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTPTRANS_DIR)/rtp_trans_manager.o \
                  $(RTPTRANS_DIR)/rtp_sender_session.o $(RTPTRANS_DIR)/rtp_receiver_session.o $(RTPTRANS_DIR)/rtp_sender_trans.o $(RTPTRANS_DIR)/rtp_receiver_trans.o
 
-COMMONOBJS = hls.o media_buffer.o perf.o info_collector.o\
-			 whitelist_manager.o libcachemanager.a libfragment.a portal.o config_manager.o \
+COMMONOBJS = hls.o perf.o info_collector.o\
+			 libcachemanager.a libfragment.a config_manager.o \
 			 $(UTIL_DIR)/connection.o\
 			 $(NETWORK_DIR)/base_http_server.o\
 			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
@@ -100,25 +100,23 @@ COMMONOBJS = hls.o media_buffer.o perf.o info_collector.o\
 PLAYEROBJS = $(PLAYER_DIR)/module_player.o \
 			 $(PLAYER_DIR)/rtp_player_config.o $(PLAYER_DIR)/flv_live_player.o
 
-TRACKEROBJS = module_tracker.o
 ifeq ($(BACKEND_DIR), backend_new)
 BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
-				$(BACKEND_DIR)/forward_common.o $(BACKEND_DIR)/forward_server.o \
 				$(BACKEND_DIR)/rtp_backend_config.o \
 				$(BACKEND_DIR)/forward_client_rtp_tcp.o
 else
 BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
-				$(BACKEND_DIR)/forward_common.o $(BACKEND_DIR)/forward_server.o $(BACKEND_DIR)/forward_client.o \
+				$(BACKEND_DIR)/forward_client.o \
 				$(BACKEND_DIR)/forward_server_v2.o $(BACKEND_DIR)/forward_client_v2.o \
 				$(BACKEND_DIR)/rtp_backend_config.o
 endif
 
 UPLOADEROBJS = $(UPLOADER_DIR)/RtpTcpConnectionManager.o $(UPLOADER_DIR)/uploader_config.o $(UPLOADER_DIR)/rtp_uploader_config.o
 
-FORWARDOBJS = forward_target.o $(UPLOADEROBJS) $(PLAYEROBJS) $(TRACKEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
+FORWARDOBJS = forward_target.o $(UPLOADEROBJS) $(PLAYEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
 FORWARDLIBS = $(LIBS) -luuid -lexpat -lpthread
 
-RECEIVEROBJS = receiver.o $(UPLOADEROBJS) $(PLAYEROBJS) $(TRACKEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
+RECEIVEROBJS = receiver.o $(UPLOADEROBJS) $(PLAYEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
 RECEIVERLIBS = $(LIBS) -luuid -lexpat -lpthread
 
 #all:add_hook version_file $(FORWARD) $(RECEIVER)
@@ -141,10 +139,10 @@ version_file:
 
 forward_target.o:target.cpp 
 	make version_file
-	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_TRACKER -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"forward_rtp"' $(DEFS) $^ -o $@
+	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"forward_rtp"' $(DEFS) $^ -o $@
 receiver.o:target.cpp 
 	make version_file
-	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_TRACKER -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
+	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
 
 $(FORWARD):$(THIRD_PARTY_LIB) util_o common_o $(FORWARDOBJS)
 	$(CC) $(CFLAGS) $(FORWARDOBJS) $(FORWARDLIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@

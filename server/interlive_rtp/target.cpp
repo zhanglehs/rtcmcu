@@ -24,7 +24,6 @@
 
 #include <appframe/singleton.hpp>
 #include <common/type_defs.h>
-#include "target_player.h"
 #include "player/module_player.h"
 #include "player/rtp_player_config.h"
 
@@ -32,8 +31,6 @@
 #include "uploader/RtpTcpConnectionManager.h"
 #include "uploader/rtp_uploader_config.h"
 
-#include "target_backend.h"
-#include "module_tracker.h"
 #include "config_manager.h"
 
 #include "util/access.h"
@@ -52,12 +49,9 @@
 #include "common/proto.h"
 #include "define.h"
 #include "cache_manager.h"
-#include "portal.h"
 #include "perf.h"
 #include "info_collector.h"
-
 #include "network/base_http_server.h"
-#include "whitelist_manager.h"
 #include "config.h"
 #include "target_config.h"
 #include "player/module_player.h"
@@ -79,8 +73,6 @@ using namespace lcdn::net;
 using namespace std;
 using namespace fragment;
 using namespace media_manager;
-
-INIT_SINGLETON(WhitelistManager);
 
 INIT_SINGLETON(config);
 static config &g_conf = *SINGLETON(config);
@@ -107,7 +99,6 @@ static void init_config_manager(ConfigManager& config_manager, config& conf) {
   config_manager.set_config_module(&(conf.rtp_uploader_config));
   config_manager.set_config_module(&(conf.backend));
   config_manager.set_config_module(&(conf.rtp_backend_config));
-  config_manager.set_config_module(&(conf.tracker));
   config_manager.set_config_module(&(conf.cache_manager_config));
   //config_manager.set_config_module(&(conf.http_config));
   config_manager.set_config_module(&(conf.fcrtp_config));
@@ -208,33 +199,17 @@ static void show_help(void) {
 
 static void server_exit()
 {
-  INF("hash destroy...");
-  SINGLETON(WhitelistManager)->clear();
   INF("player fini...");
-  //player_fini();
   LiveConnectionManager::DestroyInstance();
   INF("uploader fini...");
-  //RtpTcpConnectionManager::destroy_inst();
-  //RtpUdpConnectionManager::destroy_inst();
   RtpUdpServerManager::DestroyInstance();
   RtpTcpServerManager::DestroyInstance();
   INF("cache manager fini...");
   FlvCacheManager::DestroyInstance();
-  INF("backend fini...");
-  backend_fini();
   INF("access fini...");
   access_fini();
-  //INF("stream manager fini...");
-  //stream_manager_fini();
-  INF("portal fini...");
-  Portal::destroy();
-  INF("tracker fini...");
-  ModTracker::get_inst().tracker_fini();
-  ModTracker::destory_inst();
   INF("Perf fini...");
   Perf::destory();
-  INF("http server destroy...");
-  //http_server_fini();
   INF("begin to backtrace fini...");
   backtrace_fini();
   report_fini();
@@ -481,17 +456,6 @@ static int main_proc() {
 
   if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
     ERR("player init failed.");
-    return 1;
-  }
-
-  // INFO: zhangle, flv live pull/push?
-  //if (0 != publisher_init(main_base)) {
-  //  ERR("player init failed.");
-  //  return 1;
-  //}
-
-  if (0 != backend_init(main_base, &(g_conf.backend))) {
-    ERR("backend init failed.");
     return 1;
   }
 

@@ -6,7 +6,7 @@
 #include "event.h"
 #include <common/proto.h>
 #include "cache_manager.h"
-#include "../whitelist_manager.h"
+//#include "../whitelist_manager.h"
 #include "config_manager.h"
 #include <list>
 
@@ -62,7 +62,7 @@ struct FLVPublisher {
 	int  seq;
 };
 
-class FLVPublisherManager :  public WhitelistObserver {
+class FLVPublisherManager/* :  public WhitelistObserver*/ {
 public:
   void registerWatcher(media_manager::FlvCacheManager * cmng);
 	FLVPublisher* startStream(const StreamId_Ext &sid);
@@ -71,7 +71,7 @@ public:
 	void notifyStreamData(StreamId_Ext &streamid);
 	void sendPublishReq(FLVPublisher* p);
 	void set_main_base(struct event_base * main_base);
-	void update(const StreamId_Ext &streamid, WhitelistEvent ev);
+	//void update(const StreamId_Ext &streamid, WhitelistEvent ev);
 	void destroyPublisher(FLVPublisher* p);
 	void onTimer(time_t t);
 	static FLVPublisherManager* getInst();
