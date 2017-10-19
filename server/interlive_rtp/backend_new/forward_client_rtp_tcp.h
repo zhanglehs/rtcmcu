@@ -36,6 +36,8 @@ class RtpPullClient;
 
 class RtpPullTcpManager: public RtpTcpManager {
 public:
+  RtpPullTcpManager();
+  ~RtpPullTcpManager();
   int Init(struct event_base * ev_base);
   void StartPull(const StreamId_Ext& streamid);
   void StopPull(const StreamId_Ext& streamid);

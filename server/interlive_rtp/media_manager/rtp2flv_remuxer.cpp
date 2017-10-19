@@ -324,6 +324,15 @@ namespace media_manager {
     //return RTPMediaManagerHelper::set_sdp_char(stream_id, sdp, len, status_code);
   }
 
+  void RTP2FLVRemuxer::DestroyStream(const StreamId_Ext& streamid) {
+    auto it = _meta_map.find(streamid);
+    if (it != _meta_map.end()) {
+      Rtp2FlvTransformInfo *info = it->second;
+      _meta_map.erase(it);
+      delete info;
+    }
+  }
+
   int32_t RTP2FLVRemuxer::_set_flv_to_mm(Rtp2FlvTransformInfo *stream_meta) {
     flv_tag *audio_tag = NULL;
     flv_tag *video_tag = NULL;

@@ -135,12 +135,12 @@ protected:
   static void OnSocketAccept(const int fd, const short which, void *arg);
   void OnSocketAcceptImpl(const int fd, const short which);
 
-  void start_timer();
-  static void timer_cb(const int fd, short which, void *arg);
+  //void start_timer();
+  //static void timer_cb(const int fd, short which, void *arg);
 
   LibEventSocket m_ev_socket;
   static RtpTcpServerManager* m_inst;
-  struct event m_ev_timer;
+  //struct event m_ev_timer;
 };
 
 class RtpUdpServerManager : public RtpManagerBase {

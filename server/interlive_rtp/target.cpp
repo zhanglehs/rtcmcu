@@ -474,6 +474,7 @@ static int main_proc() {
   perf = Perf::get_instance();
   perf->set_cpu_rate_threshold(g_conf.target_conf.cpu_rate_threshold);
 
+  RTPTransManager::Instance()->Init(main_base);
   RtpTcpServerManager::Instance()->Init(main_base);
   RtpUdpServerManager::Instance()->Init(main_base);
   RelayManager::Instance()->Init(main_base);

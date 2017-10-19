@@ -788,7 +788,7 @@ int32_t RtpTcpServerManager::Init(struct event_base *ev_base) {
   }
   m_ev_socket.Start(ev_base, fd_socket, &RtpTcpServerManager::OnSocketAccept, this);
 
-  start_timer();
+  //start_timer();
 
   return 0;
 }
@@ -814,20 +814,20 @@ void RtpTcpServerManager::OnSocketAcceptImpl(const int fd, const short which) {
   }
 }
 
-void RtpTcpServerManager::start_timer() {
-  struct timeval tv;
-  evtimer_set(&m_ev_timer, timer_cb, (void *)this);
-  tv.tv_sec = 0;
-  tv.tv_usec = 10000;
-  event_base_set(m_ev_base, &m_ev_timer);
-  evtimer_add(&m_ev_timer, &tv);
-}
-
-void RtpTcpServerManager::timer_cb(const int fd, short which, void *arg) {
-  RtpTcpServerManager *p = (RtpTcpServerManager*)arg;
-  RTPTransManager::Instance()->on_timer();
-  p->start_timer();
-}
+//void RtpTcpServerManager::start_timer() {
+//  struct timeval tv;
+//  evtimer_set(&m_ev_timer, timer_cb, (void *)this);
+//  tv.tv_sec = 0;
+//  tv.tv_usec = 10000;
+//  event_base_set(m_ev_base, &m_ev_timer);
+//  evtimer_add(&m_ev_timer, &tv);
+//}
+//
+//void RtpTcpServerManager::timer_cb(const int fd, short which, void *arg) {
+//  RtpTcpServerManager *p = (RtpTcpServerManager*)arg;
+//  RTPTransManager::Instance()->on_timer();
+//  p->start_timer();
+//}
 
 RtpTcpServerManager* RtpTcpServerManager::m_inst = NULL;
 

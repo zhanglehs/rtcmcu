@@ -1,4 +1,4 @@
-/**
+﻿/**
 * @file
 * @brief
 * @author   songshenyi
@@ -419,29 +419,24 @@ namespace media_manager {
 #include "media_manager/rtp2flv_remuxer.h"
 #include "backend_new/module_backend.h"
 
-//RtpCacheManager * RtpCacheManager::m_inst = NULL;
+RtpCacheManager::RtpCacheManager() {
+  m_ev_timer = NULL;
+}
 
-//RtpCacheManager* RtpCacheManager::Instance() {
-//  if (m_inst) {
-//    return m_inst;
-//  }
-//  m_inst = new RtpCacheManager();
-//  return m_inst;
-//}
-//
-//void RtpCacheManager::DestroyInstance() {
-//  if (m_inst) {
-//    delete m_inst;
-//    m_inst = NULL;
-//  }
-//}
+RtpCacheManager::~RtpCacheManager() {
+  if (m_ev_timer) {
+    event_free(m_ev_timer);
+    m_ev_timer = NULL;
+  }
+}
 
-//RtpCacheManager::RtpCacheManager() {
-//}
-
-//int RtpCacheManager::Init(struct event_base *ev_base) {
-//  return 0;
-//}
+void RtpCacheManager::Init(struct event_base *ev_base) {
+  m_ev_timer = event_new(ev_base, -1, EV_PERSIST, OnTimer, this);
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = 10000;
+  event_add(m_ev_timer, &tv);
+}
 
 void RtpCacheManager::AddWatcher(RtpCacheWatcher *watcher){
   m_watches.insert(watcher);
@@ -478,11 +473,8 @@ int RtpCacheManager::set_sdp(const StreamId_Ext& stream_id, const char* sdp, int
   media_manager::RTPMediaCache *cache = NULL;
   auto it = m_caches.find(stream_id.get_32bit_stream_id());
   if (it == m_caches.end()) {
-    // create
     cache = new media_manager::RTPMediaCache(stream_id);
     m_caches[stream_id.get_32bit_stream_id()] = cache;
-    // TODO: zhangle
-    //cache->set_manager(cache_manager);
   }
   else {
     cache = it->second;
@@ -536,4 +528,23 @@ avformat::RTP_FIXED_HEADER* RtpCacheManager::get_rtp_by_seq(const StreamId_Ext& 
     return media->get_by_seq(seq, len, status_code);
   }
   return NULL;
+}
+
+void RtpCacheManager::OnTimer(evutil_socket_t fd, short flag, void *arg) {
+  RtpCacheManager *pThis = (RtpCacheManager*)arg;
+  pThis->OnTimerImpl(fd, flag, arg);
+}
+
+// 如果一路流很久没有收到数据，应从cache中删除
+void RtpCacheManager::OnTimerImpl(evutil_socket_t fd, short flag, void *arg) {
+  time_t now = time(NULL);
+  for (auto it = m_caches.begin(); it != m_caches.end();) {
+    media_manager::RTPMediaCache *c = it->second;
+    if (now - c->get_push_active_time() > 20) {
+      it = m_caches.erase(it);
+    }
+    else {
+      it++;
+    }
+  }
 }

@@ -5,6 +5,8 @@
 #include "media_manager/cache_manager_config.h"
 #include "media_manager/circular_cache.h"
 #include "media_manager/media_manager_state.h"
+#include "rtp_trans/rtp_trans_manager.h"
+#include "media_manager/rtp2flv_remuxer.h"
 
 namespace media_manager {
 
@@ -202,6 +204,8 @@ namespace media_manager {
     _req_stop_from_backend(stream_id, CACHE_REQ_LIVE_TS_LATEST_SEGMENT);
     _req_stop_from_backend(stream_id, CACHE_REQ_LIVE_RTP);
 
+    RTP2FLVRemuxer::get_instance()->DestroyStream(stream_id);
+
     return 0;
   }
 
@@ -227,16 +231,22 @@ namespace media_manager {
   }
 
   int FlvCacheManager::get_miniblock_flv_header(StreamId_Ext stream_id, fragment::FLVHeader &header) {
-    if (!contains_stream(stream_id)) {
-      if (_module_type != MODULE_TYPE_UPLOADER) {
-        INF("get_miniblock_flv_header failed, require from backend, streamid: %s", stream_id.unparse().c_str());
-        //_req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
-        //_req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
-        // TODO: zhangle, 缓存和pull client的生命周期不一致会有问题，例如relay pull之后，pull client生命周期结束，close了rtp流，结果缓存中还有，不会再次pull
-        RelayManager::Instance()->StartPullRtp(stream_id);
-      }
+    // INFO: zhangle, flv缓存和RTPTrans的生命周期不一致，因此需要HasUploader()补丁
+    if (!RTPTransManager::Instance()->HasUploader(stream_id) || !contains_stream(stream_id)) {
+      RelayManager::Instance()->StartPullRtp(stream_id);
       return -1;
     }
+
+    //if (!contains_stream(stream_id)) {
+    //  if (_module_type != MODULE_TYPE_UPLOADER) {
+    //    INF("get_miniblock_flv_header failed, require from backend, streamid: %s", stream_id.unparse().c_str());
+    //    //_req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
+    //    //_req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+    //    // TODO: zhangle, 缓存和pull client的生命周期不一致会有问题，例如relay pull之后，pull client生命周期结束，close了rtp流，结果缓存中还有，不会再次pull
+    //    RelayManager::Instance()->StartPullRtp(stream_id);
+    //  }
+    //  return -1;
+    //}
 
     StreamStore* stream_store = _stream_store_map[stream_id];
     FLVMiniBlockCircularCache* cache = stream_store->flv_miniblock_cache;
@@ -250,20 +260,20 @@ namespace media_manager {
       header.set_flv_header(src_header, header_len);
       return 0;
     }
-    else if (_module_type != MODULE_TYPE_UPLOADER) {
-      INF("get_miniblock_flv_header failed, require from backend, streamid: %s", stream_id.unparse().c_str());
-      assert(false);
-    }
+    //else if (_module_type != MODULE_TYPE_UPLOADER) {
+    //  INF("get_miniblock_flv_header failed, require from backend, streamid: %s", stream_id.unparse().c_str());
+    //  assert(false);
+    //}
     return -3;
   }
 
   fragment::FLVMiniBlock* FlvCacheManager::get_latest_miniblock(StreamId_Ext stream_id) {
     if (!contains_stream(stream_id)) {
-      if (_module_type != MODULE_TYPE_UPLOADER) {
-        INF("get_latest_miniblock failed, require from backend, streamid: %s", stream_id.unparse().c_str());
-        _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
-        _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
-      }
+      //if (_module_type != MODULE_TYPE_UPLOADER) {
+      //  INF("get_latest_miniblock failed, require from backend, streamid: %s", stream_id.unparse().c_str());
+      //  _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
+      //  _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+      //}
       return NULL;
     }
 
@@ -282,15 +292,15 @@ namespace media_manager {
       stream_store->set_req_active();
       return block;
     }
-    else if (_module_type != MODULE_TYPE_UPLOADER) {
-      INF("get_latest_miniblock failed, require from backend, streamid: %s", stream_id.unparse().c_str());
-      int32_t status = 0;
-      uint32_t header_len = 0;
-      if (cache->get_flv_header(header_len, status, true) == NULL) {
-        _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
-      }
-      _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
-    }
+    //else if (_module_type != MODULE_TYPE_UPLOADER) {
+    //  INF("get_latest_miniblock failed, require from backend, streamid: %s", stream_id.unparse().c_str());
+    //  int32_t status = 0;
+    //  uint32_t header_len = 0;
+    //  if (cache->get_flv_header(header_len, status, true) == NULL) {
+    //    _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_MINIBLOCK_HEADER);
+    //  }
+    //  _req_from_backend(stream_id, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+    //}
     return NULL;
   }
 
@@ -342,9 +352,9 @@ namespace media_manager {
   }
 
   int32_t FlvCacheManager::_req_stop_from_backend(StreamId_Ext stream_id, int32_t request_state, int32_t seq) {
-    if (_module_type == MODULE_TYPE_UPLOADER) {
-      return 0;
-    }
+    //if (_module_type == MODULE_TYPE_UPLOADER) {
+    //  return 0;
+    //}
 
     if (request_state == CACHE_REQ_LIVE_RTP) {
       _req_stop_from_backend_rtp(stream_id);
@@ -391,9 +401,9 @@ namespace media_manager {
   static std::vector<StreamId_Ext> temp_remove_block_vec;
 
   void FlvCacheManager::_check_stream_store_timeout() {
-    if (_module_type == MODULE_TYPE_UPLOADER) {
-      return;
-    }
+    //if (_module_type == MODULE_TYPE_UPLOADER) {
+    //  return;
+    //}
 
     time_t now = time(NULL);
 
@@ -408,9 +418,11 @@ namespace media_manager {
       if (stream_store != NULL) {
         // we will clear this stream in forward and player if there is long time no output data.
 
-        time_t last_req_time = stream_store->get_req_active_time();
+        time_t last_req_time = stream_store->get_push_active_time();
+        // TODO: zhangle, should set by config file
+        _config->live_req_timeout_sec = 20;
         if (_config->live_req_timeout_sec > 0) {
-          if (_module_type != MODULE_TYPE_UPLOADER && now - last_req_time >= _config->live_req_timeout_sec)
+          if (/*_module_type != MODULE_TYPE_UPLOADER && */now - last_req_time >= _config->live_req_timeout_sec)
           {
             INF("remove stream: %s from cache manager because long time no request.",
               stream_store->stream_id.unparse().c_str());
@@ -421,18 +433,18 @@ namespace media_manager {
 
         // we will require this stream again in forward and player if there is long time no input data.
         // 0. flv miniblock
-        if (stream_store->flv_miniblock_cache != NULL) {
-          time_t last_push_time = stream_store->flv_miniblock_cache->get_push_active_time();
+        //if (stream_store->flv_miniblock_cache != NULL) {
+        //  time_t last_push_time = stream_store->flv_miniblock_cache->get_push_active_time();
 
-          if (_module_type != MODULE_TYPE_UPLOADER
-            && last_push_time != 0
-            && now - last_push_time >= _config->live_push_timeout_sec)
-          {
-            WRN("flv_miniblock_cache long time no data for stream: %s, from: %ld, now: %ld, request from backend again.",
-              stream_store->stream_id.unparse().c_str(), last_push_time, now);
-            _req_from_backend((*hash_map_it).first, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
-          }
-        }
+        //  if (_module_type != MODULE_TYPE_UPLOADER
+        //    && last_push_time != 0
+        //    && now - last_push_time >= _config->live_push_timeout_sec)
+        //  {
+        //    WRN("flv_miniblock_cache long time no data for stream: %s, from: %ld, now: %ld, request from backend again.",
+        //      stream_store->stream_id.unparse().c_str(), last_push_time, now);
+        //    _req_from_backend((*hash_map_it).first, CACHE_REQ_LIVE_FLV_LATEST_MINIBLOCK);
+        //  }
+        //}
       }
     }
 

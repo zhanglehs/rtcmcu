@@ -403,6 +403,19 @@ void get_upstreamrinfo_done(struct evhttp_request* req, void* arg)
 	//}
 }
 
+
+RtpPullTcpManager::RtpPullTcpManager() {
+  m_ev_base = NULL;
+  m_ev_timer = NULL;
+}
+
+RtpPullTcpManager::~RtpPullTcpManager() {
+  if (m_ev_timer) {
+    event_free(m_ev_timer);
+    m_ev_timer = NULL;
+  }
+}
+
 int RtpPullTcpManager::Init(struct event_base *ev_base) {
   m_ev_base = ev_base;
 
@@ -431,7 +444,7 @@ void RtpPullTcpManager::StopPull(const StreamId_Ext& streamid) {
     delete client;
   }
   // TODO: zhangle, really need this
-  media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
+  //media_manager::FlvCacheManager::Instance()->destroy_stream(streamid);
 }
 
 void RtpPullTcpManager::OnConnectionClosed(RtpConnection *c) {

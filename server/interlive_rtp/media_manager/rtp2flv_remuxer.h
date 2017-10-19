@@ -20,6 +20,8 @@ namespace media_manager {
     int32_t set_rtp(const StreamId_Ext& stream_id, const avformat::RTP_FIXED_HEADER *rtp, uint16_t len, int32_t& status_code);
     int32_t set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len, int32_t& status_code);
 
+    void DestroyStream(const StreamId_Ext& streamid);
+
   protected:
     RTP2FLVRemuxer();
     int32_t _set_rtp_to_buffer(Rtp2FlvTransformInfo *stream_meta, const avformat::RTP_FIXED_HEADER* rtp, uint16_t len, int32_t& status);

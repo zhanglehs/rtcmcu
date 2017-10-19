@@ -13,6 +13,7 @@
 #include <deque>
 #include <stdint.h>
 #include <time.h>
+#include <event.h>
 
 const int MAX_RTP_LEN = (10 * 1024);
 
@@ -29,6 +30,8 @@ public:
   RTPTransManager();
   ~RTPTransManager();
 
+  void Init(struct event_base *ev_base);
+
   RtpCacheManager* GetRtpCacheManager();
 
   int _open_trans(RtpConnection *c, const RTPTransConfig *config);
@@ -39,8 +42,6 @@ public:
 
   int OnRecvRtp(RtpConnection *c, const void *rtp, uint16_t len);
   int OnRecvRtcp(RtpConnection *c, const void *rtcp, uint32_t len);
-
-  void on_timer();
 
   int32_t set_sdp_char(const StreamId_Ext& stream_id, const char* sdp, int32_t len);
   int32_t set_sdp_str(const StreamId_Ext& stream_id, const std::string& sdp);
@@ -59,12 +60,15 @@ protected:
   void ForwardRtp(const StreamId_Ext& streamid, avformat::RTP_FIXED_HEADER *rtp, uint32_t len);
   void ForwardRtcp(const StreamId_Ext& streamid, avformat::RTPAVType type, uint32_t ntp_secs, uint32_t ntp_frac, uint32_t rtp);
 
+  static void OnTimer(evutil_socket_t fd, short flag, void *arg);
+  void OnTimerImpl(evutil_socket_t fd, short flag, void *arg);
+
 private:
   static const uint32_t MAX_TRANS_NUM = 5000;
   static const uint32_t MAX_RTP_ITEM_NUM = 25000;
 
+  struct event *m_ev_timer;
   RtpCacheManager *m_rtp_cache;
-
   std::map<uint32_t, std::set<RtpConnection*> > m_stream_groups;
 
   static RTPTransManager* m_inst;

@@ -24,10 +24,25 @@ void RTPTransManager::DestroyInstance() {
 
 RTPTransManager::RTPTransManager() {
   m_rtp_cache = new RtpCacheManager();
+  m_ev_timer = NULL;
 }
 
 RTPTransManager::~RTPTransManager() {
   delete m_rtp_cache;
+  if (m_ev_timer) {
+    event_free(m_ev_timer);
+    m_ev_timer = NULL;
+  }
+}
+
+void RTPTransManager::Init(struct event_base *ev_base) {
+  m_rtp_cache->Init(ev_base);
+
+  m_ev_timer = event_new(ev_base, -1, EV_PERSIST, OnTimer, this);
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = 10000;
+  event_add(m_ev_timer, &tv);
 }
 
 RtpCacheManager* RTPTransManager::GetRtpCacheManager() {
@@ -84,25 +99,6 @@ int RTPTransManager::OnRecvRtcp(RtpConnection *c, const void *rtcp, uint32_t len
     rtcpPacketInformation.rtp_timestamp);
 
   return 0;
-}
-
-void RTPTransManager::on_timer() {
-  uint64_t now = avformat::Clock::GetRealTimeClock()->TimeInMilliseconds();
-  std::set<RtpConnection*> trash;
-  for (auto it1 = m_stream_groups.begin(); it1 != m_stream_groups.end(); it1++) {
-    auto &connections = it1->second;
-    for (auto it = connections.begin(); it != connections.end(); it++) {
-      RtpConnection *c = *it;
-      c->trans->on_timer(now);
-      if (!c->trans->is_alive()) {
-        trash.insert(c);
-      }
-    }
-  }
-
-  for (auto it = trash.begin(); it != trash.end(); it++) {
-    RtpConnection::Destroy(*it);
-  }
 }
 
 int32_t RTPTransManager::set_sdp_char(const StreamId_Ext& stream_id,
@@ -298,6 +294,31 @@ void RTPTransManager::ForwardRtcp(const StreamId_Ext& streamid, avformat::RTPAVT
     if (c->IsPlayer()) {
       ((RTPSendTrans*)(c->trans))->on_uploader_ntp(type, ntp_secs, ntp_frac, rtp);
     }
+  }
+}
+
+
+void RTPTransManager::OnTimer(evutil_socket_t fd, short flag, void *arg) {
+  RTPTransManager *pThis = (RTPTransManager*)arg;
+  pThis->OnTimerImpl(fd, flag, arg);
+}
+
+void RTPTransManager::OnTimerImpl(evutil_socket_t fd, short flag, void *arg) {
+  uint64_t now = avformat::Clock::GetRealTimeClock()->TimeInMilliseconds();
+  std::set<RtpConnection*> trash;
+  for (auto it1 = m_stream_groups.begin(); it1 != m_stream_groups.end(); it1++) {
+    auto &connections = it1->second;
+    for (auto it = connections.begin(); it != connections.end(); it++) {
+      RtpConnection *c = *it;
+      c->trans->on_timer(now);
+      if (!c->trans->is_alive()) {
+        trash.insert(c);
+      }
+    }
+  }
+
+  for (auto it = trash.begin(); it != trash.end(); it++) {
+    RtpConnection::Destroy(*it);
   }
 }
 
