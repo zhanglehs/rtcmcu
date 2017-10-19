@@ -184,7 +184,7 @@ namespace media_manager {
 
   int32_t RTP2FLVRemuxer::set_rtp(const StreamId_Ext& stream_id,
     const avformat::RTP_FIXED_HEADER *pkt, uint16_t len, int32_t& status_code) {
-    if (_conf.target_conf.enable_uploader) {
+    //if (_conf.target_conf.enable_uploader) {
       Rtp2FlvTransformInfo *stream_meta = _get_stream_meta_by_sid(stream_id);
       if (!stream_meta) {
         DBG("invalied streamid %s,pkt skipped", stream_id.unparse().c_str());
@@ -231,7 +231,7 @@ namespace media_manager {
       if (!stream_meta->is_audio_only) {
         _set_flv_to_mm(stream_meta);
       }
-    }
+    //}
 
     return 0;
 
