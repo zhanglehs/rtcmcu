@@ -3,7 +3,6 @@
 #include "common/type_defs.h"
 #include "util/log.h"
 #include "target.h"
-#include <common/protobuf/InterliveServerStat.pb.h>
 
 #include <unistd.h>
 #include <sys/ioctl.h>
@@ -446,18 +445,18 @@ void InfoCollector::send_info_0s()
   //  return;
   //}
 
-  PBBuffer pb_buff;
-  InterliveServerStat pb;
+  //PBBuffer pb_buff;
+  //InterliveServerStat pb;
 
-  unsigned long long _sys_uptime = g_InfoStore.sys_uptime / g_InfoStoreTemp.jiffies;
-  pb.set_sys_uptime((uint64_t)_sys_uptime);
-  pb.set_sys_cpu_cores((int32_t)g_InfoStore.sys_cpu_cores);
-  pb.set_sys_mem_total((int32_t)g_InfoStore.sys_mem_total);
-  pb.set_sys_mem_total_free((int32_t)g_InfoStore.sys_mem_total_free);
-  pb.set_proc_process_name(g_InfoStore.proc_process_name);
+  //unsigned long long _sys_uptime = g_InfoStore.sys_uptime / g_InfoStoreTemp.jiffies;
+  //pb.set_sys_uptime((uint64_t)_sys_uptime);
+  //pb.set_sys_cpu_cores((int32_t)g_InfoStore.sys_cpu_cores);
+  //pb.set_sys_mem_total((int32_t)g_InfoStore.sys_mem_total);
+  //pb.set_sys_mem_total_free((int32_t)g_InfoStore.sys_mem_total_free);
+  //pb.set_proc_process_name(g_InfoStore.proc_process_name);
 
-  pb_buff.size = pb.ByteSize();
-  pb.SerializeToArray(pb_buff.buff, pb_buff.size);
+  //pb_buff.size = pb.ByteSize();
+  //pb.SerializeToArray(pb_buff.buff, pb_buff.size);
   //proto_header ph = { 0, 0, CMD_IC2T_SERVER_STAT_REQ, 0 };
   //proto_wrapper pw = { &ph, (void *)&pb_buff };
   //bool ret = ModTracker::get_inst().send_request(&pw, &g_MTClientInfoCollector);
@@ -487,34 +486,34 @@ void InfoCollector::send_info_10s()
   //}
 
 
-  PBBuffer pb_buff;
-  InterliveServerStat pb;
+  //PBBuffer pb_buff;
+  //InterliveServerStat pb;
 
-  unsigned long long _sys_uptime = g_InfoStore.sys_uptime / g_InfoStoreTemp.jiffies;
-  pb.set_sys_uptime((uint64_t)_sys_uptime);
-  int _sys_cpu_idle_100 = int32_t(100.0 * g_InfoStore.sys_cpu_idle);
-  pb.set_sys_cpu_idle(_sys_cpu_idle_100);
-  pb.set_sys_mem_total_free((int32_t)g_InfoStore.sys_mem_total_free);
-  pb.set_sys_net_rx(g_InfoStore.sys_net_rx);
-  pb.set_sys_net_tx(g_InfoStore.sys_net_tx);
-  int _proc_cpu_use = int32_t(100.0 * g_InfoStore.proc_cpu_use + 0.5);
-  pb.set_proc_cpu_use(_proc_cpu_use);
-  pb.set_proc_sleepavg((int32_t)g_InfoStore.proc_sleepavg);
-  pb.set_proc_vmpeak((int32_t)g_InfoStore.proc_vmpeak);
-  pb.set_proc_vmsize((int32_t)g_InfoStore.proc_vmsize);
-  pb.set_proc_vmrss((int32_t)g_InfoStore.proc_vmrss);
-  unsigned long long _proc_total_uptime = _sys_uptime - g_InfoStore.proc_total_uptime / HZ;
-  pb.set_proc_total_uptime((uint64_t)_proc_total_uptime);
-  pb.set_buss_fsv2_stream_count((int32_t)g_InfoStore.buss_fsv2_stream_count);
-  pb.set_buss_fsv2_total_session((int32_t)g_InfoStore.buss_fsv2_total_session);
-  pb.set_buss_fsv2_active_session((int32_t)g_InfoStore.buss_fsv2_active_session);
-  pb.set_buss_fsv2_connection_count((int32_t)g_InfoStore.buss_fsv2_connection_count);
-  pb.set_buss_fcv2_stream_count((int32_t)g_InfoStore.buss_fcv2_stream_count);
-  //pb.set_buss_uploader_connection_count((int32_t)g_InfoStore.buss_uploader_connection_count);//#todo
-  pb.set_buss_player_online_cnt((int32_t)g_InfoStore.buss_player_online_cnt);//#todo
+  //unsigned long long _sys_uptime = g_InfoStore.sys_uptime / g_InfoStoreTemp.jiffies;
+  //pb.set_sys_uptime((uint64_t)_sys_uptime);
+  //int _sys_cpu_idle_100 = int32_t(100.0 * g_InfoStore.sys_cpu_idle);
+  //pb.set_sys_cpu_idle(_sys_cpu_idle_100);
+  //pb.set_sys_mem_total_free((int32_t)g_InfoStore.sys_mem_total_free);
+  //pb.set_sys_net_rx(g_InfoStore.sys_net_rx);
+  //pb.set_sys_net_tx(g_InfoStore.sys_net_tx);
+  //int _proc_cpu_use = int32_t(100.0 * g_InfoStore.proc_cpu_use + 0.5);
+  //pb.set_proc_cpu_use(_proc_cpu_use);
+  //pb.set_proc_sleepavg((int32_t)g_InfoStore.proc_sleepavg);
+  //pb.set_proc_vmpeak((int32_t)g_InfoStore.proc_vmpeak);
+  //pb.set_proc_vmsize((int32_t)g_InfoStore.proc_vmsize);
+  //pb.set_proc_vmrss((int32_t)g_InfoStore.proc_vmrss);
+  //unsigned long long _proc_total_uptime = _sys_uptime - g_InfoStore.proc_total_uptime / HZ;
+  //pb.set_proc_total_uptime((uint64_t)_proc_total_uptime);
+  //pb.set_buss_fsv2_stream_count((int32_t)g_InfoStore.buss_fsv2_stream_count);
+  //pb.set_buss_fsv2_total_session((int32_t)g_InfoStore.buss_fsv2_total_session);
+  //pb.set_buss_fsv2_active_session((int32_t)g_InfoStore.buss_fsv2_active_session);
+  //pb.set_buss_fsv2_connection_count((int32_t)g_InfoStore.buss_fsv2_connection_count);
+  //pb.set_buss_fcv2_stream_count((int32_t)g_InfoStore.buss_fcv2_stream_count);
+  ////pb.set_buss_uploader_connection_count((int32_t)g_InfoStore.buss_uploader_connection_count);//#todo
+  //pb.set_buss_player_online_cnt((int32_t)g_InfoStore.buss_player_online_cnt);//#todo
 
-  pb_buff.size = pb.ByteSize();
-  pb.SerializeToArray(pb_buff.buff, pb_buff.size);
+  //pb_buff.size = pb.ByteSize();
+  //pb.SerializeToArray(pb_buff.buff, pb_buff.size);
 
   //proto_header ph = { 0, 0, CMD_IC2T_SERVER_STAT_REQ, 0 };
   //proto_wrapper pw = { &ph, (void *)&pb_buff };

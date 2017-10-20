@@ -38,7 +38,6 @@ THIRD_PARTY_LIB = $(THIRD_PARTY_DIR)/json-c-0.11/.libs/libjson-c.a \
 MEDIA_MANAGER_DIR = media_manager
 PUBLISHER_DIR = publisher
 RELAY_DIR = relay
-PROTOBUF_DIR = ../common/protobuf
 FRAGMENT_DIR = fragment
 AVCODEC_DIR = avcodec
 AVFORMAT_DIR = avformat
@@ -81,16 +80,15 @@ COMMON_OBJS = hls.o perf.o info_collector.o\
 			 $(UTIL_DIR)/util.o $(UTIL_DIR)/backtrace.o $(UTIL_DIR)/bits.o\
 			 $(UTIL_DIR)/statfile.o $(UTIL_DIR)/flv.o \
 			 $(AVFORMAT_OBJS) $(AVCODEC_OBJS) \
-			 $(LIBXML) $(LIBUUID) $(THIRD_PARTY_LIB) $(PROTOBUF_DIR)/proto_rtp_ext.pb.o
+			 $(LIBXML) $(LIBUUID) $(THIRD_PARTY_LIB)
 
 CONNECTION_MANAGER_OBJS = $(CONNECTION_MANAGER_DIR)/FlvConnectionManager.o \
 			 $(CONNECTION_MANAGER_DIR)/rtp_player_config.o $(CONNECTION_MANAGER_DIR)/flv_live_player.o \
 			 $(CONNECTION_MANAGER_DIR)/RtpConnectionManager.o $(CONNECTION_MANAGER_DIR)/RtpConnection.o \
 			 $(CONNECTION_MANAGER_DIR)/rtp_uploader_config.o
 
-RELAY_OBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o \
-				$(RELAY_DIR)/rtp_backend_config.o \
-				$(RELAY_DIR)/RtpRelay.o $(RELAY_DIR)/RelayManager.o $(RELAY_DIR)/flv_publisher.o
+RELAY_OBJS = $(RELAY_DIR)/rtp_backend_config.o \
+			$(RELAY_DIR)/RtpRelay.o $(RELAY_DIR)/RelayManager.o $(RELAY_DIR)/flv_publisher.o
 
 RECEIVER_OBJS = receiver.o $(CONNECTION_MANAGER_OBJS) $(RELAY_OBJS) $(RTP_TRANS_OBJS) $(COMMON_OBJS)
 RECEIVER_LIBS = $(LIBS) -luuid -lexpat -lpthread
@@ -142,7 +140,7 @@ clean-lib:
 	@echo
 
 clean:
-	@rm -f *.o
+	@rm -f *.o *.a
 	@cd $(UTIL_DIR);make clean
 	@cd $(COMMON_DIR);make clean
 	@cd $(MEDIA_MANAGER_DIR); rm -f *.o *.a
@@ -150,7 +148,6 @@ clean:
 	@cd $(AVCODEC_DIR); rm -f *.o *.a
 	@cd $(FRAGMENT_DIR); rm -f *.o *.a
 	@cd $(CONNECTION_MANAGER_DIR); rm -f *.o
-	@cd $(PROTOBUF_DIR); rm -f *.o
 	@cd $(RTPTRANS_DIR); rm -f *.o
 	@cd $(RELAY_DIR); rm -f *.o
 	@cd $(NETWORK_DIR); rm -f *.o

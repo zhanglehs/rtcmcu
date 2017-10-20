@@ -13,57 +13,57 @@ static void enable_write(FLVPublisher* p);
 static void disable_write(FLVPublisher* p);
 static void handle_read(FLVPublisher* p)
 {
-	if (p->state == FLV_PUBLISHER_STATE_ERROR)
-	{
-		return;
-	}
-	int ret = 1;
-	while (ret > 0)
-	{
-		ret = buffer_read_fd(p->rb, p->fd);
-		if (ret < 0) {
-			p->state = FLV_PUBLISHER_STATE_ERROR;
-			ERR("write packet error streamid %s ret %d",p->stream_id.unparse().c_str(),ret);	
-			return;
-		}
-		p->read_bytes += ret;
-		if (buffer_data_len(p->rb) < sizeof(proto_header)) {
-			return;
-		}
-		while (buffer_data_len(p->rb) >= sizeof(proto_header))
-		{
-			proto_header pro_head;
-			if (decode_header(p->rb, &pro_head) < 0) {
-				p->state = FLV_PUBLISHER_STATE_ERROR;
-				ERR("decode header error streamid %s",p->stream_id.unparse().c_str());
-				return;
-			}
-			if (buffer_data_len(p->rb) < pro_head.size) {
-				break;
-			}
+	//if (p->state == FLV_PUBLISHER_STATE_ERROR)
+	//{
+	//	return;
+	//}
+	//int ret = 1;
+	//while (ret > 0)
+	//{
+	//	ret = buffer_read_fd(p->rb, p->fd);
+	//	if (ret < 0) {
+	//		p->state = FLV_PUBLISHER_STATE_ERROR;
+	//		ERR("write packet error streamid %s ret %d",p->stream_id.unparse().c_str(),ret);	
+	//		return;
+	//	}
+	//	p->read_bytes += ret;
+	//	if (buffer_data_len(p->rb) < sizeof(proto_header)) {
+	//		return;
+	//	}
+	//	while (buffer_data_len(p->rb) >= sizeof(proto_header))
+	//	{
+	//		proto_header pro_head;
+	//		if (decode_header(p->rb, &pro_head) < 0) {
+	//			p->state = FLV_PUBLISHER_STATE_ERROR;
+	//			ERR("decode header error streamid %s",p->stream_id.unparse().c_str());
+	//			return;
+	//		}
+	//		if (buffer_data_len(p->rb) < pro_head.size) {
+	//			break;
+	//		}
 
-			if (pro_head.size < sizeof(proto_header))
-			{
-				p->state = FLV_PUBLISHER_STATE_ERROR;
-				ERR("decode header error streamid %s",p->stream_id.unparse().c_str());
-				return;
-			}
+	//		if (pro_head.size < sizeof(proto_header))
+	//		{
+	//			p->state = FLV_PUBLISHER_STATE_ERROR;
+	//			ERR("decode header error streamid %s",p->stream_id.unparse().c_str());
+	//			return;
+	//		}
 
-			p->manager->processPacket(p,pro_head.cmd,pro_head.size);
+	//		p->manager->processPacket(p,pro_head.cmd,pro_head.size);
 
-			buffer_eat(p->rb, pro_head.size);
-		}
+	//		buffer_eat(p->rb, pro_head.size);
+	//	}
 
-		if (p->fd != -1)
-		{
-			buffer_try_adjust(p->rb);
+	//	if (p->fd != -1)
+	//	{
+	//		buffer_try_adjust(p->rb);
 
-			if (buffer_data_len(p->wb) > 0)
-			{
-			   enable_write(p);
-			}
-		}
-	}
+	//		if (buffer_data_len(p->wb) > 0)
+	//		{
+	//		   enable_write(p);
+	//		}
+	//	}
+	//}
 }
 
 static void handle_write(FLVPublisher* p) {
@@ -327,19 +327,19 @@ void FLVPublisherManager::stopStream(const StreamId_Ext &sid) {
 }
 
 void FLVPublisherManager::processPacket(FLVPublisher* client,uint16_t cmd,uint32_t pkt_size) {
-	switch (cmd)
-	{
-	case CMD_U2R_RSP_STATE_V2: {
-		u2r_rsp_state_v2 rsp;
-		decode_u2r_rsp_state_v2(&rsp, client->rb);
-		if (rsp.result == 0)
-		{
-			client->state = FLV_PUBLISHER_STATE_STREAMING_HEADER;
-		}
-		DBG("recv publish response streamid %s ret %d",client->stream_id.unparse().c_str(),rsp.result);
-		break;
-	}
-}
+	//switch (cmd)
+	//{
+	//case CMD_U2R_RSP_STATE_V2: {
+	//	u2r_rsp_state_v2 rsp;
+	//	decode_u2r_rsp_state_v2(&rsp, client->rb);
+	//	if (rsp.result == 0)
+	//	{
+	//		client->state = FLV_PUBLISHER_STATE_STREAMING_HEADER;
+	//	}
+	//	DBG("recv publish response streamid %s ret %d",client->stream_id.unparse().c_str(),rsp.result);
+	//	break;
+	//}
+  //}
 }
 
 static void publisher_notify_stream_data(StreamId_Ext stream_id, uint8_t watch_type, void* arg) {
@@ -351,77 +351,77 @@ void FLVPublisherManager::notifyStreamData(StreamId_Ext &streamid) {
 	FLVPublisher *p = findPublisherByStreamid(streamid);
 	if (p)
 	{
-		if (p->state == FLV_PUBLISHER_STATE_STREAMING_HEADER)
-		{
-			FLVHeader flvheader(streamid);
-			if (_cmng->get_miniblock_flv_header(streamid, flvheader) < 0)
-			{
-				WRN("req live header failed, streamid= %s, streamid %s",
-					streamid.unparse().c_str(), p->stream_id.unparse().c_str());
-				return;
-			}
-			else {
-				buffer *buf = p->buf;
-				u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
-				memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
-				stream->payload_type = PAYLOAD_TYPE_FLV;
-				buffer_append_ptr(buf,stream,sizeof(u2r_streaming_v2));
-				flvheader.copy_header_to_buffer(buf);
-				stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
-				encode_u2r_streaming_v2(stream,p->wb);
-				buffer_reset(buf);
-				enable_write(p);
-			}
+		//if (p->state == FLV_PUBLISHER_STATE_STREAMING_HEADER)
+		//{
+		//	FLVHeader flvheader(streamid);
+		//	if (_cmng->get_miniblock_flv_header(streamid, flvheader) < 0)
+		//	{
+		//		WRN("req live header failed, streamid= %s, streamid %s",
+		//			streamid.unparse().c_str(), p->stream_id.unparse().c_str());
+		//		return;
+		//	}
+		//	else {
+		//		buffer *buf = p->buf;
+		//		u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
+		//		memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
+		//		stream->payload_type = PAYLOAD_TYPE_FLV;
+		//		buffer_append_ptr(buf,stream,sizeof(u2r_streaming_v2));
+		//		flvheader.copy_header_to_buffer(buf);
+		//		stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
+		//		encode_u2r_streaming_v2(stream,p->wb);
+		//		buffer_reset(buf);
+		//		enable_write(p);
+		//	}
 
-			p->state = FLV_PUBLISHER_STATE_STREAMING_FIRST_TAG;
-		} 
-		if (p->state == FLV_PUBLISHER_STATE_STREAMING_FIRST_TAG)
-		{
-			FLVMiniBlock* block = _cmng->get_latest_miniblock(streamid);
-      if (block)
-			{
-				int bid = block->get_seq();
-				p->seq = bid + 1;
+		//	p->state = FLV_PUBLISHER_STATE_STREAMING_FIRST_TAG;
+		//} 
+		//if (p->state == FLV_PUBLISHER_STATE_STREAMING_FIRST_TAG)
+		//{
+		//	FLVMiniBlock* block = _cmng->get_latest_miniblock(streamid);
+  //    if (block)
+		//	{
+		//		int bid = block->get_seq();
+		//		p->seq = bid + 1;
 
-				buffer *buf = p->buf;
-				u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
-				memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
-				stream->payload_type = PAYLOAD_TYPE_FLV;
-				buffer_append_ptr(buf,stream,sizeof(u2r_streaming_v2));
-				block->copy_payload_to_buffer(buf, p->timeoffset, FLV_FLAG_BOTH);
-				stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
-				encode_u2r_streaming_v2(stream,p->wb);
-				buffer_reset(buf);
-				enable_write(p);
-				p->state = FLV_PUBLISHER_STATE_STREAMING_STREAM_TAG;
-			}
-		} 
-		if (p->state == FLV_PUBLISHER_STATE_STREAMING_STREAM_TAG)
-		{
-      int count = 0;
-      fragment::FLVMiniBlock* block = NULL;
-      while ((block = _cmng->get_miniblock_by_seq(streamid, p->seq)) != NULL) {
-        int bid = block->get_seq();
-        p->seq = bid + 1;
+		//		buffer *buf = p->buf;
+		//		u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
+		//		memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
+		//		stream->payload_type = PAYLOAD_TYPE_FLV;
+		//		buffer_append_ptr(buf,stream,sizeof(u2r_streaming_v2));
+		//		block->copy_payload_to_buffer(buf, p->timeoffset, FLV_FLAG_BOTH);
+		//		stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
+		//		encode_u2r_streaming_v2(stream,p->wb);
+		//		buffer_reset(buf);
+		//		enable_write(p);
+		//		p->state = FLV_PUBLISHER_STATE_STREAMING_STREAM_TAG;
+		//	}
+		//} 
+		//if (p->state == FLV_PUBLISHER_STATE_STREAMING_STREAM_TAG)
+		//{
+  //    int count = 0;
+  //    fragment::FLVMiniBlock* block = NULL;
+  //    while ((block = _cmng->get_miniblock_by_seq(streamid, p->seq)) != NULL) {
+  //      int bid = block->get_seq();
+  //      p->seq = bid + 1;
 
-        buffer *buf = p->buf;
-        u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
-        memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
-        stream->payload_type = PAYLOAD_TYPE_FLV;
-        buffer_append_ptr(buf, stream, sizeof(u2r_streaming_v2));
-        block->copy_payload_to_buffer(buf, p->timeoffset, FLV_FLAG_BOTH);
-        stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
-        encode_u2r_streaming_v2(stream, p->wb);
-        buffer_reset(buf);
+  //      buffer *buf = p->buf;
+  //      u2r_streaming_v2 *stream = (u2r_streaming_v2 *)buffer_data_ptr(buf);
+  //      memcpy(stream->streamid, &streamid, sizeof(StreamId_Ext));
+  //      stream->payload_type = PAYLOAD_TYPE_FLV;
+  //      buffer_append_ptr(buf, stream, sizeof(u2r_streaming_v2));
+  //      block->copy_payload_to_buffer(buf, p->timeoffset, FLV_FLAG_BOTH);
+  //      stream->payload_size = buffer_data_len(buf) - sizeof(u2r_streaming_v2);
+  //      encode_u2r_streaming_v2(stream, p->wb);
+  //      buffer_reset(buf);
 
-        count++;
-			}
+  //      count++;
+		//	}
 
-			if (count > 0)
-			{
-				enable_write(p);
-			}
-		}
+		//	if (count > 0)
+		//	{
+		//		enable_write(p);
+		//	}
+		//}
 		
 	} else {	
 		startStream(streamid);
@@ -444,7 +444,7 @@ FLVPublisher* FLVPublisherManager::createPublisher(const StreamId_Ext &sid) {
 		//ret->port = 80;
 		ret->fd = -1;
 		ret->manager = this;
-                ret->last_error_ts = 0;
+    ret->last_error_ts = 0;
 		publishermap[sid] = ret;
 	}
 	return ret;
@@ -453,14 +453,14 @@ void FLVPublisherManager::initPublisher(FLVPublisher* p) {
 	do_connect(p);
 }
 void FLVPublisherManager::sendPublishReq(FLVPublisher* p) {
-	DBG("send publish req streamid %s",p->stream_id.unparse().c_str());
-	u2r_req_state_v2 req;
-	req.version = 2;
-	memcpy(req.streamid, &p->stream_id, STREAM_ID_LEN);
-	memset((char*)req.token, 0, sizeof(req.token));
-	memcpy((char*)req.token, "98765", 5);
-	req.payload_type = PAYLOAD_TYPE_FLV;
-	encode_u2r_req_state_v2(&req,p->wb);
+	//DBG("send publish req streamid %s",p->stream_id.unparse().c_str());
+	//u2r_req_state_v2 req;
+	//req.version = 2;
+	//memcpy(req.streamid, &p->stream_id, STREAM_ID_LEN);
+	//memset((char*)req.token, 0, sizeof(req.token));
+	//memcpy((char*)req.token, "98765", 5);
+	//req.payload_type = PAYLOAD_TYPE_FLV;
+	//encode_u2r_req_state_v2(&req,p->wb);
 }
 void FLVPublisherManager::destroyPublisher(FLVPublisher* p) {
 	close_client(p);

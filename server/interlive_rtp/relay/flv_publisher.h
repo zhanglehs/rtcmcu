@@ -3,9 +3,10 @@
 #include <map>
 #include "streamid.h"
 #include "event.h"
-#include <common/proto.h>
+//#include <common/proto.h>
 #include "media_manager/cache_manager.h"
 #include "config_manager.h"
+#include "utils/buffer.hpp"
 #include <list>
 
 int publisher_init(struct event_base *main_base);

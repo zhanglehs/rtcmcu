@@ -338,7 +338,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
     {
       rtp_u2r_req_state req;
       rtp_u2r_rsp_state rsp;
-      if (0 != decode_rtp_u2r_req_state(&req, NULL, buf)) {
+      if (0 != decode_rtp_u2r_req_state(&req/*, NULL*/, buf)) {
         return -5;
       }
       rsp.version = req.version;
@@ -367,7 +367,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
     {
       rtp_d2p_req_state req;
       rtp_d2p_rsp_state rsp;
-      if (0 != decode_rtp_d2p_req_state(&req, NULL, buf)) {
+      if (0 != decode_rtp_d2p_req_state(&req/*, NULL*/, buf)) {
         return -1;
       }
       rsp.version = req.version;
