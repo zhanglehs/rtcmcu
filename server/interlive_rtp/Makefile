@@ -25,7 +25,6 @@ export PROFILER_FLAGS = -lprofiler
 endif
 
 UTIL_DIR = ../util
-COMMON_DIR = ../common
 
 THIRD_PARTY_DIR = $(SOURCE_DIR)third_party
 
@@ -44,6 +43,8 @@ AVFORMAT_DIR = avformat
 NETWORK_DIR = network
 CONNECTION_MANAGER_DIR = connection_manager
 RTPTRANS_DIR = rtp_trans
+CMD_PROTOCOL_DIR = cmd_protocol
+COMMON_DIR = common
 
 CINCS += -I. \
          -I$(THIRD_PARTY_DIR)/json-c-0.11 \
@@ -73,7 +74,6 @@ RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTP
 COMMON_OBJS = hls.o perf.o info_collector.o\
 			 libcachemanager.a libfragment.a config_manager.o \
 			 $(NETWORK_DIR)/base_http_server.o $(NETWORK_DIR)/rtp_send_queue.o \
-			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
 			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
 			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o $(DIR_LIB_UTILS)/memory.o \
 			 $(UTIL_DIR)/md5.o $(UTIL_DIR)/access.o \
@@ -90,7 +90,11 @@ CONNECTION_MANAGER_OBJS = $(CONNECTION_MANAGER_DIR)/FlvConnectionManager.o \
 RELAY_OBJS = $(RELAY_DIR)/rtp_backend_config.o \
 			$(RELAY_DIR)/RtpRelay.o $(RELAY_DIR)/RelayManager.o $(RELAY_DIR)/flv_publisher.o
 
-RECEIVER_OBJS = receiver.o $(CONNECTION_MANAGER_OBJS) $(RELAY_OBJS) $(RTP_TRANS_OBJS) $(COMMON_OBJS)
+CMD_PROTOCOL_OBJS = $(CMD_PROTOCOL_DIR)/proto.o
+
+COMMON_OBJS += $(COMMON_DIR)/TaskManager.o
+
+RECEIVER_OBJS = receiver.o $(CONNECTION_MANAGER_OBJS) $(RELAY_OBJS) $(RTP_TRANS_OBJS) $(COMMON_OBJS) $(CMD_PROTOCOL_OBJS)
 RECEIVER_LIBS = $(LIBS) -luuid -lexpat -lpthread
 
 #all:add_hook version_file $(FORWARD) $(RECEIVER)
@@ -115,16 +119,13 @@ receiver.o:target.cpp
 	make version_file
 	$(CC) $(CFLAGS) $(CINCS) -c -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
 
-$(RECEIVER):$(THIRD_PARTY_LIB) util_o common_o $(RECEIVER_OBJS)
+$(RECEIVER):$(THIRD_PARTY_LIB) util_o $(RECEIVER_OBJS)
 	$(CC) $(CFLAGS) $(RECEIVER_OBJS) $(RECEIVER_LIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
 	@echo -e "\033[32m[INF] Make receiver successfully. \033[0m"
 	@echo
 
 util_o:
 	@cd $(UTIL_DIR);make all;
-
-common_o:
-	@cd $(COMMON_DIR);make all;
 
 $(STATIC_LIB_STAT):
 	make -C $(DIR_LIB) static-libstat
@@ -142,7 +143,6 @@ clean-lib:
 clean:
 	@rm -f *.o *.a
 	@cd $(UTIL_DIR);make clean
-	@cd $(COMMON_DIR);make clean
 	@cd $(MEDIA_MANAGER_DIR); rm -f *.o *.a
 	@cd $(AVFORMAT_DIR); rm -f *.o *.a
 	@cd $(AVCODEC_DIR); rm -f *.o *.a
@@ -151,6 +151,8 @@ clean:
 	@cd $(RTPTRANS_DIR); rm -f *.o
 	@cd $(RELAY_DIR); rm -f *.o
 	@cd $(NETWORK_DIR); rm -f *.o
+	@cd $(CMD_PROTOCOL_DIR); rm -f *.o
+	@cd $(COMMON_DIR); rm -f *.o
 
 	@echo -e "\033[32m[INF] Clean interlive successfully. \033[0m"
 	@echo
@@ -163,7 +165,6 @@ cleanxmode:
 cleangcov:
 	rm -f *.gcda *.gcno
 	@cd $(UTIL_DIR);make cleangcov
-	@cd $(COMMON_DIR);make cleangcov
 
 cleanall:clean-lib clean cleangcov
 

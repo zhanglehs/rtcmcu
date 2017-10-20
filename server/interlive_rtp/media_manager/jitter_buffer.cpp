@@ -12,7 +12,7 @@
 
 #include "../util/log.h"
 #include "jitter_buffer.h"
-#include "../avformat/rtcp.h"
+#include "avformat/rtcp.h"
 #include <stdlib.h>
 
 namespace media_manager {

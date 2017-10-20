@@ -1,12 +1,10 @@
 ﻿#include "connection_manager/RtpConnectionManager.h"
 
 #include "connection_manager/RtpConnection.h"
-#include "util/log.h"
-#include "util/util.h"
-#include "common/proto.h"
-#include "common/proto_define.h"
-#include "common/proto_rtp_rtcp.h"
-#include "util/flv.h"
+#include "../util/log.h"
+#include "../util/util.h"
+#include "cmd_protocol/proto.h"
+#include "../util/flv.h"
 #include "utils/memory.h"
 #include "rtp_trans/rtp_trans_manager.h"
 #include "avformat/rtcp.h"
@@ -16,8 +14,8 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include "util/access.h"
-#include "util/util.h"
+#include "../util/access.h"
+#include "../util/util.h"
 #include "assert.h"
 #include "target_config.h"
 #include "perf.h"

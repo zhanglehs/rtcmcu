@@ -17,9 +17,8 @@
 #include <vector>
 #include <deque>
 
-#include <common/type_defs.h>
 #include <utils/buffer.hpp>
-#include "util/flv2ts.h"
+#include "../util/flv2ts.h"
 
 #include "fragment.h"
 #include "media_manager/cache_manager_config.h"

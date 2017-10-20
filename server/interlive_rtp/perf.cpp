@@ -1,5 +1,5 @@
 #include "perf.h"
-#include "util/log.h"
+#include "../util/log.h"
 #include <string.h>
 
 #define ONE_MB (1024 * 1024)

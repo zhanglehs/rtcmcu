@@ -38,31 +38,4 @@ protected:
   std::map<StreamId_Ext, RtpPushClient*> m_clients;
 };
 
-template <class C>
-class SingletonBase {
-public:
-  static C* Instance();
-  static void DestroyInstance();
-
-protected:
-  SingletonBase();
-  static C* m_inst;
-};
-
-class TaskManger : public SingletonBase<TaskManger> {
-public:
-  TaskManger();
-  ~TaskManger();
-
-  void Init(struct event_base *ev_base);
-  void PostTask(std::function<void()> task, unsigned int delay_ms = 0);
-
-protected:
-  static void OnTask(evutil_socket_t fd, short event, void *arg);
-  void OnTaskImpl(evutil_socket_t fd, short event, void *arg);
-  struct event_base *m_ev_base;
-  std::set<struct event*> m_tasks;
-  struct event* m_trash_task;
-};
-
 #endif

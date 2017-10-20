@@ -2,7 +2,7 @@
 #include <assert.h>
 #include <algorithm>
 
-#include "util/log.h"
+#include "../util/log.h"
 #include "config.h"
 
 #ifndef nullptr

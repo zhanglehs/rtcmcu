@@ -16,7 +16,7 @@
 #ifndef __FIFOHashmap_H__
 #define __FIFOHashmap_H__
 
-#include <common/type_defs.h>
+#include "type_defs.h"
 #include <stdint.h>
 #include <list>
 

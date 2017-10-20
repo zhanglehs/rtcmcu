@@ -1,8 +1,8 @@
 #ifndef _RTP_PLAYER_CONFIG_H_
 #define _RTP_PLAYER_CONFIG_H_
 
-#include "../config_manager.h"
-#include "util/xml.h"
+#include "config_manager.h"
+#include "../util/xml.h"
 #include "rtp_trans/rtp_config.h"
 
 class RTPPlayerConfig : public ConfigModule

@@ -1,7 +1,7 @@
 ﻿#include "info_collector.h"
 
-#include "common/type_defs.h"
-#include "util/log.h"
+#include "../util/type_defs.h"
+#include "../util/log.h"
 #include "target.h"
 
 #include <unistd.h>

@@ -13,7 +13,7 @@
 #ifndef __CACHE_MANAGER_CONFIG_H_
 #define __CACHE_MANAGER_CONFIG_H_
 
-#include "util/xml.h"
+#include "../util/xml.h"
 #include "config_manager.h"
 
 namespace media_manager

@@ -18,8 +18,8 @@
 #include <fstream>
 #include <iostream>
 
-#include "util/log.h"
-#include "util/xml.h"
+#include "../util/log.h"
+#include "../util/xml.h"
 #include "cache_manager_config.h"
 #include "cache_manager.h"
 

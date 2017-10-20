@@ -15,7 +15,7 @@
 #ifndef __LINKED_HASH_MAP_H__
 #define __LINKED_HASH_MAP_H__
 
-#include <common/type_defs.h>
+#include "type_defs.h"
 #include <limits.h>
 #include <list>
 

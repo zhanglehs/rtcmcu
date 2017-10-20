@@ -2,8 +2,8 @@
 #define __DELAY_TEST_H_
 
 #include "stdint.h"
-#include "util/flv.h"
-#include "../streamid.h"
+#include "../util/flv.h"
+#include "streamid.h"
 #include <string>
 
 //#define DELAY_TEST 1

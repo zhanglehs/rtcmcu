@@ -1,10 +1,10 @@
 #include "rtp_session.h"
 
-#include "util/log.h"
+#include "../util/log.h"
 #include "math.h"
 
-#include "../avformat/rtp.h"
-#include "../fragment/rtp_block.h"
+#include "avformat/rtp.h"
+#include "fragment/rtp_block.h"
 #include "media_manager/media_manager_state.h"
 
 RTPSession::RTPSession(RTPTrans * trans, RTPSessionMode mode,

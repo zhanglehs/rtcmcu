@@ -10,12 +10,11 @@
 * @see  fragment_generator.h
 */
 
-#include "util/log.h"
-#include "util/flv.h"
-//#include "utils/memory.h"
-#include "util/flv2ts.h"
+#include "../util/log.h"
+#include "../util/flv.h"
+#include "../util/flv2ts.h"
 
-#include "common/proto_define.h"
+#include "cmd_protocol/proto_define.h"
 #include "fragment_generator.h"
 #include <fstream>
 #include <algorithm>

@@ -1,10 +1,9 @@
 #include "rtp_backend_config.h"
 #include "../target.h"
-#include "../../util/log.h"
-#include "../../util/util.h"
-//#include "../util/access.h"
+#include "../util/log.h"
+#include "../util/util.h"
 #include <assert.h>
-#include "../target_config.h"
+#include "target_config.h"
 
 RtpRelayConfig::RtpRelayConfig() : 
     inited(false), has_rtp_conf(false), _rtp_conf()

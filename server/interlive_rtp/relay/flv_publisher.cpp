@@ -1,6 +1,6 @@
 ﻿#include "flv_publisher.h"
-#include "../../util/log.h"
-#include "util/util.h"
+#include "../util/log.h"
+#include "../util/util.h"
 #include "errno.h"
 #include "fragment/fragment.h"
 #include <netinet/tcp.h>
@@ -9,7 +9,7 @@
 using namespace fragment;
 static struct event_base * g_ev_base = NULL;
 static FLVPublisherManager*inst = NULL;
-static void enable_write(FLVPublisher* p);
+//static void enable_write(FLVPublisher* p);
 static void disable_write(FLVPublisher* p);
 static void handle_read(FLVPublisher* p)
 {
@@ -122,14 +122,14 @@ static void client_handler(int fd, short which, void* arg)
 	}
 }
 
-static void enable_write(FLVPublisher* p) {
-
-	TRC("enable_write: enable write\n");
-	event_del(&(p->ev));
-	event_set(&(p->ev), p->fd, EV_READ | EV_WRITE | EV_PERSIST, client_handler,p);
-	event_base_set(g_ev_base, &(p->ev));
-	event_add(&(p->ev), 0);
-}
+//static void enable_write(FLVPublisher* p) {
+//
+//	TRC("enable_write: enable write\n");
+//	event_del(&(p->ev));
+//	event_set(&(p->ev), p->fd, EV_READ | EV_WRITE | EV_PERSIST, client_handler,p);
+//	event_base_set(g_ev_base, &(p->ev));
+//	event_add(&(p->ev), 0);
+//}
 static void disable_write(FLVPublisher* p) {
 	TRC("disable_write: disable write\n");
 	event_del(&(p->ev));

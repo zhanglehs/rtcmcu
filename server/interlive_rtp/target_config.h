@@ -1,10 +1,10 @@
 #ifndef __TARGET_CONFIG_H
 #define __TARGET_CONFIG_H
 
-#include <util/log.h>
+#include "../util/log.h"
 #include <string>
 #include "config_manager.h"
-#include "util/access.h"
+#include "../util/access.h"
 
 class TargetConfig : public ConfigModule
 {

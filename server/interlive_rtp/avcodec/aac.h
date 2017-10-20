@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include "../../util/bits.h"
+#include "../util/bits.h"
 
 #define MAX_EXTRADATA_SIZE 7 /* LC + SBR + PS config */
 #define AACPLUS_AOT_AAC_LC 2

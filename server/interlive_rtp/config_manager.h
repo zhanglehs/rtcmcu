@@ -13,7 +13,7 @@
 #ifndef _CONFIG_MANAGER_H_
 #define _CONFIG_MANAGER_H_
 
-#include "util/xml.h"
+#include "../util/xml.h"
 #include <map>
 #include <vector>
 #include <string>

@@ -7,7 +7,7 @@
 #include <string>
 #include "rtp_trans.h"
 #include "rtp_trans_manager.h"
-#include "../common/proto_rtp_rtcp.h"
+//#include "../common/proto_rtp_rtcp.h"
 #include "rtp_config.h"
 
 using namespace std;

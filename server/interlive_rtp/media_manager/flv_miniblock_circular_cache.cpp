@@ -18,10 +18,10 @@
 #include <fstream>
 #include <iostream>
 
-#include "util/util.h"
+#include "../util/util.h"
 #include "utils/memory.h"
-#include "util/log.h"
-#include "util/flv.h"
+#include "../util/log.h"
+#include "../util/flv.h"
 #include "cache_manager.h"
 #include "circular_cache.h"
 #include "media_manager/media_manager_state.h"

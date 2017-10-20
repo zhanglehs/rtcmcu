@@ -1,7 +1,7 @@
 #include "rtp_uploader_config.h"
 #include "target.h"
-#include "util/log.h"
-#include "util/util.h"
+#include "../util/log.h"
+#include "../util/util.h"
 #include <assert.h>
 
 RTPUploaderConfig::RTPUploaderConfig() :

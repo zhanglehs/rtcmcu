@@ -19,7 +19,7 @@
 
 #include <uuid/uuid.h>
 
-#include "util/flv.h"
+#include "../util/flv.h"
 #include "utils/buffer.hpp"
 #include "streamid.h"
 

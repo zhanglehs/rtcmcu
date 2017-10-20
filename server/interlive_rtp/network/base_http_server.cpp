@@ -17,7 +17,7 @@
 #include <json.h>
 #include "perf.h"
 #include "version.h"
-#include "util/log.h"
+#include "../util/log.h"
 
 HTTPServerConfig::HTTPServerConfig()
 {

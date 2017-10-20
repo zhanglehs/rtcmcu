@@ -17,7 +17,7 @@
 #include <string>
 #include <map>
 
-#include "util/log.h"
+#include "../util/log.h"
 
 #include "streamid.h"
 #include "fragment/fragment.h"

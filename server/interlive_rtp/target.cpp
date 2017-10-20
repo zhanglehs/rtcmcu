@@ -23,7 +23,7 @@
 #include <pwd.h>
 
 #include <appframe/singleton.hpp>
-#include <common/type_defs.h>
+#include "../util/type_defs.h"
 #include "connection_manager/FlvConnectionManager.h"
 #include "connection_manager/rtp_player_config.h"
 #include "connection_manager/RtpConnectionManager.h"
@@ -33,14 +33,14 @@
 
 #include "config_manager.h"
 
-#include "util/access.h"
-#include "util/log.h"
-#include "util/xml.h"
+#include "../util/access.h"
+#include "../util/log.h"
+#include "../util/xml.h"
 #include "utils/memory.h"
-#include "util/util.h"
-#include "util/backtrace.h"
+#include "../util/util.h"
+#include "../util/backtrace.h"
 #include "streamid.h"
-#include "common/proto.h"
+#include "cmd_protocol/proto.h"
 #include "define.h"
 #include "media_manager/cache_manager.h"
 #include "perf.h"

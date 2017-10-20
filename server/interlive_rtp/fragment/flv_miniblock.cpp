@@ -15,7 +15,7 @@
 
 #include "fragment.h"
 #include <utils/memory.h>
-#include <util/log.h>
+#include "../util/log.h"
 #include <iostream>
 
 using namespace std;

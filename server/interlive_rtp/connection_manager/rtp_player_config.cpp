@@ -1,6 +1,6 @@
 #include "rtp_player_config.h"
-#include "util/log.h"
-#include "util/util.h"
+#include "../util/log.h"
+#include "../util/util.h"
 #include <assert.h>
 
 RTPPlayerConfig::RTPPlayerConfig() :

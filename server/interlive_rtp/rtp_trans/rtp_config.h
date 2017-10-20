@@ -4,8 +4,8 @@
 #include <string.h>
 #include <stdlib.h>
 #ifndef  LIVESTREAMSDK_EXPORTS
-#include "../config_manager.h"
-#include "../../util/log.h"
+#include "config_manager.h"
+#include "../util/log.h"
 #endif
 
 #define MAX_INTERVAL  1000

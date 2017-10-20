@@ -13,7 +13,7 @@
 #ifndef __STREAMID_H__
 #define __STREAMID_H__
 
-#include <common/type_defs.h>
+#include "../util/type_defs.h"
 #include <stdio.h>
 #include <cstring>
 #include <string>

@@ -12,13 +12,12 @@
 #include <unistd.h>
 #include <assert.h>
 #include <string.h>
-//#include "stream_manager.h"
-#include "util/flv.h"
+#include "../util/flv.h"
 #include "utils/memory.h"
-#include "util/log.h"
+#include "../util/log.h"
 #include "utils/buffer.hpp"
-#include "util/flv2ts.h"
-#include "common/proto_define.h"
+#include "../util/flv2ts.h"
+#include "cmd_protocol/proto_define.h"
 
 #define DURATION_OFFSET 5
 
@@ -190,7 +189,7 @@ hls_fetch_ts(hls_ctx * ctx, uint64_t idx, char **ts, size_t * ts_len)
   return 0;
 }
 
-#include "util/access.h"
+#include "../util/access.h"
 
 static void
 gen_m3u8(hls_ctx * ctx)
