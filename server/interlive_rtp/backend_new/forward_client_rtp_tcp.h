@@ -54,7 +54,7 @@ protected:
 
 class RtpPushClient;
 // TODO: zhangle, rtp失败后应重试
-// pull处理得比较好了，但push还没有处理，包括生命周期的管理，pull得到的uploader不应再次push
+// pull处理得比较好了，但push还没有处理（主要是生命周期的管理和重试）
 class RtpPushTcpManager : public RtpTcpManager {
 public:
   int Init(struct event_base * ev_base);

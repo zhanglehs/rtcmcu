@@ -4,11 +4,9 @@
 #include "streamid.h"
 #include "utils/buffer.hpp"
 #include "target.h"
-//#include "portal.h"
 #include "util/flv.h"
 #include "config_manager.h"
 #include "uploader_config.h"
-//#include "whitelist_manager.h"
 #include "avformat/rtcp.h"
 #include "transport/rtp_send_queue.h"
 #include <stdint.h>
@@ -47,6 +45,7 @@ public:
   ~RtpConnection();
 
   bool udp;
+  bool relay_pull;
   enConnectionType type;
 
   struct sockaddr_in remote;
@@ -57,7 +56,6 @@ public:
   RtpManagerBase *manager;
   uint32_t audio_ssrc;
   uint32_t video_ssrc;
-  //media_manager::RTPMediaCache *rtp_cache;
 
   uint32_t send_bytes;
   uint32_t recv_bytes;

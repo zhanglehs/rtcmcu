@@ -216,6 +216,7 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   m_rtp_connection = c;
   c->streamid = m_streamid;
   c->type = RtpConnection::CONN_TYPE_UPLOADER;
+  c->relay_pull = true;
   //INF("uploader accepted. socket=%d, remote=%s:%d", connection->fd_socket, connection->remote_ip,
   //  (int)connection->remote.sin_port);
 

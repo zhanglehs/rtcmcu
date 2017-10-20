@@ -194,7 +194,7 @@ int RTPTransManager::_open_trans(RtpConnection *c, const RTPTransConfig *config)
 
   c->trans = trans;
   m_stream_groups[c->streamid.get_32bit_stream_id()].insert(c);
-  if (c->IsUploader()) {
+  if (c->IsUploader() && !c->relay_pull) {
     RelayManager::Instance()->StartPushRtp(c->streamid);
   }
   INF("open trans, streamid=%s, is_uploader=%d, remote_ip=%s", c->streamid.c_str(), (int)c->IsUploader(), c->remote_ip);
