@@ -1,8 +1,8 @@
 CC = g++
 CFLAGS = -g -m64 -Wall -fno-strict-aliasing -fomit-frame-pointer -Wfloat-equal -rdynamic -Wformat=2  -Wno-cast-qual -pipe
-CINCS = -I../ -I../../ -I../../lib/
+CINCS = -I../ -I../../lib/
 LIBS = -lrt 
-DEFS = -DHAVE_SCHED_GETAFFINITY -DNEW_FORWARD_SERVER
+DEFS = -DHAVE_SCHED_GETAFFINITY
 SOURCE_DIR = ../../
 
 

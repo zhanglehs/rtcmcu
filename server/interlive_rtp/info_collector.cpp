@@ -25,14 +25,6 @@ extern "C"
 
 #include <stat/stat_proc_pid.h>
 #include <stat/status_proc_pid.h>
-#ifdef NEW_FORWARD_SERVER
-//#include "backend_new/forward_server.h"
-//using namespace interlive::forward_server;
-#else
-#include "backend/forward_server_v2.h"
-#include "backend/forward_client_v2.h"
-#endif
-
 #include "player/module_player.h"
 
 #define IC_MAX_PROC_NAME 20

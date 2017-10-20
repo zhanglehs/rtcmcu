@@ -24,7 +24,6 @@ export MALLOC_FLAGS = -ltcmalloc
 export PROFILER_FLAGS = -lprofiler
 endif
 
-PRJLIB_DIR = $(SOURCE_DIR)/lib
 UTIL_DIR = ../util
 COMMON_DIR = ../common
 
@@ -54,12 +53,9 @@ CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
          -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include \
 		 -I$(THIRD_PARTY_DIR)/protobuf-3.2.0/out/include \
 		 -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include \
-		 $(INC_STAT) $(INC_UTILS) $(INC_REACTOR)
-CINCS += $(INC_MALLOC)
-FORWARD = forward_rtp
-RECEIVER = receiver_rtp
+		 $(INC_STAT) $(INC_REACTOR)
 
-BIN = $(FORWARD) $(RECEIVER)
+RECEIVER = receiver_rtp
 
 
 PUBLISHER_OBJS = $(PUBLISHER_DIR)/flv_publisher.o
@@ -102,14 +98,11 @@ BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_regis
 
 UPLOADEROBJS = $(UPLOADER_DIR)/RtpTcpConnectionManager.o $(UPLOADER_DIR)/uploader_config.o $(UPLOADER_DIR)/rtp_uploader_config.o
 
-FORWARDOBJS = forward_target.o $(UPLOADEROBJS) $(PLAYEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
-FORWARDLIBS = $(LIBS) -luuid -lexpat -lpthread
-
 RECEIVEROBJS = receiver.o $(UPLOADEROBJS) $(PLAYEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
 RECEIVERLIBS = $(LIBS) -luuid -lexpat -lpthread
 
 #all:add_hook version_file $(FORWARD) $(RECEIVER)
-all: version_file $(FORWARD) $(RECEIVER)
+all: version_file $(RECEIVER)
 	@echo -e "\033[32m[INF] Make interlive successfully. \033[0m"
 	@echo
 
@@ -126,17 +119,10 @@ version_file:
 		cd ../..; ./generate_version.sh; \
 	fi;
 
-forward_target.o:target.cpp 
-	make version_file
-	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"forward_rtp"' $(DEFS) $^ -o $@
 receiver.o:target.cpp 
 	make version_file
-	$(CC) $(CFLAGS) $(CINCS) -c -DMODULE_BACKEND -DMODULE_UPLOADER -DMODULE_PLAYER -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
+	$(CC) $(CFLAGS) $(CINCS) -c -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
 
-$(FORWARD):$(THIRD_PARTY_LIB) util_o common_o $(FORWARDOBJS)
-	$(CC) $(CFLAGS) $(FORWARDOBJS) $(FORWARDLIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
-	@echo -e "\033[32m[INF] Make forward successfully. \033[0m"
-	@echo
 $(RECEIVER):$(THIRD_PARTY_LIB) util_o common_o $(RECEIVEROBJS)
 	$(CC) $(CFLAGS) $(RECEIVEROBJS) $(RECEIVERLIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
 	@echo -e "\033[32m[INF] Make receiver successfully. \033[0m"
