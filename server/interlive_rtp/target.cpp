@@ -26,10 +26,10 @@
 #include <common/type_defs.h>
 #include "connection_manager/FlvConnectionManager.h"
 #include "connection_manager/rtp_player_config.h"
-#include "connection_manager/uploader_config.h"
 #include "connection_manager/RtpConnectionManager.h"
 #include "connection_manager/rtp_uploader_config.h"
 #include "relay/RelayManager.h"
+#include "rtp_trans/rtp_trans_manager.h"
 
 #include "config_manager.h"
 
@@ -57,7 +57,6 @@
 #endif
 
 #include "event_loop.h"
-#include "relay/module_backend.h"
 #include "relay/rtp_backend_config.h"
 using namespace lcdn::net;
 
@@ -86,15 +85,11 @@ static Perf *perf = NULL;
 
 static void init_config_manager(ConfigManager& config_manager, config& conf) {
   config_manager.set_config_module(&(conf.target_conf));
-  config_manager.set_config_module(&(conf.player));
+  config_manager.set_config_module(&(conf.flv_player_config));
   config_manager.set_config_module(&(conf.rtp_player_config));
-  config_manager.set_config_module(&(conf.uploader));
   config_manager.set_config_module(&(conf.rtp_uploader_config));
-  config_manager.set_config_module(&(conf.backend));
-  config_manager.set_config_module(&(conf.rtp_backend_config));
+  config_manager.set_config_module(&(conf.rtp_relay_config));
   config_manager.set_config_module(&(conf.cache_manager_config));
-  //config_manager.set_config_module(&(conf.http_config));
-  config_manager.set_config_module(&(conf.fcrtp_config));
   config_manager.set_config_module(&(conf.http_ser_config));
   config_manager.set_config_module(&(conf.publisher_config));
 
@@ -376,30 +371,6 @@ static int main_proc() {
       return 1;
     }
   }
-  else if (LOGGER_NET == g_conf.target_conf.logger_mode) {
-    ret = log_init_net(g_conf.target_conf.remote_logger_path, PROCESS_NAME, host_ip,
-      g_conf.backend.backend_listen_port, LOG_LEVEL_DBG);
-    if (0 != ret) {
-      fprintf(stderr,
-        "log_remote_path = %s, log init net failed. ret = %d\n",
-        g_conf.target_conf.remote_logger_path, ret);
-      return 1;
-    }
-    ret = access_init_net(g_conf.target_conf.remote_logger_path, PROCESS_NAME, host_ip,
-      g_conf.backend.backend_listen_port);
-    if (0 != ret) {
-      fprintf(stderr,
-        "remote_logger_path = %s, access_init net failed. ret = %d\n",
-        g_conf.target_conf.remote_logger_path, ret);
-      return 1;
-    }
-  }
-  else {
-    snprintf(g_log_ctx.prefix_tags, sizeof(g_log_ctx.prefix_tags) - 1,
-      "%s:%hu\tLOG\t%s", host_ip, g_conf.backend.backend_listen_port, PROCESS_NAME);
-    snprintf(g_conf_access.prefix_tags, sizeof(g_conf_access.prefix_tags) - 1,
-      "%s:%hu\tACCESS\t%s", host_ip, g_conf.backend.backend_listen_port, PROCESS_NAME);
-  }
 
   log_set_level(g_conf.target_conf.log_level);
   log_set_max_size(g_conf.target_conf.log_cut_size_MB * 1024 * 1024);
@@ -434,7 +405,7 @@ static int main_proc() {
    */
   signal(SIGPIPE, SIG_IGN);
 
-  HttpServerManager::Instance()->Init(main_base, g_conf.http_ser_config.listen_port);
+  HttpServerManager::Instance()->Init(main_base);
   //FlvCacheManager::Instance()->set_http_server(base_http_server);
 
   perf = Perf::get_instance();
@@ -445,7 +416,7 @@ static int main_proc() {
   RtpUdpServerManager::Instance()->Init(main_base);
   RelayManager::Instance()->Init(main_base);
 
-  if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.player))) {
+  if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.flv_player_config))) {
     ERR("player init failed.");
     return 1;
   }

@@ -9,7 +9,6 @@
 #include "util/flv.h"
 #include "utils/memory.h"
 #include "rtp_trans/rtp_trans_manager.h"
-#include "connection_manager/uploader_config.h"
 #include "avformat/rtcp.h"
 
 #include <errno.h>
@@ -27,7 +26,6 @@
 #include "media_manager/rtp2flv_remuxer.h"
 #include "media_manager/rtp_block_cache.h"
 #include "network/base_http_server.h"
-#include "relay/module_backend.h"
 #include "common_defs.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
@@ -349,7 +347,7 @@ int RtpManagerBase::OnReadPacket(RtpConnection *c, buffer *buf) {
       c->streamid = req.streamid;
       INF("receive upload request, streamid=%s, remote_ip=%s", c->streamid.c_str(), c->remote_ip);
 
-      RTPPlayerConfig *config = (RTPPlayerConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
+      RTPUploaderConfig *config = (RTPUploaderConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
       if (0 != RTPTransManager::Instance()->_open_trans(c, &config->get_rtp_trans_config())) {
         return -6;
       }
@@ -583,7 +581,7 @@ int RtpUdpServerManager::Init(struct event_base *ev_base) {
     return -1;
   }
 
-  int fd_socket = bindUdpSocket(config->listen_ip, config->listen_port);
+  int fd_socket = bindUdpSocket(config->listen_ip, config->listen_udp_port);
   if (fd_socket == -1) {
     ERR("rtp uploader failed to bind udp socket.");
     return -1;
@@ -719,7 +717,7 @@ void RtpTcpServerManager::DestroyInstance() {
 }
 
 int32_t RtpTcpServerManager::Init(struct event_base *ev_base) {
-  uploader_config *config = (uploader_config *)ConfigManager::get_inst_config_module("uploader");
+  RTPUploaderConfig *config = (RTPUploaderConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
   if (NULL == config) {
     ERR("rtp uploader failed to get corresponding config information.");
     return -1;
@@ -727,7 +725,7 @@ int32_t RtpTcpServerManager::Init(struct event_base *ev_base) {
 
   m_ev_base = ev_base;
 
-  int fd_socket = util_create_listen_fd("0.0.0.0", config->listen_port, 128);
+  int fd_socket = util_create_listen_fd(config->listen_ip, config->listen_tcp_port, 128);
   if (fd_socket < 0)	{
     ERR("create rtp tcp listen fd failed. ret = %d", fd_socket);
     return -1;

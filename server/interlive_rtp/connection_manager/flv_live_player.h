@@ -29,14 +29,14 @@ protected:
   media_manager::FlvCacheManager * _cmng;
 };
 
-class player_config;
+class FlvPlayerConfig;
 class CrossdomainLivePlayer : public BaseLivePlayer {
 public:
-  CrossdomainLivePlayer(LiveConnection *c, const player_config *config);
+  CrossdomainLivePlayer(LiveConnection *c, const FlvPlayerConfig *config);
   virtual void OnWrite();
 
 protected:
-  const player_config *m_config;
+  const FlvPlayerConfig *m_config;
 };
 
 #endif /* _CLIENT_H_ */

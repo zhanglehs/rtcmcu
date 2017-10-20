@@ -1,36 +1,9 @@
-﻿#ifndef FORWARD_CLIENT_RTP_TCP_H
-#define FORWARD_CLIENT_RTP_TCP_H
+﻿#ifndef _RELAY_RTP_RELAY_H_
+#define _RELAY_RTP_RELAY_H_
 
-#include <map>
-#include <common/proto.h>
-#include "rtp_trans/rtp_trans_manager.h"
-#include "streamid.h"
-#include "event.h"
-#include "config_manager.h"
 #include "connection_manager/RtpConnectionManager.h"
-
-class FCRTPConfig : public ConfigModule {
-private:
-	bool inited;
-
-public:
-	short listen_port;
-
-public:
-	FCRTPConfig();
-	virtual ~FCRTPConfig();
-	FCRTPConfig& operator=(const FCRTPConfig& rhv);
-	virtual void set_default_config();
-	virtual bool load_config(xmlnode* xml_config);
-	virtual bool reload() const;
-	virtual const char* module_name() const;
-	virtual void dump_config() const;
-
-private:
-	bool load_config_unreloadable(xmlnode* xml_config);
-	bool load_config_reloadable(xmlnode* xml_config);
-	bool resove_config();
-};
+#include <event.h>
+#include <map>
 
 class RtpPullClient;
 

@@ -7,7 +7,7 @@
 #include <string>
 #include <set>
 
-class player_config : public ConfigModule
+class FlvPlayerConfig : public ConfigModule
 {
 private:
     bool inited;
@@ -32,9 +32,9 @@ public:
     size_t crossdomain_len;
 
 public:
-    player_config();
-    virtual ~player_config();
-    player_config& operator=(const player_config& rhv);
+    FlvPlayerConfig();
+    virtual ~FlvPlayerConfig();
+    FlvPlayerConfig& operator=(const FlvPlayerConfig& rhv);
     virtual void set_default_config();
     virtual bool load_config(xmlnode* xml_config);
     virtual bool reload() const;
@@ -87,13 +87,13 @@ public:
 
 // INFO: zhangle, flv live play url like this:
 // http://192.168.245.133:8089/live/nodelay/v1/00000000000000000000000015958F05?token=98765
-class player_config;
+class FlvPlayerConfig;
 class LiveConnectionManager {
 public:
   static LiveConnectionManager* Instance();
   static void DestroyInstance();
 
-  int Init(struct event_base *ev_base, const player_config * config);
+  int Init(struct event_base *ev_base, const FlvPlayerConfig * config);
 
   void OnConnectionClosed(LiveConnection *c);
 
@@ -113,7 +113,7 @@ protected:
   struct event_base *m_ev_base;
   LibEventSocket m_ev_socket;
   struct event m_ev_timer;
-  const player_config *m_config;
+  const FlvPlayerConfig *m_config;
   std::map<uint32_t, std::set<LiveConnection*> > m_stream_groups;
   std::set<LiveConnection*> m_connections;
 

@@ -21,7 +21,6 @@
 #include "gtest/gtest.h"
 #include "util/unit_test_defs.h"
 #include "interlive/cache_manager.h"
-#include "interlive/module_backend.h"
 
 #define DBG(...) printf(...)
 #define WRN(...) printf(...)

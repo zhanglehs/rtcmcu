@@ -261,7 +261,7 @@ void ModPublisherConfig::set_default_config()
 
 bool ModPublisherConfig::load_config(xmlnode* xml_config)
 {
-	xmlnode *p = xmlgetchild(xml_config, "publisher", 0);
+  xmlnode *p = xmlgetchild(xml_config, module_name(), 0);
 
 	if (inited || !p)
 		return true;
@@ -297,8 +297,7 @@ bool ModPublisherConfig::reload() const
 
 const char* ModPublisherConfig::module_name() const
 {
-	static const char* name = "publisher";
-	return name;
+  return "flv_publisher";
 }
 
 void ModPublisherConfig::dump_config() const

@@ -10,12 +10,6 @@ class RTPPlayerConfig : public ConfigModule
 private:
     bool inited;
     RTPTransConfig _rtp_conf;
-public:
-    char listen_host[32];
-    char listen_ip[32];
-    int listen_port;
-    char private_key[64];
-    char super_key[64];
 
 public:
     RTPPlayerConfig();

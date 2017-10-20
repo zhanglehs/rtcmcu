@@ -13,10 +13,8 @@ private:
 public:
     char    listen_host[32];
     char    listen_ip[32];
-    int     listen_port;
-    char    listen_port_cstr[8];
-    char    private_key[64];
-    char    super_key[64];
+    int     listen_udp_port;
+    int     listen_tcp_port;
 
 public:
     RTPUploaderConfig();

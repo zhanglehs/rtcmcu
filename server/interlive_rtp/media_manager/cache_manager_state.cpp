@@ -23,7 +23,6 @@
 
 using namespace std;
 using namespace fragment;
-using namespace http;
 
 namespace {
   //void cache_manager_state(char* query, char* param, json_object* rsp, void* arg) {

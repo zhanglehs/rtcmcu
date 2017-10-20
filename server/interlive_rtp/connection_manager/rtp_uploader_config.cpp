@@ -7,24 +7,19 @@
 RTPUploaderConfig::RTPUploaderConfig() :
     inited(false), 
     _rtp_conf(), 
-    listen_port(0)
+    listen_udp_port(0)
 {
+  listen_tcp_port = 0;
     memset(listen_host, 0, sizeof(listen_host));
     memset(listen_ip, 0, sizeof(listen_ip));
-    memset(listen_port_cstr, 0, sizeof(listen_port_cstr));
-    memset(private_key, 0, sizeof(private_key));
-    memset(super_key, 0, sizeof(super_key));
 }
 
 RTPUploaderConfig& RTPUploaderConfig::operator=(const RTPUploaderConfig& rhv)
 {
     inited = rhv.inited;
-    listen_port = rhv.listen_port;
+    listen_udp_port = rhv.listen_udp_port;
     memcpy(listen_host, rhv.listen_host, sizeof(listen_host));
     memcpy(listen_ip, rhv.listen_ip, sizeof(listen_ip));
-    memcpy(listen_port_cstr, rhv.listen_port_cstr, sizeof(listen_port_cstr));
-    memcpy(private_key, rhv.private_key, sizeof(private_key));
-    memcpy(super_key, rhv.super_key, sizeof(super_key));
     _rtp_conf = rhv._rtp_conf;
     return *this;
 }
@@ -55,35 +50,31 @@ bool RTPUploaderConfig::load_config(xmlnode* xml_config)
         return false;
     }
 
-    q = xmlgetattr(xml_config, "listen_port");
+    q = xmlgetattr(xml_config, "listen_udp_port");
     if (!q)
     {
-        fprintf(stderr, "rtp uploader listen_port get failed.\n");
+        fprintf(stderr, "rtp uploader listen_udp_port get failed.\n");
         return false;
     }
-    listen_port = atoi(q);
-    strcpy(listen_port_cstr, q);
-    if (listen_port <= 0)
+    listen_udp_port = atoi(q);
+    if (listen_udp_port <= 0)
     {
-        fprintf(stderr, "rtp uploader listen_port not valid.\n");
+        fprintf(stderr, "rtp uploader listen_udp_port not valid.\n");
         return false;
     }
 
-    q = xmlgetattr(xml_config, "private_key");
+    q = xmlgetattr(xml_config, "listen_tcp_port");
     if (!q)
     {
-        fprintf(stderr, "rtp uploader private_key get failed.\n");
-        return false;
+      fprintf(stderr, "rtp uploader listen_tcp_port get failed.\n");
+      return false;
     }
-    strncpy(private_key, q, sizeof(private_key));
-
-    q = xmlgetattr(xml_config, "super_key");
-    if (!q)
+    listen_tcp_port = atoi(q);
+    if (listen_tcp_port <= 0)
     {
-        fprintf(stderr, "rtp uploader super_key get failed.\n");
-        return false;
+      fprintf(stderr, "rtp uploader listen_tcp_port not valid.\n");
+      return false;
     }
-    strncpy(super_key, q, sizeof(super_key));
 
     inited = true;
     return ret;

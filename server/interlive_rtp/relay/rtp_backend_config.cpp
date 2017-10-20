@@ -6,13 +6,13 @@
 #include <assert.h>
 #include "../target_config.h"
 
-RTPBackendConfig::RTPBackendConfig() : 
+RtpRelayConfig::RtpRelayConfig() : 
     inited(false), has_rtp_conf(false), _rtp_conf()
 {
     set_default_config();
 }
 
-RTPBackendConfig& RTPBackendConfig::operator=(const RTPBackendConfig& rhv)
+RtpRelayConfig& RtpRelayConfig::operator=(const RtpRelayConfig& rhv)
 {
     inited = rhv.inited;
     has_rtp_conf = rhv.has_rtp_conf;
@@ -22,13 +22,13 @@ RTPBackendConfig& RTPBackendConfig::operator=(const RTPBackendConfig& rhv)
     return *this;
 }
 
-void RTPBackendConfig::set_default_config()
+void RtpRelayConfig::set_default_config()
 {
     _rtp_conf.set_default_config();
     memset(listen_ip, 0, sizeof(listen_ip));
 }
 
-bool RTPBackendConfig::load_config(xmlnode* xml_config)
+bool RtpRelayConfig::load_config(xmlnode* xml_config)
 {
     if (inited)
         return true;
@@ -49,19 +49,19 @@ bool RTPBackendConfig::load_config(xmlnode* xml_config)
     return resove_config();
 }
 
-bool RTPBackendConfig::reload() const
+bool RtpRelayConfig::reload() const
 {
     bool ret = _rtp_conf.reload();
 
     return ret;
 }
 
-const char* RTPBackendConfig::module_name() const
+const char* RtpRelayConfig::module_name() const
 {
-    return "rtp_backend";
+    return "rtp_relay";
 }
 
-void RTPBackendConfig::dump_config() const
+void RtpRelayConfig::dump_config() const
 {
     _rtp_conf.dump_config();
 
@@ -70,7 +70,7 @@ void RTPBackendConfig::dump_config() const
         listen_ip);
 }
 
-bool RTPBackendConfig::resove_config()
+bool RtpRelayConfig::resove_config()
 {
     char ip[32] = { '\0' };
     int ret;

@@ -86,10 +86,9 @@ COMMON_OBJS = hls.o perf.o info_collector.o\
 CONNECTION_MANAGER_OBJS = $(CONNECTION_MANAGER_DIR)/FlvConnectionManager.o \
 			 $(CONNECTION_MANAGER_DIR)/rtp_player_config.o $(CONNECTION_MANAGER_DIR)/flv_live_player.o \
 			 $(CONNECTION_MANAGER_DIR)/RtpConnectionManager.o $(CONNECTION_MANAGER_DIR)/RtpConnection.o \
-			 $(CONNECTION_MANAGER_DIR)/uploader_config.o \
 			 $(CONNECTION_MANAGER_DIR)/rtp_uploader_config.o
 
-RELAY_OBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(RELAY_DIR)/module_backend.o \
+RELAY_OBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o \
 				$(RELAY_DIR)/rtp_backend_config.o \
 				$(RELAY_DIR)/RtpRelay.o $(RELAY_DIR)/RelayManager.o $(RELAY_DIR)/flv_publisher.o
 
@@ -143,6 +142,7 @@ clean-lib:
 	@echo
 
 clean:
+	@rm -f *.o
 	@cd $(UTIL_DIR);make clean
 	@cd $(COMMON_DIR);make clean
 	@cd $(MEDIA_MANAGER_DIR); rm -f *.o *.a

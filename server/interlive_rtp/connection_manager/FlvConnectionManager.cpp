@@ -36,23 +36,23 @@
 
 //////////////////////////////////////////////////////////////////////////
 
-player_config::player_config()
+FlvPlayerConfig::FlvPlayerConfig()
 {
   inited = false;
   set_default_config();
 }
 
-player_config::~player_config()
+FlvPlayerConfig::~FlvPlayerConfig()
 {
 }
 
-player_config& player_config::operator=(const player_config& rhv)
+FlvPlayerConfig& FlvPlayerConfig::operator=(const FlvPlayerConfig& rhv)
 {
-  memmove(this, &rhv, sizeof(player_config));
+  memmove(this, &rhv, sizeof(FlvPlayerConfig));
   return *this;
 }
 
-void player_config::set_default_config()
+void FlvPlayerConfig::set_default_config()
 {
   player_listen_ip[0] = 0;
   memset(player_listen_ip, 0, sizeof(player_listen_ip));
@@ -73,26 +73,26 @@ void player_config::set_default_config()
   crossdomain_len = 0;
 }
 
-bool player_config::load_config(xmlnode* xml_config)
+bool FlvPlayerConfig::load_config(xmlnode* xml_config)
 {
   ASSERTR(xml_config != NULL, false);
-  xmlnode *p = xmlgetchild(xml_config, "player", 0);
+  xmlnode *p = xmlgetchild(xml_config, module_name(), 0);
   ASSERTR(p != NULL, false);
 
   return load_config_unreloadable(p) && load_config_reloadable(p) && resove_config();
 }
 
-bool player_config::reload() const
+bool FlvPlayerConfig::reload() const
 {
   return true;
 }
 
-const char* player_config::module_name() const
+const char* FlvPlayerConfig::module_name() const
 {
-  return "player";
+  return "flv_player";
 }
 
-void player_config::dump_config() const
+void FlvPlayerConfig::dump_config() const
 {
   INF("player config: "
     "player_listen_ip=%s, player_listen_port=%u, "
@@ -107,7 +107,7 @@ void player_config::dump_config() const
     crossdomain_path.c_str(), crossdomain_len);
 }
 
-bool player_config::load_config_unreloadable(xmlnode* xml_config)
+bool FlvPlayerConfig::load_config_unreloadable(xmlnode* xml_config)
 {
   ASSERTR(xml_config != NULL, false);
   if (inited)
@@ -217,7 +217,7 @@ bool player_config::load_config_unreloadable(xmlnode* xml_config)
   return true;
 }
 
-bool player_config::load_config_reloadable(xmlnode* xml_config)
+bool FlvPlayerConfig::load_config_reloadable(xmlnode* xml_config)
 {
   ASSERTR(xml_config != NULL, false);
   char *q = NULL;
@@ -317,7 +317,7 @@ bool player_config::load_config_reloadable(xmlnode* xml_config)
   return true;
 }
 
-bool player_config::resove_config()
+bool FlvPlayerConfig::resove_config()
 {
   char ip[32] = { '\0' };
   int ret;
@@ -343,7 +343,7 @@ bool player_config::resove_config()
   return true;
 }
 
-bool player_config::parse_crossdomain_config()
+bool FlvPlayerConfig::parse_crossdomain_config()
 {
   int f = open(crossdomain_path.c_str(), O_RDONLY);
   if (-1 == f)
@@ -440,7 +440,7 @@ void LiveConnectionManager::DestroyInstance() {
   }
 }
 
-int LiveConnectionManager::Init(struct event_base *ev_base, const player_config * config) {
+int LiveConnectionManager::Init(struct event_base *ev_base, const FlvPlayerConfig * config) {
   m_ev_base = ev_base;
   m_config = config;
 

@@ -99,7 +99,7 @@ void FlvLivePlayer::OnWrite() {
 
 //////////////////////////////////////////////////////////////////////////
 
-CrossdomainLivePlayer::CrossdomainLivePlayer(LiveConnection *c, const player_config *config) : BaseLivePlayer(c), m_config(config) {
+CrossdomainLivePlayer::CrossdomainLivePlayer(LiveConnection *c, const FlvPlayerConfig *config) : BaseLivePlayer(c), m_config(config) {
 }
 
 void CrossdomainLivePlayer::OnWrite() {

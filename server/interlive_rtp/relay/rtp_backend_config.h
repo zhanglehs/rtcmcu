@@ -5,7 +5,7 @@
 #include "util/xml.h"
 #include "rtp_trans/rtp_config.h"
 
-class RTPBackendConfig : public ConfigModule
+class RtpRelayConfig : public ConfigModule
 {
 private:
   bool inited;
@@ -16,9 +16,9 @@ public:
   char listen_ip[32];
 
 public:
-  RTPBackendConfig();
-  virtual ~RTPBackendConfig() {}
-  RTPBackendConfig& operator=(const RTPBackendConfig& rhv);
+  RtpRelayConfig();
+  virtual ~RtpRelayConfig() {}
+  RtpRelayConfig& operator=(const RtpRelayConfig& rhv);
 
   virtual void set_default_config();
   virtual bool load_config(xmlnode* xml_config);

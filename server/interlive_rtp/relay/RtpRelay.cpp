@@ -4,11 +4,10 @@
 #include "util/util.h"
 #include "common/proto_rtp_rtcp.h"
 #include "rtp_backend_config.h"
-#include "module_backend.h"
 #include "target.h"
-#include "connection_manager/RtpConnectionManager.h"
 #include "connection_manager/FlvConnectionManager.h"
-#include "connection_manager/uploader_config.h"
+#include "connection_manager/rtp_uploader_config.h"
+#include "rtp_trans/rtp_trans_manager.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 
@@ -118,8 +117,8 @@ bool RtpPullClient::IsUseless() {
 void RtpPullClient::GetNextNode() {
   m_last_retry_time = time(NULL);
   m_next_node_host = "127.0.0.1";
-  m_next_node_rtp_port = 8102;
-  GetSdp(m_next_node_host.c_str(), 8142);
+  m_next_node_rtp_port = 8142;
+  GetSdp(m_next_node_host.c_str(), 8102);
 }
 
 int RtpPullClient::GetSdp(const char *next_node_host, unsigned short next_node_http_port) {
@@ -235,7 +234,7 @@ void RtpPullClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   buffer_append(c->wb, reqbuf);
   buffer_free(reqbuf);
 
-  RTPBackendConfig* cfg_rtp_backend = (RTPBackendConfig*)ConfigManager::get_inst_config_module("rtp_backend");
+  RtpRelayConfig* cfg_rtp_backend = (RtpRelayConfig*)ConfigManager::get_inst_config_module("rtp_relay");
   const RTPTransConfig* cfg_rtp_trans = cfg_rtp_backend->get_rtp_conf();
   RTPTransManager::Instance()->_open_trans(c, const_cast<RTPTransConfig*>(cfg_rtp_trans));
 }
@@ -246,163 +245,6 @@ void RtpPullClient::OnError() {
 }
 
 //////////////////////////////////////////////////////////////////////////
-
-FCRTPConfig::FCRTPConfig()
-{
-	inited = false;
-	set_default_config();
-}
-
-FCRTPConfig::~FCRTPConfig()
-{
-
-}
-
-FCRTPConfig& FCRTPConfig::operator=(const FCRTPConfig& rhv)
-{
-	memmove(this, &rhv, sizeof(FCRTPConfig));
-	return *this;
-}
-
-void FCRTPConfig::set_default_config()
-{
-	listen_port = 2931;
-}
-
-bool FCRTPConfig::load_config(xmlnode* xml_config)
-{
-	ASSERTR(xml_config != NULL, false);
-	xml_config = xmlgetchild(xml_config, "rtp_backend", 0);
-	ASSERTR(xml_config != NULL, false);
-	xml_config = xmlgetchild(xml_config, module_name(), 0);
-	ASSERTR(xml_config != NULL, false);
-
-	return load_config_unreloadable(xml_config) && load_config_reloadable(xml_config) && resove_config();
-}
-
-bool FCRTPConfig::reload() const
-{
-	return true;
-}
-
-const char* FCRTPConfig::module_name() const
-{
-	return "fcrtp";
-}
-
-void FCRTPConfig::dump_config() const
-{
-	//#todo
-}
-
-bool FCRTPConfig::load_config_unreloadable(xmlnode* xml_config)
-{
-	ASSERTR(xml_config != NULL, false);
-
-	if (inited)
-		return true;
-
-	const char *q = NULL;
-
-	q = xmlgetattr(xml_config, "listen_port");
-	if (!q)
-	{
-		fprintf(stderr, "fsrtp_listen_port get failed.\n");
-		return false;
-	}
-	listen_port = (uint16_t)strtoul(q, NULL, 10);
-	if (listen_port <= 0)
-	{
-		fprintf(stderr, "fsrtp_listen_port not valid.\n");
-		return false;
-	}
-
-	inited = true;
-	return true;
-}
-
-bool FCRTPConfig::load_config_reloadable(xmlnode* xml_config)
-{
-	return true;
-}
-
-bool FCRTPConfig::resove_config()
-{
-	return true;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-void get_upstreamrinfo_done(struct evhttp_request* req, void* arg)
-{
-	//if (!arg)
-	//{
-	//	return;
-	//}
-
-	//ForwardClientRtpTCP* c = (ForwardClientRtpTCP*)arg;
-
-	//ForwardClientRtpTCPMgr* manager = (ForwardClientRtpTCPMgr*)c->manager;
-
-
-	//if (!req)
-	//{
-	//	c->state = FORWARD_RTP_TCP_CLIENT_RTP_ERROR;
-	//	return;
-	//}
-
-	//if (req->response_code != 200)
-	//{
-	//	ERR("get upstreamrinfo error streamid %s ret %d",c->stream_id.unparse().c_str(),req->response_code);
-	//	c->state = FORWARD_RTP_TCP_CLIENT_RTP_ERROR;
-	//	return;
-	//}
-
-	//if (!EVBUFFER_LENGTH(req->input_buffer)) {
-	//	ERR("get upstreamrinfo error streamid %s length %d",c->stream_id.unparse().c_str(),(int)EVBUFFER_LENGTH(req->input_buffer));
-	//	c->state = FORWARD_RTP_TCP_CLIENT_RTP_ERROR;
-	//	return;
-	//}
-	//json_object* response_body_json = json_tokener_parse(reinterpret_cast<char*>(EVBUFFER_DATA(req->input_buffer)));
-	//if (response_body_json) {
-	//	json_object* response_success_json = json_object_object_get(response_body_json, "success");
-	//	json_bool success = json_object_get_boolean(response_success_json);
-	//	json_object* response_code_json = json_object_object_get(response_body_json, "code");
-	//	int32_t code = json_object_get_int(response_code_json);
-	//	json_object* response_description_json = json_object_object_get(response_body_json, "description");
-	//	const char *description = json_object_to_json_string(response_description_json);
-	//	if (!success)
-	//	{
-	//		return;
-	//	}
-	//	json_object* response_forwards_json = json_object_object_get(response_body_json, "forwards");
-	//	int forwards_count = json_object_array_length(response_forwards_json);
-	//	if (forwards_count > 0)
-	//	{
-	//		json_object* response_forward_json = json_object_array_get_idx(response_forwards_json, 0);
-
-	//		json_object* response_ip_json = json_object_object_get(response_forward_json, "ip");
-	//		const char *ip = json_object_get_string(response_ip_json);
-
-	//		json_object* response_player_port_json = json_object_object_get(response_forward_json, "player_port");
-	//		uint32_t player_port = json_object_get_int(response_player_port_json);
-
-	//		json_object* response_uploader_port_json = json_object_object_get(response_forward_json, "uploader_port");
-	//		uint32_t uploader_port = json_object_get_int(response_uploader_port_json);
-
-	//		c->playerport = uploader_port;
-	//		c->sdpport = player_port;
-
-	//		if (util_ipstr2ip(ip, &c->ip)) {
-	//			ERR("get upstreamrinfo error streamid %s ip %s",c->stream_id.unparse().c_str(),ip);
-	//			return;
-	//		}
-
-	//		manager->getSdpInfo(c);
-	//	}
-	//}
-}
-
 
 RtpPullTcpManager::RtpPullTcpManager() {
   m_ev_base = NULL;
@@ -536,18 +378,18 @@ int RtpPushClient::Start() {
 
 int RtpPushClient::GetNextNode() {
   // TODO: zhangle, is just test code
-  uploader_config *config = (uploader_config *)ConfigManager::get_inst_config_module("uploader");
+  RTPUploaderConfig *config = (RTPUploaderConfig *)ConfigManager::get_inst_config_module("rtp_uploader");
   if (NULL == config) {
     ERR("rtp uploader failed to get corresponding config information.");
     return -1;
   }
-  if (config->listen_port == 8103) {
+  if (config->listen_tcp_port == 8143) {
     return -1;
   }
 
   m_next_node_host = "127.0.0.1";
-  m_next_node_rtp_port = 8103;
-  PutSdp(m_next_node_host.c_str(), 8143);
+  m_next_node_rtp_port = 8143;
+  PutSdp(m_next_node_host.c_str(), 8103);
   return 0;
 }
 
@@ -666,7 +508,7 @@ void RtpPushClient::ConnectRtpServer(const char *next_node_host, unsigned short 
   buffer_append(c->wb, reqbuf);
   buffer_free(reqbuf);
 
-  RTPBackendConfig* cfg_rtp_backend = (RTPBackendConfig*)ConfigManager::get_inst_config_module("rtp_backend");
+  RtpRelayConfig* cfg_rtp_backend = (RtpRelayConfig*)ConfigManager::get_inst_config_module("rtp_relay");
   const RTPTransConfig* cfg_rtp_trans = cfg_rtp_backend->get_rtp_conf();
   RTPTransManager::Instance()->_open_trans(c, const_cast<RTPTransConfig*>(cfg_rtp_trans));
 }
