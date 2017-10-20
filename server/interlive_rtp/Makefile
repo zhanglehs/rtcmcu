@@ -48,16 +48,13 @@ PLAYER_DIR = player
 UPLOADER_DIR = uploader
 TRANSPORT_DIR = transport
 RTPTRANS_DIR = rtp_trans
-CMDSERVER_DIR = ../network/cmdserver
 
-CINCS += -I$(MEDIA_MANAGER_DIR)/ -I$(FRAGMENT_DIR)/ -I$(UPLOADER_DIR) -I$(BACKEND_DIR) -I$(PUBLISHER_DIR) -I$(COMMON_DIR)
 CINCS += -I. 
 CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
          -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include \
 		 -I$(THIRD_PARTY_DIR)/protobuf-3.2.0/out/include \
 		 -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include \
-		 $(INC_STAT) $(INC_UTILS) $(INC_REACTOR) -I../network -I$(CMDSERVER_DIR)
-CINCS += -I$(UTIL_DIR)
+		 $(INC_STAT) $(INC_UTILS) $(INC_REACTOR)
 CINCS += $(INC_MALLOC)
 FORWARD = forward_rtp
 RECEIVER = receiver_rtp
@@ -86,30 +83,22 @@ RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTP
 
 COMMONOBJS = hls.o perf.o info_collector.o\
 			 libcachemanager.a libfragment.a config_manager.o \
-			 $(UTIL_DIR)/connection.o\
 			 $(NETWORK_DIR)/base_http_server.o\
 			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
 			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
-			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o $(DIR_LIB_UTILS)/memory.o $(UTIL_DIR)/session.o \
-			 $(UTIL_DIR)/md5.o $(UTIL_DIR)/access.o $(UTIL_DIR)/hashtable.o $(UTIL_DIR)/rbtree.o \
-			 $(UTIL_DIR)/util.o $(UTIL_DIR)/backtrace.o $(UTIL_DIR)/levent.o $(UTIL_DIR)/city.o $(UTIL_DIR)/bits.o\
-			 $(UTIL_DIR)/statfile.o $(UTIL_DIR)/report.o $(UTIL_DIR)/report_stats.o $(UTIL_DIR)/flv.o $(UTIL_DIR)/murmur_hash.o\
+			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o $(DIR_LIB_UTILS)/memory.o \
+			 $(UTIL_DIR)/md5.o $(UTIL_DIR)/access.o \
+			 $(UTIL_DIR)/util.o $(UTIL_DIR)/backtrace.o $(UTIL_DIR)/bits.o\
+			 $(UTIL_DIR)/statfile.o $(UTIL_DIR)/flv.o \
 			 $(AVFORMAT_OBJS) $(AVCODEC_OBJS) $(PUBLISHER_OBJS) \
 			 $(LIBXML) $(LIBUUID) $(THIRD_PARTY_LIB) $(PROTOBUF_DIR)/proto_rtp_ext.pb.o
 
 PLAYEROBJS = $(PLAYER_DIR)/module_player.o \
 			 $(PLAYER_DIR)/rtp_player_config.o $(PLAYER_DIR)/flv_live_player.o
 
-ifeq ($(BACKEND_DIR), backend_new)
 BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
 				$(BACKEND_DIR)/rtp_backend_config.o \
 				$(BACKEND_DIR)/forward_client_rtp_tcp.o
-else
-BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
-				$(BACKEND_DIR)/forward_client.o \
-				$(BACKEND_DIR)/forward_server_v2.o $(BACKEND_DIR)/forward_client_v2.o \
-				$(BACKEND_DIR)/rtp_backend_config.o
-endif
 
 UPLOADEROBJS = $(UPLOADER_DIR)/RtpTcpConnectionManager.o $(UPLOADER_DIR)/uploader_config.o $(UPLOADER_DIR)/rtp_uploader_config.o
 
@@ -168,7 +157,6 @@ $(STATIC_LIB_REACTOR):
 clean-lib:
 	@cd $(DIR_LIB); make clean-libevent; make clean-json-c; make clean-libstat; make clean-lreactor;
 	@cd $(DIR_LIB); rm -f version.h;
-	@cd $(CMDSERVER_DIR); make clean;
 	@echo
 	@echo -e "\033[32m[INF] Clean lib successfully. \033[0m"
 	@echo

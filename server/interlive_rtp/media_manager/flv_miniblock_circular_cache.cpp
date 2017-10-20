@@ -21,7 +21,6 @@
 #include "util/util.h"
 #include "utils/memory.h"
 #include "util/log.h"
-#include "util/levent.h"
 #include "util/flv.h"
 #include "cache_manager.h"
 #include "../backend_new/module_backend.h"

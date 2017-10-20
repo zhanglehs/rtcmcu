@@ -10,7 +10,7 @@
 * @see  cache_manager.h
 */
 
-#include "fragment.h"
+#include "fragment/fragment.h"
 #include "cache_manager.h"
 #include "media_manager/circular_cache.h"
 #include "fragment/fragment_generator.h"

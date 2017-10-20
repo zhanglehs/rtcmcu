@@ -8,7 +8,7 @@
 #ifndef COMMON_DEFS_
 #define COMMON_DEFS_
 
-#include "cache_manager.h"
+#include "media_manager/cache_manager.h"
 
 #define DEF_FC_CAPABILITY_MAX            (500)
 #define DEF_FC_CAPABILITY_DEFAULT        (500)

@@ -4,7 +4,7 @@
 #include "util/log.h"
 #include "util/access.h"
 #include "fragment/fragment.h"
-#include "connection.h"
+#include "util/connection.h"
 #include "target.h"
 #include "media_manager/cache_manager.h"
 #include "player/module_player.h"

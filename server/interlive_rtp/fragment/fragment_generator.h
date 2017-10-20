@@ -22,7 +22,7 @@
 #include "util/flv2ts.h"
 
 #include "fragment.h"
-#include "cache_manager_config.h"
+#include "media_manager/cache_manager_config.h"
 
 #define FLV_BLOCK_VERSION_2 2
 #define FLV_FRAGMENT_VERSION_2 2

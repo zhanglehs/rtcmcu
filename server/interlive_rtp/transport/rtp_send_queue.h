@@ -11,14 +11,12 @@
 #include <string>
 #include <deque>
 #include <list>
-//#include <ext/hash_map>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <iostream>
 #include "utils/buffer.hpp"
-#include "util/levent.h"
 #include "rtp_trans/rtp_trans_manager.h"
 
 typedef struct RTPSendQueueSlot {

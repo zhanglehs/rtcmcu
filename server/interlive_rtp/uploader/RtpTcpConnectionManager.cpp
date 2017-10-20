@@ -1,5 +1,5 @@
 ﻿#include "uploader/RtpTcpConnectionManager.h"
-#include "log.h"
+#include "util/log.h"
 #include "util/util.h"
 #include "common/proto.h"
 #include "common/proto_define.h"
@@ -12,11 +12,9 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 #include <string.h>
-#include "util/report.h"
 #include "util/access.h"
 #include "util/util.h"
 #include "assert.h"
-//#include "target_uploader.h"
 #include "target_config.h"
 #include "perf.h"
 #include "player/rtp_player_config.h"

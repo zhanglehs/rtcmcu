@@ -33,8 +33,6 @@
 
 #include <uuid/uuid.h>
 
-#include "util/city.h" 
-
 #ifdef _WIN32
 #define NULL 0
 #endif

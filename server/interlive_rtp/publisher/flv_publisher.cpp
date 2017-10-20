@@ -1,8 +1,8 @@
 ﻿#include "flv_publisher.h"
 #include "../../util/log.h"
-#include "util.h"
+#include "util/util.h"
 #include "errno.h"
-#include "fragment.h"
+#include "fragment/fragment.h"
 #include "../appframe/singleton.hpp"
 #include <netinet/tcp.h>
 #include <netinet/in.h>
@@ -126,32 +126,32 @@ static void client_handler(int fd, short which, void* arg)
 static void enable_write(FLVPublisher* p) {
 
 	TRC("enable_write: enable write\n");
-	levent_del(&(p->ev));
-	levent_set(&(p->ev), p->fd, EV_READ | EV_WRITE | EV_PERSIST, client_handler,p);
+	event_del(&(p->ev));
+	event_set(&(p->ev), p->fd, EV_READ | EV_WRITE | EV_PERSIST, client_handler,p);
 	event_base_set(g_ev_base, &(p->ev));
-	levent_add(&(p->ev), 0);
+	event_add(&(p->ev), 0);
 }
 static void disable_write(FLVPublisher* p) {
 	TRC("disable_write: disable write\n");
-	levent_del(&(p->ev));
-	levent_set(&(p->ev), p->fd, EV_READ | EV_PERSIST, client_handler, p);
+	event_del(&(p->ev));
+	event_set(&(p->ev), p->fd, EV_READ | EV_PERSIST, client_handler, p);
 	event_base_set(g_ev_base, &(p->ev));
-	levent_add(&(p->ev), 0);
+	event_add(&(p->ev), 0);
 }
 
 static void register_client_handler(FLVPublisher* p)
 {
-	levent_set(&p->ev, p->fd, EV_READ | EV_WRITE | EV_PERSIST,
+	event_set(&p->ev, p->fd, EV_READ | EV_WRITE | EV_PERSIST,
 	client_handler, (void *)p);
 	event_base_set(g_ev_base, &(p->ev));
-	levent_add(&p->ev, 0);
+	event_add(&p->ev, 0);
 }
 
 static void close_client(FLVPublisher* p) {
 	if (p->state >= FLV_PUBLISHER_STATE_CONNECTING && p->fd >0)
 	{
 		DBG("close publisher streamid %s",p->stream_id.unparse().c_str());
-		levent_del(&p->ev);
+		event_del(&p->ev);
 		close(p->fd);
 	}
 

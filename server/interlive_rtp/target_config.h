@@ -2,7 +2,6 @@
 #define __TARGET_CONFIG_H
 
 #include <util/log.h>
-#include <util/common.h>
 #include <string>
 #include "config_manager.h"
 #include "util/access.h"

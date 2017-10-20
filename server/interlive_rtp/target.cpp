@@ -34,21 +34,15 @@
 #include "config_manager.h"
 
 #include "util/access.h"
-#include "util/common.h"
 #include "util/log.h"
 #include "util/xml.h"
-#include "util/hashtable.h"
 #include "utils/memory.h"
 #include "util/util.h"
-#include "util/session.h"
 #include "util/backtrace.h"
-#include "util/levent.h"
-#include "util/report.h"
-#include "util/report_stats.h"
 #include "streamid.h"
 #include "common/proto.h"
 #include "define.h"
-#include "cache_manager.h"
+#include "media_manager/cache_manager.h"
 #include "perf.h"
 #include "info_collector.h"
 #include "network/base_http_server.h"
@@ -212,10 +206,8 @@ static void server_exit()
   Perf::destory();
   INF("begin to backtrace fini...");
   backtrace_fini();
-  report_fini();
   INF("program stopping...");
   log_fini();
-  levent_fini();
   //event_base_free(main_base);
 }
 
@@ -532,11 +524,6 @@ int main(int argc, char **argv) {
   ret = backtrace_init(".", PROCESS_NAME, g_ver_str);
   if (0 != ret) {
     fprintf(stderr, "backtrace init failed. ret = %d\n", ret);
-    return 1;
-  }
-  ret = levent_init();
-  if (0 != ret) {
-    fprintf(stderr, "levent_init failed. ret = %d\n", ret);
     return 1;
   }
 

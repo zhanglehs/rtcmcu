@@ -2,10 +2,10 @@
 #define FLV_PUBLISHER_H
 #include <map>
 #include "streamid.h"
-#include "levent.h"
+//#include "levent.h"
 #include "event.h"
 #include <common/proto.h>
-#include "cache_manager.h"
+#include "media_manager/cache_manager.h"
 //#include "../whitelist_manager.h"
 #include "config_manager.h"
 #include <list>
