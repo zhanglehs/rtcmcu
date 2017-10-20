@@ -1,5 +1,5 @@
-#ifndef _CLIENT_H_
-#define _CLIENT_H_
+#ifndef _CONNECTION_MANAGER_FLV_LIVE_PLAYER_H_
+#define _CONNECTION_MANAGER_FLV_LIVE_PLAYER_H_
 
 class LiveConnection;
 class BaseLivePlayer {

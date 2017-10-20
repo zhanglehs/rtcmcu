@@ -7,7 +7,7 @@
 #include "util/connection.h"
 #include "target.h"
 #include "media_manager/cache_manager.h"
-#include "connection_manager/module_player.h"
+#include "connection_manager/FlvConnectionManager.h"
 
 #define HTTP_CONNECTION_HEADER "Connection: Close\r\n"
 #define NOCACHE_HEADER "Expires: -1\r\nCache-Control: private, max-age=0\r\nPragma: no-cache\r\n"

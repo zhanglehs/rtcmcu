@@ -1,4 +1,4 @@
-﻿#include "forward_client_rtp_tcp.h"
+﻿#include "relay/RtpRelay.h"
 #include "json.h"
 #include "evhttp.h"
 #include "util/util.h"
@@ -6,8 +6,9 @@
 #include "rtp_backend_config.h"
 #include "module_backend.h"
 #include "target.h"
-#include "connection_manager/RtpTcpConnectionManager.h"
-#include "connection_manager/module_player.h"
+#include "connection_manager/RtpConnectionManager.h"
+#include "connection_manager/FlvConnectionManager.h"
+#include "connection_manager/uploader_config.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 

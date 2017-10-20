@@ -1,13 +1,13 @@
 #ifndef __CONFIG_TMP_H
 #define __CONFIG_TMP_H
 
-#include "connection_manager/module_player.h"
+#include "connection_manager/FlvConnectionManager.h"
 #include "connection_manager/rtp_player_config.h"
 #include "connection_manager/uploader_config.h"
 #include "connection_manager/rtp_uploader_config.h"
 #include "relay/module_backend.h"
 #include "relay/rtp_backend_config.h"
-#include "relay/forward_client_rtp_tcp.h"
+#include "relay/RtpRelay.h"
 #include "media_manager/cache_manager_config.h"
 #include "network/base_http_server.h"
 #include "target_config.h"

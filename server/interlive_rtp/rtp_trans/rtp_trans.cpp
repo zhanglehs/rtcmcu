@@ -5,6 +5,7 @@
 #include "rtp_trans.h"
 #include "rtp_trans_manager.h"
 #include "util/log.h"
+#include "rtp_sender_trans.h"
 
 void RTPTrans::on_timer(uint64_t now) {
   if (_sessions_map.empty()) {

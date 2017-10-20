@@ -18,8 +18,7 @@
 #include <deque>
 
 #include "cache_manager.h"
-#include <appframe/singleton.hpp>
-//#include "whitelist_manager.h"
+//#include <appframe/singleton.hpp>
 #include <json.h>
 
 using namespace std;

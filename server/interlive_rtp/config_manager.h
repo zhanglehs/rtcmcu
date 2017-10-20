@@ -29,7 +29,6 @@ public:
     std::string file_name;
 };
 
-
 class ConfigModule
 {
 public:

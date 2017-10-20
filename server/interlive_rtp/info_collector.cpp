@@ -2,7 +2,6 @@
 
 #include "common/type_defs.h"
 #include "util/log.h"
-//#include "module_tracker.h"
 #include "target.h"
 #include <common/protobuf/InterliveServerStat.pb.h>
 
@@ -25,7 +24,7 @@ extern "C"
 
 #include <stat/stat_proc_pid.h>
 #include <stat/status_proc_pid.h>
-#include "player/module_player.h"
+#include "connection_manager/FlvConnectionManager.h"
 
 #define IC_MAX_PROC_NAME 20
 #define IC_SHELL_BUFFER_MAX 512

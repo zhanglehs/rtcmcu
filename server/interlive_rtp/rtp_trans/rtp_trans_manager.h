@@ -1,24 +1,23 @@
 ﻿#ifndef __RTP_TRANS_MANAGER_
 #define __RTP_TRANS_MANAGER_
 
-#include <appframe/array_object_pool.hpp>
-#include "avformat/sdp.h"
 #include "avformat/rtp.h"
-//#include "rtp_media_manager_helper.h"
-#include "rtp_types.h"
-#include "rtp_sender_trans.h"
-#include "rtp_receiver_trans.h"
-#include "rtp_trans_stat.h"
-#include "streamid.h"
-#include <deque>
-#include <stdint.h>
-#include <time.h>
 #include <event.h>
+#include <stdint.h>
+#include <string>
+#include <map>
+#include <set>
 
 const int MAX_RTP_LEN = (10 * 1024);
 
 class RtpConnection;
 class RtpCacheManager;
+class RTPTransConfig;
+class StreamId_Ext;
+
+namespace avformat {
+  class RtcpPacket;
+}
 
 class RTPTransManager {
   friend class RTPTrans;

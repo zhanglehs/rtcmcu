@@ -3,7 +3,6 @@
 #include "util/util.h"
 #include "errno.h"
 #include "fragment/fragment.h"
-#include "../appframe/singleton.hpp"
 #include <netinet/tcp.h>
 #include <netinet/in.h>
 

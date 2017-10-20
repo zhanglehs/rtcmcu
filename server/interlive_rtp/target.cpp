@@ -24,12 +24,12 @@
 
 #include <appframe/singleton.hpp>
 #include <common/type_defs.h>
-#include "player/module_player.h"
-#include "player/rtp_player_config.h"
-
-#include "uploader/uploader_config.h"
-#include "uploader/RtpTcpConnectionManager.h"
-#include "uploader/rtp_uploader_config.h"
+#include "connection_manager/FlvConnectionManager.h"
+#include "connection_manager/rtp_player_config.h"
+#include "connection_manager/uploader_config.h"
+#include "connection_manager/RtpConnectionManager.h"
+#include "connection_manager/rtp_uploader_config.h"
+#include "relay/RelayManager.h"
 
 #include "config_manager.h"
 
@@ -48,7 +48,6 @@
 #include "network/base_http_server.h"
 #include "config.h"
 #include "target_config.h"
-#include "player/module_player.h"
 
 #include "evhttp.h"
 
@@ -58,11 +57,11 @@
 #endif
 
 #include "event_loop.h"
-#include "backend_new/module_backend.h"
-#include "backend_new/rtp_backend_config.h"
+#include "relay/module_backend.h"
+#include "relay/rtp_backend_config.h"
 using namespace lcdn::net;
 
-#include "publisher/flv_publisher.h"
+#include "relay/flv_publisher.h"
 
 using namespace std;
 using namespace fragment;

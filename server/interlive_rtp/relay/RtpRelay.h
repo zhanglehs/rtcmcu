@@ -7,7 +7,7 @@
 #include "streamid.h"
 #include "event.h"
 #include "config_manager.h"
-#include "connection_manager/RtpTcpConnectionManager.h"
+#include "connection_manager/RtpConnectionManager.h"
 
 class FCRTPConfig : public ConfigModule {
 private:

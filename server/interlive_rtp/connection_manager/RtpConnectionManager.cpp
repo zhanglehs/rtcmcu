@@ -1,4 +1,6 @@
-﻿#include "connection_manager/RtpTcpConnectionManager.h"
+﻿#include "connection_manager/RtpConnectionManager.h"
+
+#include "connection_manager/RtpConnection.h"
 #include "util/log.h"
 #include "util/util.h"
 #include "common/proto.h"
@@ -6,6 +8,9 @@
 #include "common/proto_rtp_rtcp.h"
 #include "util/flv.h"
 #include "utils/memory.h"
+#include "rtp_trans/rtp_trans_manager.h"
+#include "connection_manager/uploader_config.h"
+#include "avformat/rtcp.h"
 
 #include <errno.h>
 #include <sys/types.h>
@@ -240,60 +245,6 @@ namespace {
   }
 
   std::map<uint32_t, std::set<struct evhttp_request*> > RtpSdpHttpHandler::m_sdp_requests;
-}
-
-//////////////////////////////////////////////////////////////////////////
-
-RtpConnection::RtpConnection() {
-  memset(this, 0, sizeof(RtpConnection));
-  ev_socket.fd = -1;
-}
-
-RtpConnection::~RtpConnection() {
-  ev_socket.Stop();
-
-  if (NULL != rb) {
-    buffer_free(rb);
-    rb = NULL;
-  }
-
-  if (NULL != wb) {
-    buffer_free(wb);
-    wb = NULL;
-  }
-}
-
-bool RtpConnection::IsPlayer() {
-  return type == CONN_TYPE_PLAYER;
-}
-
-bool RtpConnection::IsUploader() {
-  return type == CONN_TYPE_UPLOADER;
-}
-
-void RtpConnection::EnableWrite() {
-  if (udp) {
-    ((RtpUdpServerManager*)manager)->EnableWrite();
-  }
-  else {
-    ev_socket.EnableWrite();
-  }
-}
-
-void RtpConnection::DisableWrite() {
-  if (udp) {
-    ((RtpUdpServerManager*)manager)->DisableWrite();
-  }
-  else {
-    ev_socket.DisableWrite();
-  }
-}
-
-void RtpConnection::Destroy(RtpConnection *c) {
-  if (!c->udp) {
-    c->ev_socket.Stop();
-  }
-  c->manager->OnConnectionClosed(c);
 }
 
 //////////////////////////////////////////////////////////////////////////
@@ -808,21 +759,6 @@ void RtpTcpServerManager::OnSocketAcceptImpl(const int fd, const short which) {
     CreateConnection(&remote, fd_socket);
   }
 }
-
-//void RtpTcpServerManager::start_timer() {
-//  struct timeval tv;
-//  evtimer_set(&m_ev_timer, timer_cb, (void *)this);
-//  tv.tv_sec = 0;
-//  tv.tv_usec = 10000;
-//  event_base_set(m_ev_base, &m_ev_timer);
-//  evtimer_add(&m_ev_timer, &tv);
-//}
-//
-//void RtpTcpServerManager::timer_cb(const int fd, short which, void *arg) {
-//  RtpTcpServerManager *p = (RtpTcpServerManager*)arg;
-//  RTPTransManager::Instance()->on_timer();
-//  p->start_timer();
-//}
 
 RtpTcpServerManager* RtpTcpServerManager::m_inst = NULL;
 

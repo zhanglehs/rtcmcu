@@ -5,8 +5,8 @@
 #include "../target_config.h"
 #include "../avformat/FLV.h"
 #include "jitter_buffer.h"
+#include "avformat/sdp.h"
 
-#include <appframe/singleton.hpp>
 #include "../rtp_trans/rtp_config.h"
 #include "config.h"
 
@@ -16,8 +16,6 @@ using namespace avformat;
 using namespace fragment;
 using namespace std;
 static uint8_t h264_split_code[] = { 0, 0, 0, 1 };
-
-static config &_conf = *SINGLETON(config);
 
 namespace media_manager {
 

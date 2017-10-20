@@ -1,12 +1,11 @@
-#ifndef MODULE_PLAYER_H_
-#define MODULE_PLAYER_H_
+#ifndef _CONNECTION_MANAGER_FLV_CONNECTION_MANAGER_H_
+#define _CONNECTION_MANAGER_FLV_CONNECTION_MANAGER_H_
 
-#include "streamid.h"
-#include "connection_manager/RtpTcpConnectionManager.h"
+#include "connection_manager/RtpConnection.h"
 #include "config_manager.h"
-#include <linux/limits.h>
 #include <stdint.h>
 #include <string>
+#include <set>
 
 class player_config : public ConfigModule
 {

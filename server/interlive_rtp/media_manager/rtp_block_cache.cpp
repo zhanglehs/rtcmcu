@@ -20,6 +20,7 @@
 #include <algorithm>
 #include "cache_manager.h"
 #include "avformat/sdp.h"
+#include "relay/RelayManager.h"
 #include <deque>
 
 namespace media_manager {

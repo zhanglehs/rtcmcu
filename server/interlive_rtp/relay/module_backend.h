@@ -10,10 +10,6 @@
 
 #include "config_manager.h"
 #include <stdint.h>
-#include <event.h>
-#include <event2/http.h>
-
-class StreamId_Ext;
 
 class backend_config : public ConfigModule {
 private:
@@ -47,49 +43,6 @@ private:
   bool load_config_unreloadable(xmlnode* xml_config);
   bool load_config_reloadable(xmlnode* xml_config);
   bool resove_config();
-};
-
-class RtpPushTcpManager;
-class RtpPullTcpManager;
-
-class RelayManager {
-public:
-  static RelayManager* Instance();
-  static void DestroyInstance();
-
-  int Init(struct event_base *ev_base);
-
-  int StartPullRtp(const StreamId_Ext& stream_id);
-  int StopPullRtp(const StreamId_Ext& stream_id);
-  int StartPushRtp(const StreamId_Ext& stream_id);
-  int StopPushRtp(const StreamId_Ext& stream_id);
-
-protected:
-  RelayManager();
-  ~RelayManager();
-
-  RtpPushTcpManager *m_push_manager;
-  RtpPullTcpManager *m_pull_manager;
-  static RelayManager* m_inst;
-};
-
-class HttpServerManager {
-public:
-  static HttpServerManager* Instance();
-  static void DestroyInstance();
-
-  int Init(struct event_base *ev_base, unsigned short port);
-  int AddHandler(const char *path,
-    void(*cb)(struct evhttp_request *, void *), void *cb_arg);
-
-protected:
-  HttpServerManager();
-  ~HttpServerManager();
-  static void DefaultHandler(struct evhttp_request *requset, void *arg);
-
-  struct event_base* m_ev_base;
-  struct evhttp *m_ev_http;
-  static HttpServerManager* m_inst;
 };
 
 #endif

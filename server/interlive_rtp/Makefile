@@ -46,8 +46,8 @@ NETWORK_DIR = network
 CONNECTION_MANAGER_DIR = connection_manager
 RTPTRANS_DIR = rtp_trans
 
-CINCS += -I. 
-CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
+CINCS += -I. \
+         -I$(THIRD_PARTY_DIR)/json-c-0.11 \
          -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include \
 		 -I$(THIRD_PARTY_DIR)/protobuf-3.2.0/out/include \
 		 -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include \
@@ -83,14 +83,15 @@ COMMON_OBJS = hls.o perf.o info_collector.o\
 			 $(AVFORMAT_OBJS) $(AVCODEC_OBJS) \
 			 $(LIBXML) $(LIBUUID) $(THIRD_PARTY_LIB) $(PROTOBUF_DIR)/proto_rtp_ext.pb.o
 
-CONNECTION_MANAGER_OBJS = $(CONNECTION_MANAGER_DIR)/module_player.o \
+CONNECTION_MANAGER_OBJS = $(CONNECTION_MANAGER_DIR)/FlvConnectionManager.o \
 			 $(CONNECTION_MANAGER_DIR)/rtp_player_config.o $(CONNECTION_MANAGER_DIR)/flv_live_player.o \
-			 $(CONNECTION_MANAGER_DIR)/RtpTcpConnectionManager.o $(CONNECTION_MANAGER_DIR)/uploader_config.o \
+			 $(CONNECTION_MANAGER_DIR)/RtpConnectionManager.o $(CONNECTION_MANAGER_DIR)/RtpConnection.o \
+			 $(CONNECTION_MANAGER_DIR)/uploader_config.o \
 			 $(CONNECTION_MANAGER_DIR)/rtp_uploader_config.o
 
 RELAY_OBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(RELAY_DIR)/module_backend.o \
 				$(RELAY_DIR)/rtp_backend_config.o \
-				$(RELAY_DIR)/forward_client_rtp_tcp.o $(RELAY_DIR)/flv_publisher.o
+				$(RELAY_DIR)/RtpRelay.o $(RELAY_DIR)/RelayManager.o $(RELAY_DIR)/flv_publisher.o
 
 RECEIVER_OBJS = receiver.o $(CONNECTION_MANAGER_OBJS) $(RELAY_OBJS) $(RTP_TRANS_OBJS) $(COMMON_OBJS)
 RECEIVER_LIBS = $(LIBS) -luuid -lexpat -lpthread

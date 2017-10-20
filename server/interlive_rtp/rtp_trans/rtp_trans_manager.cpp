@@ -2,12 +2,14 @@
 
 #include "media_manager/cache_manager.h"
 #include "media_manager/rtp_block_cache.h"
-#include <appframe/singleton.hpp>
-#include "connection_manager/RtpTcpConnectionManager.h"
+#include "connection_manager/RtpConnectionManager.h"
 #include "relay/module_backend.h"
+#include "relay/RelayManager.h"
+#include "rtp_trans/rtp_sender_trans.h"
+#include "rtp_trans/rtp_receiver_trans.h"
+#include "avformat/sdp.h"
 
 using namespace std;
-
 
 RTPTransManager* RTPTransManager::Instance() {
   if (m_inst) {
