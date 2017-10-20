@@ -37,15 +37,13 @@ THIRD_PARTY_LIB = $(THIRD_PARTY_DIR)/json-c-0.11/.libs/libjson-c.a \
 
 MEDIA_MANAGER_DIR = media_manager
 PUBLISHER_DIR = publisher
-BACKEND_DIR = backend_new
+RELAY_DIR = relay
 PROTOBUF_DIR = ../common/protobuf
 FRAGMENT_DIR = fragment
 AVCODEC_DIR = avcodec
 AVFORMAT_DIR = avformat
 NETWORK_DIR = network
-PLAYER_DIR = player
-UPLOADER_DIR = uploader
-TRANSPORT_DIR = transport
+CONNECTION_MANAGER_DIR = connection_manager
 RTPTRANS_DIR = rtp_trans
 
 CINCS += -I. 
@@ -57,8 +55,6 @@ CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
 
 RECEIVER = receiver_rtp
 
-
-PUBLISHER_OBJS = $(PUBLISHER_DIR)/flv_publisher.o
 MEDIA_MANAGER_OBJS = $(MEDIA_MANAGER_DIR)/cache_manager.o $(MEDIA_MANAGER_DIR)/cache_manager_config.o $(MEDIA_MANAGER_DIR)/cache_manager_state.o \
 					 $(MEDIA_MANAGER_DIR)/stream_store.o $(MEDIA_MANAGER_DIR)/rtp_block_cache.o\
 					 $(MEDIA_MANAGER_DIR)/circular_cache.o  \
@@ -72,34 +68,32 @@ AVFORMAT_OBJS = $(AVFORMAT_DIR)/rtcp_dec.o $(AVFORMAT_DIR)/rtcp_enc.o $(AVFORMAT
 
 AVCODEC_OBJS = $(AVCODEC_DIR)/aac.o $(AVCODEC_DIR)/h264.o
 
-TRANSPORTOBJS = $(TRANSPORT_DIR)/rtp_send_queue.o
-
 RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTPTRANS_DIR)/rtp_trans_manager.o \
                  $(RTPTRANS_DIR)/rtp_sender_session.o $(RTPTRANS_DIR)/rtp_receiver_session.o $(RTPTRANS_DIR)/rtp_sender_trans.o $(RTPTRANS_DIR)/rtp_receiver_trans.o
 
-COMMONOBJS = hls.o perf.o info_collector.o\
+COMMON_OBJS = hls.o perf.o info_collector.o\
 			 libcachemanager.a libfragment.a config_manager.o \
-			 $(NETWORK_DIR)/base_http_server.o\
+			 $(NETWORK_DIR)/base_http_server.o $(NETWORK_DIR)/rtp_send_queue.o \
 			 $(COMMON_DIR)/proto.o $(COMMON_DIR)/proto_rtp_rtcp.o \
 			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
 			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o $(DIR_LIB_UTILS)/memory.o \
 			 $(UTIL_DIR)/md5.o $(UTIL_DIR)/access.o \
 			 $(UTIL_DIR)/util.o $(UTIL_DIR)/backtrace.o $(UTIL_DIR)/bits.o\
 			 $(UTIL_DIR)/statfile.o $(UTIL_DIR)/flv.o \
-			 $(AVFORMAT_OBJS) $(AVCODEC_OBJS) $(PUBLISHER_OBJS) \
+			 $(AVFORMAT_OBJS) $(AVCODEC_OBJS) \
 			 $(LIBXML) $(LIBUUID) $(THIRD_PARTY_LIB) $(PROTOBUF_DIR)/proto_rtp_ext.pb.o
 
-PLAYEROBJS = $(PLAYER_DIR)/module_player.o \
-			 $(PLAYER_DIR)/rtp_player_config.o $(PLAYER_DIR)/flv_live_player.o
+CONNECTION_MANAGER_OBJS = $(CONNECTION_MANAGER_DIR)/module_player.o \
+			 $(CONNECTION_MANAGER_DIR)/rtp_player_config.o $(CONNECTION_MANAGER_DIR)/flv_live_player.o \
+			 $(CONNECTION_MANAGER_DIR)/RtpTcpConnectionManager.o $(CONNECTION_MANAGER_DIR)/uploader_config.o \
+			 $(CONNECTION_MANAGER_DIR)/rtp_uploader_config.o
 
-BACKENDOBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(BACKEND_DIR)/module_backend.o \
-				$(BACKEND_DIR)/rtp_backend_config.o \
-				$(BACKEND_DIR)/forward_client_rtp_tcp.o
+RELAY_OBJS = $(PROTOBUF_DIR)/InterliveServerStat.pb.o $(PROTOBUF_DIR)/f2t_register_req.pb.o $(RELAY_DIR)/module_backend.o \
+				$(RELAY_DIR)/rtp_backend_config.o \
+				$(RELAY_DIR)/forward_client_rtp_tcp.o $(RELAY_DIR)/flv_publisher.o
 
-UPLOADEROBJS = $(UPLOADER_DIR)/RtpTcpConnectionManager.o $(UPLOADER_DIR)/uploader_config.o $(UPLOADER_DIR)/rtp_uploader_config.o
-
-RECEIVEROBJS = receiver.o $(UPLOADEROBJS) $(PLAYEROBJS) $(BACKENDOBJS) $(RTP_TRANS_OBJS) $(COMMONOBJS) $(TRANSPORTOBJS)
-RECEIVERLIBS = $(LIBS) -luuid -lexpat -lpthread
+RECEIVER_OBJS = receiver.o $(CONNECTION_MANAGER_OBJS) $(RELAY_OBJS) $(RTP_TRANS_OBJS) $(COMMON_OBJS)
+RECEIVER_LIBS = $(LIBS) -luuid -lexpat -lpthread
 
 #all:add_hook version_file $(FORWARD) $(RECEIVER)
 all: version_file $(RECEIVER)
@@ -123,8 +117,8 @@ receiver.o:target.cpp
 	make version_file
 	$(CC) $(CFLAGS) $(CINCS) -c -DPROCESS_NAME='"receiver_rtp"' $(DEFS) $^ -o $@
 
-$(RECEIVER):$(THIRD_PARTY_LIB) util_o common_o $(RECEIVEROBJS)
-	$(CC) $(CFLAGS) $(RECEIVEROBJS) $(RECEIVERLIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
+$(RECEIVER):$(THIRD_PARTY_LIB) util_o common_o $(RECEIVER_OBJS)
+	$(CC) $(CFLAGS) $(RECEIVER_OBJS) $(RECEIVER_LIBS) $(LFLAGS) $(MALLOC_FLAGS) $(PROFILER_FLAGS) -o $@
 	@echo -e "\033[32m[INF] Make receiver successfully. \033[0m"
 	@echo
 
@@ -154,14 +148,11 @@ clean:
 	@cd $(AVFORMAT_DIR); rm -f *.o *.a
 	@cd $(AVCODEC_DIR); rm -f *.o *.a
 	@cd $(FRAGMENT_DIR); rm -f *.o *.a
-	@cd $(UPLOADER_DIR); rm -f *.o *.a
-	@cd $(PLAYER_DIR); rm -f *.o
+	@cd $(CONNECTION_MANAGER_DIR); rm -f *.o
 	@cd $(PROTOBUF_DIR); rm -f *.o
 	@cd $(RTPTRANS_DIR); rm -f *.o
-	@cd $(BACKEND_DIR); rm -f *.o
+	@cd $(RELAY_DIR); rm -f *.o
 	@cd $(NETWORK_DIR); rm -f *.o
-	@cd $(TRANSPORT_DIR); rm -f *.o 
-	@cd $(PUBLISHER_DIR); rm -f *.o 
 
 	@echo -e "\033[32m[INF] Clean interlive successfully. \033[0m"
 	@echo

@@ -3,8 +3,8 @@
 #include "media_manager/cache_manager.h"
 #include "media_manager/rtp_block_cache.h"
 #include <appframe/singleton.hpp>
-#include "uploader/RtpTcpConnectionManager.h"
-#include "backend_new/module_backend.h"
+#include "connection_manager/RtpTcpConnectionManager.h"
+#include "relay/module_backend.h"
 
 using namespace std;
 

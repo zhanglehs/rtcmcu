@@ -3,11 +3,11 @@
 
 #include <map>
 #include <common/proto.h>
-#include "../rtp_trans/rtp_trans_manager.h"
-#include "../streamid.h"
+#include "rtp_trans/rtp_trans_manager.h"
+#include "streamid.h"
 #include "event.h"
 #include "config_manager.h"
-#include "uploader/RtpTcpConnectionManager.h"
+#include "connection_manager/RtpTcpConnectionManager.h"
 
 class FCRTPConfig : public ConfigModule {
 private:

@@ -2,7 +2,7 @@
 #define MODULE_PLAYER_H_
 
 #include "streamid.h"
-#include "uploader/RtpTcpConnectionManager.h"
+#include "connection_manager/RtpTcpConnectionManager.h"
 #include "config_manager.h"
 #include <linux/limits.h>
 #include <stdint.h>

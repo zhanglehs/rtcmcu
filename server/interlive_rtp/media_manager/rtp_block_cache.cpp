@@ -417,7 +417,7 @@ namespace media_manager {
 
 //////////////////////////////////////////////////////////////////////////
 #include "media_manager/rtp2flv_remuxer.h"
-#include "backend_new/module_backend.h"
+#include "relay/module_backend.h"
 
 RtpCacheManager::RtpCacheManager() {
   m_ev_timer = NULL;

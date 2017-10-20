@@ -6,8 +6,8 @@
 #include "rtp_backend_config.h"
 #include "module_backend.h"
 #include "target.h"
-#include "uploader/RtpTcpConnectionManager.h"
-#include "player/module_player.h"
+#include "connection_manager/RtpTcpConnectionManager.h"
+#include "connection_manager/module_player.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)
 

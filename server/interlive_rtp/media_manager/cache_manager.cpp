@@ -1,6 +1,6 @@
 ﻿#include "media_manager/cache_manager.h"
 
-#include "backend_new/module_backend.h"
+#include "relay/module_backend.h"
 #include "fragment/fragment_generator.h"
 #include "media_manager/cache_manager_config.h"
 #include "media_manager/circular_cache.h"

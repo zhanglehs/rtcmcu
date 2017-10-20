@@ -1,4 +1,4 @@
-﻿#include "uploader/RtpTcpConnectionManager.h"
+﻿#include "connection_manager/RtpTcpConnectionManager.h"
 #include "util/log.h"
 #include "util/util.h"
 #include "common/proto.h"
@@ -17,12 +17,12 @@
 #include "assert.h"
 #include "target_config.h"
 #include "perf.h"
-#include "player/rtp_player_config.h"
-#include "uploader/rtp_uploader_config.h"
+#include "connection_manager/rtp_player_config.h"
+#include "connection_manager/rtp_uploader_config.h"
 #include "media_manager/rtp2flv_remuxer.h"
 #include "media_manager/rtp_block_cache.h"
 #include "network/base_http_server.h"
-#include "backend_new/module_backend.h"
+#include "relay/module_backend.h"
 #include "common_defs.h"
 
 #define MAX_LEN_PER_READ (1024 * 128)

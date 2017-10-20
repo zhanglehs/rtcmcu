@@ -1,17 +1,17 @@
 #ifndef __CONFIG_TMP_H
 #define __CONFIG_TMP_H
 
-#include "player/module_player.h"
-#include "player/rtp_player_config.h"
-#include "uploader/uploader_config.h"
-#include "uploader/rtp_uploader_config.h"
-#include "backend_new/module_backend.h"
-#include "backend_new/rtp_backend_config.h"
-#include "backend_new/forward_client_rtp_tcp.h"
+#include "connection_manager/module_player.h"
+#include "connection_manager/rtp_player_config.h"
+#include "connection_manager/uploader_config.h"
+#include "connection_manager/rtp_uploader_config.h"
+#include "relay/module_backend.h"
+#include "relay/rtp_backend_config.h"
+#include "relay/forward_client_rtp_tcp.h"
 #include "media_manager/cache_manager_config.h"
 #include "network/base_http_server.h"
 #include "target_config.h"
-#include "publisher/flv_publisher.h"
+#include "relay/flv_publisher.h"
 
 struct config
 {
@@ -45,4 +45,3 @@ struct config
 };
 
 #endif
-

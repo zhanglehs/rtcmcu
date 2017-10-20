@@ -23,7 +23,7 @@
 #include "util/log.h"
 #include "util/flv.h"
 #include "cache_manager.h"
-#include "../backend_new/module_backend.h"
+#include "relay/module_backend.h"
 #include "circular_cache.h"
 #include "media_manager/media_manager_state.h"
 

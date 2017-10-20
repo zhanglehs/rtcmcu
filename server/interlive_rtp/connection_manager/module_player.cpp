@@ -15,9 +15,8 @@
 #include "util/util.h"
 #include "util/flv.h"
 #include "util/log.h"
-#include "testcase/delay_test.h"
 #include "hls.h"
-#include "player/flv_live_player.h"
+#include "connection_manager/flv_live_player.h"
 #include "media_manager/cache_manager.h"
 
 #include <assert.h>
