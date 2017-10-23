@@ -6,7 +6,7 @@
 extern "C"
 {
 #endif
-#define COUNT_OF(array) (sizeof(array)/sizeof((array)[0]))
+
 #define ATTR_PRINTF(n, m) __attribute__((format(printf, n, m)))
 #ifndef MAX
 #define MAX(a,b) ( (a) > (b) ? (a) : (b) )
@@ -15,7 +15,7 @@ extern "C"
 #define MIN(a,b) ( (a) < (b) ? (a) : (b) )
 #endif
 #define UNUSED(a) ((void)(a));
-#ifndef SAFE_RELEASE
+#ifndef SAFE_DELETE
 #define SAFE_DELETE( x ) \
     if (NULL != x) \
     { \
