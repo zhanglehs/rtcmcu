@@ -32,6 +32,7 @@ protobuf:
 	if [ ! -d $(DIR_LIB_PROTOBUF) ]; then \
 		tar xzvf $(DIR_LIB_PROTOBUF).tar.gz; \
 		cd $(DIR_LIB_PROTOBUF); \
+		./autogen.sh; \
 		./configure --prefix=$(THIRD_PARTY_DIR)/$(DIR_LIB_PROTOBUF)/out; \
 		make; \
 		make install; \
