@@ -1,53 +1,9 @@
 #directory definations
 
-ifeq	($(strip $(XM_SERVER_LIB_SOURCE_PATH)),)
-	XM_SERVER_LIB_SOURCE_PATH = $(SOURCE_DIR)/lib
-endif
+DIR_LIB			= $(SOURCE_DIR)/lib
 
-DIR_LIB			=$(XM_SERVER_LIB_SOURCE_PATH)
+DIR_LIB_STAT    = $(DIR_LIB)/stat
 
-DIR_EXTLIB		= $(DIR_LIB)/extlib
+STATIC_LIB_STAT = $(DIR_LIB_STAT)/libstat.a
 
-#DIR_LIB_XSOCKET                   = $(DIR_LIBRARY)/xsocket
-DIR_LIB_XTHREAD     = $(DIR_LIB)/xthread
-DIR_LIB_APPFRAME    = $(DIR_LIB)/appframe
-DIR_LIB_JSONCPP     = $(DIR_LIB)/json-c++
-#DIR_LIB_JSONC       = $(DIR_LIB)/json-c
-DIR_LIB_RTMP        = $(DIR_LIB)/librtmp
-#DIR_LIB_EVENT		= $(DIR_LIB)/event
-DIR_LIB_STAT       	= $(DIR_LIB)/stat
-DIR_LIB_NET   		= $(DIR_LIB)/net
-DIR_LIB_UTILS 		= $(DIR_LIB)/utils
-#DIR_LIB_PROTOBUF	= $(DIR_LIB)/protobuf-3.2.0
-#DIR_LIB_REACTOR		= $(DIR_LIB)/lreactor
-DIR_LIB_SERVER		= $(DIR_LIB)/server
-
-
-#STATIC_LIB_EVENT	= $(DIR_LIB_EVENT)/.libs/libevent.a
-STATIC_LIB_RTMP		= $(DIR_LIB_RTMP)/librtmp.a
-#STATIC_LIB_JSONC	= $(DIR_LIB_JSONC)/.libs/libjson-c.a
-STATIC_LIB_JSONCPP	= $(DIR_LIB_JSONCPP)/libjsoncpp.a
-STATIC_LIB_STAT		= $(DIR_LIB_STAT)/libstat.a
-#STATIC_LIB_PROTOBUF = $(DIR_LIB_PROTOBUF)/libprotobuf.a
-STATIC_LIB_NET		= $(DIR_LIB_NET)/libnet.a
-STATIC_LIB_UTILS	= $(DIR_LIB_UTILS)/libutils.a
-STATIC_LIB_APPFRAME = $(DIR_LIB_APPFRAME)/libappframe.a
-STATIC_LIB_XTHREAD  = $(DIR_LIB_XTHREAD)/libxthread.a
-STATIC_LIB_LOG4CPP	= $(DIR_EXTLIB)/liblog4cplus.a
-#STATIC_LIB_REACTOR	= $(DIR_LIB_REACTOR)/libreactor.a
-
-INC_SERVER_LIB			= -I$(DIR_LIB) -I$(DIR_LIB)/include
-#INC_XSOCKET			= -I$(DIR_LIB)/xsocket
-INC_XTHREAD				= -I$(DIR_LIB)/xthread
-INC_APPFRAME			= -I$(DIR_LIB)/appframe
-INC_STAT                = -I$(DIR_LIB_STAT)
-INC_NET	                = -I$(DIR_LIB_NET)
-#INC_JSONC				= -I$(DIR_LIB_JSONC)
-#INC_PROTOBUF			= -I$(DIR_LIB_PROTOBUF)/src
-#INC_EVENT				= -I$(DIR_LIB_EVENT)
-INC_LOG4CPP				= -I$(DIR_LIB)/include
-#INC_REACTOR				= -I$(DIR_LIB_REACTOR)
-INC_SERVER				= -I$(DIR_LIB_SERVER)/include
-INC_UTILS				= -I$(DIR_LIB)
-
-#include $(source_dir)/makefile.incl
+INC_STAT        = -I$(DIR_LIB_STAT)

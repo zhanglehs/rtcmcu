@@ -1,8 +1,0 @@
-2013-11-16 by hhyue
-feature:
-  1. to cut media_block depend on audio tag ts if flv has audio else video tag
-  ts in module_uploader
-
-fix:
-  1. to change fluence report duration to 60 seconds in receiver.xml
-  forward-fp.xml and forward-nfp.xml

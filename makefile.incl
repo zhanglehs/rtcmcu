@@ -2,29 +2,19 @@
 
 #command definations
 MAKE  = make
-#CXX		= g++ -ftemplate-depth-50 -Wall -static -static-libgcc
 
 ifndef release
 export OPSCFLAGS = -O0
-export OPSDEF = -DDEBUG
+export OPSDEF    = -DDEBUG
 else
 export OPSCFLAGS = -O2
 endif
 
-CXX		= g++ -ftemplate-depth-50 -Wall -g $(OPSCFLAGS)
-LEX		= flex
-YACC		= bison
-MV		= /bin/mv
-EXTRAFLAGS 	= -fpermissive -DLOGGER
-#INCLUDES	= $(INC_XSOCKET) $(INC_XTHREAD) $(INC_APPFRAME)
-LOG_INCLUDE = -I$(LOG4CPLUS_PATH)/include
-INCLUDES	= $(INC_BJ_SERVER_LIB)
-CXXFLAGS	= $(INCLUDES) $(EXTRAFLAGS)
-LDFLAAGS	= 
-LIBS		= $(ALL_LIBS)
-RM		= rm -f
-CP		= cp 
-AR		= ar rcs
+CXX		 = g++ -ftemplate-depth-50 -Wall -g $(OPSCFLAGS)
+CXXFLAGS = -fpermissive
+RM		 = rm -f
+CP		 = cp
+AR		 = ar rcs
 
 #rule definations
 
