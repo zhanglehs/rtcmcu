@@ -7,7 +7,7 @@
 #define FLV2TS_H_
 #include <stdint.h>
 #include <unistd.h>
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include "flv.h"
 
 #if (defined __cplusplus && !defined _WIN32)

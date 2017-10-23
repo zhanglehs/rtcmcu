@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "fragment.h"
-#include <utils/memory.h>
 #include "../util/log.h"
 #include <iostream>
 
@@ -31,7 +30,7 @@ namespace fragment
 
         if (malloc_flag)
         {
-            _block_buffer = (flv_miniblock_header*)mmalloc(len);
+            _block_buffer = (flv_miniblock_header*)malloc(len);
             memcpy(_block_buffer, input_block_buffer, len);
         }
         else
@@ -195,7 +194,7 @@ namespace fragment
         if (_block_buffer != NULL)
         {
             //   Destroy();
-            mfree(_block_buffer);
+            free(_block_buffer);
             _block_buffer = NULL;
         }
 

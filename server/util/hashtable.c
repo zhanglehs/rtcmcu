@@ -6,7 +6,7 @@
 #include "hashtable.h"
 #include "common.h"
 #include "rbtree.h"
-#include "utils/memory.h"
+#include <stdlib.h>
 //@tree     the start node of this search
 //@key      the key to match
 //@parent   if success match, *entry will be ptr of matched node; if failed match, *entry will be ptr of the parent node.
@@ -63,7 +63,7 @@ hash_create(unsigned int power)
     if(power > 31)
         return NULL;
     unsigned int width = 1u << power;
-    hashtable *h = (hashtable *) mmalloc(HASHSIZE(width));
+    hashtable *h = (hashtable *) malloc(HASHSIZE(width));
 
     if(NULL == h)
         return NULL;

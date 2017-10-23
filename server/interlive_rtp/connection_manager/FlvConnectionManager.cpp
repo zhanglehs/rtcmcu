@@ -10,8 +10,7 @@
 
 #include "connection_manager/FlvConnectionManager.h"
 #include "target.h"
-#include "utils/memory.h"
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include "../util/util.h"
 #include "../util/flv.h"
 #include "../util/log.h"

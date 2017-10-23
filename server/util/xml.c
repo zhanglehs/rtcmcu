@@ -12,7 +12,6 @@
 #include <expat.h>
 
 #include "xml.h"
-#include "utils/memory.h"
 #if defined(__amigaos__) && defined(__USE_INLINE__)
 #include <proto/expat.h>
 #endif
@@ -171,7 +170,7 @@ startElement(void *data, const char *name, const char **atts)
     /* starting parsing */
     if(xml_error)
         return;
-    parser_node = (struct xmlnode *) mcalloc(sizeof(struct xmlnode), 1);
+    parser_node = (struct xmlnode *) calloc(sizeof(struct xmlnode), 1);
     if(parser_node == NULL) {
         printf("%s: %d\n", __FILE__, __LINE__);
         xml_error = XML_ERR_MEMORY;
@@ -182,7 +181,7 @@ startElement(void *data, const char *name, const char **atts)
     if(parser_parent[xml_depth]->nchild) {
         /* add new child */
         parser_parent[xml_depth]->child =
-            (struct xmlnode **) mrealloc((void *)
+            (struct xmlnode **) realloc((void *)
                                          parser_parent[xml_depth]->child,
                                          (parser_parent[xml_depth]->nchild +
                                           1) * sizeof(struct xmlnode *));
@@ -198,7 +197,7 @@ startElement(void *data, const char *name, const char **atts)
     else {
         /* first child */
         parser_parent[xml_depth]->child =
-            (struct xmlnode **) mcalloc(sizeof(struct xmlnode *), 1);
+            (struct xmlnode **) calloc(sizeof(struct xmlnode *), 1);
         if(parser_parent[xml_depth]->child == NULL) {
             xml_error = XML_ERR_MEMORY;
             printf("%s: %d\n", __FILE__, __LINE__);
@@ -225,7 +224,7 @@ startElement(void *data, const char *name, const char **atts)
         j++;
     if(j) {
         parser_node->attr =
-            (struct xmlattribute **) mcalloc(sizeof(struct xmlattribute *),
+            (struct xmlattribute **) calloc(sizeof(struct xmlattribute *),
                                              j);
         if(parser_node->attr == NULL) {
             xml_error = XML_ERR_MEMORY;
@@ -235,7 +234,7 @@ startElement(void *data, const char *name, const char **atts)
         parser_node->nattr = j;
         for(i = 0; i < j; i++) {
             xmlattr =
-                (struct xmlattribute *) mcalloc(sizeof(struct xmlattribute),
+                (struct xmlattribute *) calloc(sizeof(struct xmlattribute),
                                                 1);
             if(xmlattr == NULL) {
                 xml_error = XML_ERR_MEMORY;
@@ -275,7 +274,7 @@ setElement(void *data, const char *el, int len)
         len--;
 
     if(parser_node->value == NULL) {
-        parser_node->value = (char *) mcalloc(len - i + 1, 1);
+        parser_node->value = (char *) calloc(len - i + 1, 1);
         if(parser_node->value == NULL) {
             xml_error = XML_ERR_MEMORY;
             printf("%s: %d\n", __FILE__, __LINE__);
@@ -288,7 +287,7 @@ setElement(void *data, const char *el, int len)
         /* expands parser's value */
         j = strlen(parser_node->value);
         parser_node->value =
-            (char *) mrealloc((void *) parser_node->value, j + (len - i) + 1);
+            (char *) realloc((void *) parser_node->value, j + (len - i) + 1);
         if(parser_node->value == NULL) {
             xml_error = XML_ERR_MEMORY;
             printf("%s: %d\n", __FILE__, __LINE__);
@@ -316,7 +315,7 @@ xmlloadfile(const char *file)
         return NULL;
     len = lseek(fd, 0, SEEK_END);
     lseek(fd, 0, SEEK_SET);
-    buf = (char *) mmalloc(len + 1);
+    buf = (char *) malloc(len + 1);
     if(buf == NULL) {
         close(fd);
         return NULL;
@@ -332,7 +331,7 @@ xmlloadfile(const char *file)
     close(fd);
 
     /* starting parsing */
-    node = (struct xmlnode *) mcalloc(sizeof(struct xmlnode), 1);
+    node = (struct xmlnode *) calloc(sizeof(struct xmlnode), 1);
     if(node == NULL) {
         free(buf);
         return NULL;
@@ -342,7 +341,7 @@ xmlloadfile(const char *file)
     parent_depth = 1;
     max_parent_depth = 10;
     parser_parent =
-        (struct xmlnode **) mcalloc(sizeof(struct xmlnode **),
+        (struct xmlnode **) calloc(sizeof(struct xmlnode **),
                                     max_parent_depth);
     parser = XML_ParserCreate(NULL);
     if(parser == NULL || parser_parent == NULL) {

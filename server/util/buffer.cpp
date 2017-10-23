@@ -6,7 +6,7 @@
  */
 
 #include "buffer.hpp"
-#include "memory.h"
+#include "logging.h"
 
 #include <errno.h>
 #include <assert.h>
@@ -16,9 +16,6 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-
-
-#include "utils/logging.h"
 
 using namespace lcdn;
 using namespace lcdn::base;
@@ -263,7 +260,7 @@ buffer_init(size_t size)
 {
     buffer *b;
 
-    b = (buffer *)mcalloc(1, sizeof(*b));
+    b = (buffer *)calloc(1, sizeof(*b));
     if (b) {
         b->_start = 0;
         b->_end = 0;
@@ -273,9 +270,9 @@ buffer_init(size_t size)
         b->_size += (BUFFER_PIECE_SIZE - 1) - ((b->_size + BUFFER_PIECE_SIZE - 1) % BUFFER_PIECE_SIZE);
         b->_max = b->_size;
 #undef BUFFER_PIECE_SIZE
-        b->_ptr = (char *)mcalloc(1, b->_size);
+        b->_ptr = (char *)calloc(1, b->_size);
         if (b->_ptr == NULL) {
-            mfree(b);
+            free(b);
             b = NULL;
         }
     }
@@ -305,8 +302,8 @@ buffer_create_max(size_t size, size_t max)
 void buffer_free(buffer * b)
 {
     if (b) {
-        mfree(b->_ptr);
-        mfree(b);
+        free(b->_ptr);
+        free(b);
     }
 }
 
@@ -327,7 +324,7 @@ int buffer_expand(buffer * b, size_t size)
 #define BUFFER_PIECE_SIZE 64
         b->_size += (BUFFER_PIECE_SIZE - 1) - ((b->_size + BUFFER_PIECE_SIZE - 1) % BUFFER_PIECE_SIZE);
 #undef BUFFER_PIECE_SIZE
-        p = (char *)mrealloc(b->_ptr, size);
+        p = (char *)realloc(b->_ptr, size);
         if (p) {
             b->_ptr = p;
             b->_size = size;

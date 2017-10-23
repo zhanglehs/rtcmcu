@@ -7,6 +7,7 @@ THIRD_PARTY_DIR = $(SOURCE_DIR)/third_party
 CFLAGS += $(OPSCFLAGS)
 CINCS += -I$(THIRD_PARTY_DIR)/json-c-0.11 \
          -I$(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/include \
+		 -I$(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/include \
 		 $(INC_UTILS)
 SOURCES_C = $(wildcard *.c)
 SOURCES_CPP = $(wildcard *.cpp)

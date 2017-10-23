@@ -5,7 +5,6 @@
 #include "../util/util.h"
 #include "cmd_protocol/proto.h"
 #include "../util/flv.h"
-#include "utils/memory.h"
 #include "rtp_trans/rtp_trans_manager.h"
 #include "avformat/rtcp.h"
 

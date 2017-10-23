@@ -19,7 +19,6 @@
 #include <iostream>
 
 #include "../util/util.h"
-#include "utils/memory.h"
 #include "../util/log.h"
 #include "../util/flv.h"
 #include "cache_manager.h"

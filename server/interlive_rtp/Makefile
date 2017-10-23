@@ -74,8 +74,8 @@ RTP_TRANS_OBJS = $(RTPTRANS_DIR)/rtp_session.o $(RTPTRANS_DIR)/rtp_trans.o $(RTP
 COMMON_OBJS = hls.o perf.o info_collector.o\
 			 libcachemanager.a libfragment.a config_manager.o \
 			 $(NETWORK_DIR)/base_http_server.o $(NETWORK_DIR)/rtp_send_queue.o \
-			 $(UTIL_DIR)/log.o $(DIR_LIB_UTILS)/buffer.o $(DIR_LIB_UTILS)/logging.o $(UTIL_DIR)/xml.o \
-			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o $(DIR_LIB_UTILS)/memory.o \
+			 $(UTIL_DIR)/log.o $(UTIL_DIR)/buffer.o $(UTIL_DIR)/logging.o $(UTIL_DIR)/xml.o \
+			 $(UTIL_DIR)/tsmux.o $(UTIL_DIR)/flv2ts.o \
 			 $(UTIL_DIR)/md5.o $(UTIL_DIR)/access.o \
 			 $(UTIL_DIR)/util.o $(UTIL_DIR)/backtrace.o $(UTIL_DIR)/bits.o\
 			 $(UTIL_DIR)/statfile.o $(UTIL_DIR)/flv.o \

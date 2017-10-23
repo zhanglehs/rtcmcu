@@ -20,7 +20,7 @@
 #include <uuid/uuid.h>
 
 #include "../util/flv.h"
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include "streamid.h"
 
 #include <sys/time.h>

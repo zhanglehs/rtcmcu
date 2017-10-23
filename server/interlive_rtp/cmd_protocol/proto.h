@@ -2,7 +2,7 @@
 #define PROTO_H_
 
 #include "cmd_protocol/proto_define.h"
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include <stdint.h>
 
 #if (defined __cplusplus && !defined _WIN32)

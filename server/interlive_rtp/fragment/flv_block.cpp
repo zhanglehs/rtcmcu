@@ -14,7 +14,6 @@
 #include <vector>
 
 #include "fragment.h"
-#include <utils/memory.h>
 #include "../util/log.h"
 #include <iostream>
 
@@ -53,7 +52,7 @@ namespace fragment
       return;
     }
 
-    _header = (flv_header*)mmalloc(len);
+    _header = (flv_header*)malloc(len);
     _header_len = len;
 
     memcpy(_header, header, len);
@@ -105,7 +104,7 @@ namespace fragment
       return NULL;
     }
 
-    _header = (flv_header*)mmalloc(len);
+    _header = (flv_header*)malloc(len);
     _header_len = len;
 
     memcpy(_header, header, len);

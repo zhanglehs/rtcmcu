@@ -8,7 +8,7 @@
 #define FLV_H_
 #include <stdint.h>
 #include "common.h"
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 
 #if (defined __cplusplus && !defined _WIN32)
 extern "C"

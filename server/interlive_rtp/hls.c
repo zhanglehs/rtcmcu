@@ -13,11 +13,11 @@
 #include <assert.h>
 #include <string.h>
 #include "../util/flv.h"
-#include "utils/memory.h"
 #include "../util/log.h"
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include "../util/flv2ts.h"
 #include "cmd_protocol/proto_define.h"
+#include <stdlib.h>
 
 #define DURATION_OFFSET 5
 
@@ -50,7 +50,7 @@ hls_create(uint32_t streamid, uint32_t target_duration_sec, uint32_t cnt)
 {
   size_t size = sizeof(hls_ctx)+cnt * sizeof(segment);
   uint32_t i = 0;
-  hls_ctx *ctx = (hls_ctx *)mmalloc(size);
+  hls_ctx *ctx = (hls_ctx *)malloc(size);
 
   if (NULL == ctx) {
     ERR("malloc failed. out of memory?");
@@ -130,7 +130,7 @@ failed:
       ctx->segs[i].ts = NULL;
     }
   }
-  mfree(ctx);
+  free(ctx);
   ctx = NULL;
   return NULL;
 }
@@ -151,7 +151,7 @@ hls_destroy(hls_ctx * ctx)
       ctx->segs[i].ts = NULL;
     }
   }
-  mfree(ctx);
+  free(ctx);
 }
 
 int

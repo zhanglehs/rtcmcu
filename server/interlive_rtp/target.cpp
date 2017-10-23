@@ -35,7 +35,6 @@
 #include "../util/access.h"
 #include "../util/log.h"
 #include "../util/xml.h"
-#include "utils/memory.h"
 #include "../util/util.h"
 #include "../util/backtrace.h"
 #include "streamid.h"

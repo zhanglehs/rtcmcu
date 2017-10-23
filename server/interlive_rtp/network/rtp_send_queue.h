@@ -8,7 +8,7 @@
 #ifndef _RTP_SERVER_BASE_H_
 #define _RTP_SERVER_BASE_H_
 
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include <deque>
 
 typedef struct RTPSendQueueSlot {

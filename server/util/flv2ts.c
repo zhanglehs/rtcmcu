@@ -13,7 +13,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "tsmux.h"
-#include "utils/buffer.hpp"
 #include "flv.h"
 
 #define ADTS_HEADER_SIZE      7

@@ -2,7 +2,7 @@
 #define __CONNECTION_MANAGER_RTP_CONNECTION_H__
 
 #include "streamid.h"
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include <stdint.h>
 #include <event.h>
 

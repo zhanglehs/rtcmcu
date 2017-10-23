@@ -16,7 +16,7 @@
 #define __FLV_H_
 
 #include <stdint.h>
-#include "utils/buffer.hpp"
+#include "../util/buffer.hpp"
 #include "avcodec/h264.h"
 #include "avcodec/aac.h"
 #include "../util/flv.h"
