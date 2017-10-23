@@ -19,7 +19,7 @@ DIR_LIB_STAT       	= $(DIR_LIB)/stat
 DIR_LIB_NET   		= $(DIR_LIB)/net
 DIR_LIB_UTILS 		= $(DIR_LIB)/utils
 #DIR_LIB_PROTOBUF	= $(DIR_LIB)/protobuf-3.2.0
-DIR_LIB_REACTOR		= $(DIR_LIB)/lreactor
+#DIR_LIB_REACTOR		= $(DIR_LIB)/lreactor
 DIR_LIB_SERVER		= $(DIR_LIB)/server
 
 
@@ -34,7 +34,7 @@ STATIC_LIB_UTILS	= $(DIR_LIB_UTILS)/libutils.a
 STATIC_LIB_APPFRAME = $(DIR_LIB_APPFRAME)/libappframe.a
 STATIC_LIB_XTHREAD  = $(DIR_LIB_XTHREAD)/libxthread.a
 STATIC_LIB_LOG4CPP	= $(DIR_EXTLIB)/liblog4cplus.a
-STATIC_LIB_REACTOR	= $(DIR_LIB_REACTOR)/libreactor.a
+#STATIC_LIB_REACTOR	= $(DIR_LIB_REACTOR)/libreactor.a
 
 INC_SERVER_LIB			= -I$(DIR_LIB) -I$(DIR_LIB)/include
 #INC_XSOCKET			= -I$(DIR_LIB)/xsocket
@@ -46,7 +46,7 @@ INC_NET	                = -I$(DIR_LIB_NET)
 #INC_PROTOBUF			= -I$(DIR_LIB_PROTOBUF)/src
 #INC_EVENT				= -I$(DIR_LIB_EVENT)
 INC_LOG4CPP				= -I$(DIR_LIB)/include
-INC_REACTOR				= -I$(DIR_LIB_REACTOR)
+#INC_REACTOR				= -I$(DIR_LIB_REACTOR)
 INC_SERVER				= -I$(DIR_LIB_SERVER)/include
 INC_UTILS				= -I$(DIR_LIB)
 

@@ -22,7 +22,6 @@
 #include <limits.h>
 #include <pwd.h>
 
-#include <appframe/singleton.hpp>
 #include "../util/type_defs.h"
 #include "connection_manager/FlvConnectionManager.h"
 #include "connection_manager/rtp_player_config.h"
@@ -56,9 +55,7 @@
 #include <google/heap-profiler.h>
 #endif
 
-#include "event_loop.h"
 #include "relay/rtp_backend_config.h"
-using namespace lcdn::net;
 
 #include "relay/flv_publisher.h"
 
@@ -66,8 +63,7 @@ using namespace std;
 using namespace fragment;
 using namespace media_manager;
 
-INIT_SINGLETON(config);
-static config &g_conf = *SINGLETON(config);
+static config g_conf;
 static char g_configfile[PATH_MAX];
 
 static struct event_base *main_base = NULL;

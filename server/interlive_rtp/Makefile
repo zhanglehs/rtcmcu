@@ -32,7 +32,7 @@ THIRD_PARTY_LIB = $(THIRD_PARTY_DIR)/json-c-0.11/.libs/libjson-c.a \
                   $(THIRD_PARTY_DIR)/libevent-2.1.8-stable/out/lib/libevent.a \
 				  $(THIRD_PARTY_DIR)/protobuf-3.2.0/out/lib/libprotobuf.a \
 				  $(THIRD_PARTY_DIR)/log4cplus-1.1.2/out/lib/liblog4cplus.a \
-				  $(STATIC_LIB_STAT) $(STATIC_LIB_REACTOR)
+				  $(STATIC_LIB_STAT)
 
 MEDIA_MANAGER_DIR = media_manager
 PUBLISHER_DIR = publisher
@@ -129,9 +129,6 @@ util_o:
 
 $(STATIC_LIB_STAT):
 	make -C $(DIR_LIB) static-libstat
-
-$(STATIC_LIB_REACTOR):
-	make -C $(DIR_LIB_REACTOR) all
 
 clean-lib:
 	@cd $(DIR_LIB); make clean-libevent; make clean-json-c; make clean-libstat; make clean-lreactor;
