@@ -5,6 +5,7 @@
 #include "../util/access.h"
 #include "fragment/fragment.h"
 //#include "../util/connection.h"
+#include "config/FlvPlayerConfig.h"
 #include "target.h"
 #include "media_manager/cache_manager.h"
 #include "connection_manager/FlvConnectionManager.h"

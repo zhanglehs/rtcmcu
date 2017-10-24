@@ -3,93 +3,41 @@
  * hhyue@tudou.com
  * copyright:youku.com
  * ****************************************/
-#include <stdint.h>
-#include <assert.h>
-#include <errno.h>
-#include <signal.h>
-#include <time.h>
-#include <event.h>
-#include <sys/resource.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <limits.h>
-#include <pwd.h>
 
-#include "../util/type_defs.h"
+#include "config/ConfigManager.h"
+#include "config/TargetConfig.h"
 #include "connection_manager/FlvConnectionManager.h"
-#include "connection_manager/rtp_player_config.h"
 #include "connection_manager/RtpConnectionManager.h"
-#include "connection_manager/rtp_uploader_config.h"
 #include "relay/RelayManager.h"
+#include "relay/flv_publisher.h"
 #include "rtp_trans/rtp_trans_manager.h"
-
-#include "config_manager.h"
-
-#include "../util/access.h"
-#include "../util/log.h"
-#include "../util/xml.h"
-#include "../util/util.h"
-#include "../util/backtrace.h"
-#include "streamid.h"
-#include "cmd_protocol/proto.h"
 #include "define.h"
-#include "media_manager/cache_manager.h"
 #include "perf.h"
 #include "info_collector.h"
 #include "network/base_http_server.h"
-#include "config.h"
-#include "target_config.h"
-
-#include "evhttp.h"
-
+#include "../util/access.h"
+#include "../util/backtrace.h"
+#include "../util/log.h"
+#include "../util/type_defs.h"
+#include "../util/util.h"
 //#define gperf
 #ifdef gperf
 #include <google/heap-profiler.h>
 #endif
 
-#include "relay/rtp_backend_config.h"
-
-#include "relay/flv_publisher.h"
-
-using namespace std;
-using namespace fragment;
-using namespace media_manager;
-
-static config g_conf;
-static char g_configfile[PATH_MAX];
-
-static struct event_base *main_base = NULL;
-static struct event g_ev_timer;
-
-static volatile sig_atomic_t g_stop = 0;
-static volatile sig_atomic_t g_reload_config = 0;
 char g_public_ip[1][32];
 int  g_public_cnt;
 char g_private_ip[1][32];
 int  g_private_cnt;
 char g_ver_str[64];
+char g_process_name[PATH_MAX] = { 0 };
 
+static char g_configfile[PATH_MAX];
+static struct event_base *main_base = NULL;
+static struct event g_ev_timer;
+static volatile sig_atomic_t g_stop = 0;
+static volatile sig_atomic_t g_reload_config = 0;
 static Perf *perf = NULL;
-
-static void init_config_manager(ConfigManager& config_manager, config& conf) {
-  config_manager.set_config_module(&(conf.target_conf));
-  config_manager.set_config_module(&(conf.flv_player_config));
-  config_manager.set_config_module(&(conf.rtp_player_config));
-  config_manager.set_config_module(&(conf.rtp_uploader_config));
-  config_manager.set_config_module(&(conf.rtp_relay_config));
-  config_manager.set_config_module(&(conf.cache_manager_config));
-  config_manager.set_config_module(&(conf.http_ser_config));
-  config_manager.set_config_module(&(conf.publisher_config));
-
-  config_manager.set_default_config();
-}
 
 static int resolv_ip_addr() {
   int ret = 0;
@@ -115,69 +63,12 @@ static int resolv_ip_addr() {
   return ret;
 }
 
-static int parse_config_file(ConfigManager& config_manager, char *file)
-{
-  ASSERTR(file != NULL, -1);
-
-  if (0 != resolv_ip_addr())
-  {
-    ERR("resolv ip address failed.");
-    return -1;
-  }
-
-  char config_full_path[PATH_MAX];
-  if (NULL == realpath(file, config_full_path))
-  {
-    fprintf(stderr, "resolve config file path failed. \n");
-    return -1;
-  }
-
-  xmlnode* mainnode = xmlloadfile(file);
-  if (mainnode == NULL)
-  {
-    fprintf(stderr, "mainnode get failed. \n");
-    return -1;
-  }
-
-  char binary_full_path[PATH_MAX];
-  int cnt = readlink("/proc/self/exe", binary_full_path, PATH_MAX);
-  if (cnt < 0 || cnt >= PATH_MAX)
-  {
-    fprintf(stderr, "resolve binary file path failed. \n");
-    return -1;
-  }
-
-  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  common_config->config_file.load_full_path(config_full_path);
-  common_config->binary_file.load_full_path(binary_full_path);
-
-  struct xmlnode *root = xmlgetchild(mainnode, "interlive", 0);
-  if (root == NULL)
-  {
-    fprintf(stderr, "node interlive get failed. \n");
-    freexml(mainnode);
-    return -1;
-  }
-
-  if (config_manager.load_config(root))
-  {
-    freexml(mainnode);
-    return 0;
-  }
-  else
-  {
-    fprintf(stderr, "parse_config_file failed.\n");
-    freexml(mainnode);
-    return -1;
-  }
-}
-
 static void show_help(void) {
-  fprintf(stderr, "Interlive %s %s, Build-Date: " __DATE__ " " __TIME__ "\n"
+  fprintf(stderr, "%s %s, Build-Date: " __DATE__ " " __TIME__ "\n"
     "Usage:\n" " -h this message\n"
     " -c file, config file, default is %s.xml\n"
     " -r reload config file\n" " -D don't go to background\n"
-    " -v verbose\n\n", PROCESS_NAME, g_ver_str, PROCESS_NAME);
+    " -v verbose\n\n", g_process_name, g_ver_str, g_process_name);
 }
 
 static void server_exit()
@@ -188,7 +79,7 @@ static void server_exit()
   RtpUdpServerManager::DestroyInstance();
   RtpTcpServerManager::DestroyInstance();
   INF("cache manager fini...");
-  FlvCacheManager::DestroyInstance();
+  media_manager::FlvCacheManager::DestroyInstance();
   INF("access fini...");
   access_fini();
   INF("Perf fini...");
@@ -233,7 +124,7 @@ static void sec_timer_service() {
     INF("dump old config...");
     config_manager.dump_config();
 
-    int ret = parse_config_file(config_manager, g_configfile);
+    int ret = config_manager.ParseConfigFile();
     if (ret != 0) {
       ERR("sec_timer_service: reload config failed, ret = %d", ret);
       return;
@@ -274,9 +165,9 @@ static int get_pid(pid_t * pid) {
 
   char filename[PATH_MAX];
   memset(filename, 0, sizeof(filename));
-  snprintf(filename, sizeof(filename)-1, "%s.pid", PROCESS_NAME);
+  snprintf(filename, sizeof(filename)-1, "%s.pid", g_process_name);
 
-  string pidfile = common_config->config_file.dir + string(filename);
+  std::string pidfile = common_config->config_file.dir + std::string(filename);
 
   int fd = open(pidfile.c_str(), O_EXCL | O_RDONLY);
 
@@ -325,54 +216,64 @@ static void signal_to_reload()
   }
 }
 
-static int main_proc() {
-  ConfigManager& config_manager(ConfigManager::get_inst());
-  g_conf.cache_manager_config.init(true);
-  init_config_manager(config_manager, g_conf);
-  int ret = parse_config_file(config_manager, g_configfile);
-  if (0 != ret) {
-    ERR("parse xml %s failed, ret = %d", g_configfile, ret);
-    return 1;
-  }
-
+static int InitLog(TargetConfig *config) {
   char* host_ip = NULL;
   host_ip = g_public_cnt > 0 ? (char*)g_public_ip[0] : (g_private_cnt > 0 ? (char*)g_private_ip[0] : NULL);
   if (NULL == host_ip) {
     fprintf(stderr, "no public or private ip found.\n");
-    return 1;
+    return -1;
   }
 
-  if (LOGGER_FILE == g_conf.target_conf.logger_mode) {
+  if (LOGGER_FILE == config->logger_mode) {
     char mkcmd[PATH_MAX] = "logs/";
-    sprintf(mkcmd, "mkdir -p %s", g_conf.target_conf.logdir);
+    sprintf(mkcmd, "mkdir -p %s", config->logdir);
     system(mkcmd);
-    chmod(g_conf.target_conf.logdir, 0777);
+    chmod(config->logdir, 0777);
 
-    ret = log_init_file(g_conf.target_conf.logdir, PROCESS_NAME, LOG_LEVEL_DBG, 300 * 1024 * 1024);
+    int ret = log_init_file(config->logdir, g_process_name, LOG_LEVEL_DBG, 300 * 1024 * 1024);
     if (0 != ret) {
       fprintf(stderr, "logdir = %s, log init file failed. ret = %d\n",
-        g_conf.target_conf.logdir, ret);
-      return 1;
+        config->logdir, ret);
+      return -1;
     }
     char accesspath[PATH_MAX];
 
     accesspath[PATH_MAX - 1] = 0;
-    snprintf(accesspath, PATH_MAX - 1, "%s_access", PROCESS_NAME);
-    ret = access_init_file(g_conf.target_conf.logdir, accesspath, 300 * 1024 * 1024);
+    snprintf(accesspath, PATH_MAX - 1, "%s_access", g_process_name);
+    ret = access_init_file(config->logdir, accesspath, 300 * 1024 * 1024);
     if (0 != ret)
     {
       fprintf(stderr, "access init failed. logdir = %s, ret = %d\n",
-        g_conf.target_conf.logdir, ret);
-      return 1;
+        config->logdir, ret);
+      return -1;
     }
   }
 
-  log_set_level(g_conf.target_conf.log_level);
-  log_set_max_size(g_conf.target_conf.log_cut_size_MB * 1024 * 1024);
-  access_set_max_size(g_conf.target_conf.access_cut_size_MB * 1024 * 1024);
+  log_set_level(config->log_level);
+  log_set_max_size(config->log_cut_size_MB * 1024 * 1024);
+  access_set_max_size(config->access_cut_size_MB * 1024 * 1024);
+
+  return 0;
+}
+
+static int main_proc() {
+  if (0 != resolv_ip_addr()) {
+    ERR("resolv ip address failed.");
+    return -1;
+  }
+
+  if (ConfigManager::get_inst().Init(g_configfile) < 0) {
+    ERR("parse xml %s failed", g_configfile);
+    return 1;
+  }
+
+  TargetConfig *common_config = (TargetConfig *)ConfigManager::get_inst_config_module("common");
+  if (InitLog(common_config) < 0) {
+    return 1;
+  }
 
   INF("on boot.after resolv...");
-  config_manager.dump_config();
+  ConfigManager::get_inst().dump_config();
 
   // TODO hechao
   /*
@@ -388,12 +289,7 @@ static int main_proc() {
   }
 #endif
 
-  uint8_t module_type = MODULE_TYPE_BACKEND;
-  if (g_conf.target_conf.enable_uploader) {
-    module_type = MODULE_TYPE_UPLOADER;
-  }
-
-  FlvCacheManager::Instance()->Init(main_base, module_type, &(g_conf.cache_manager_config));
+  media_manager::FlvCacheManager::Instance()->Init(main_base);
 
   /* ignore SIGPIPE when write to closing fd
    * otherwise EPIPE error will cause transporter to terminate unexpectedly
@@ -404,25 +300,23 @@ static int main_proc() {
   //FlvCacheManager::Instance()->set_http_server(base_http_server);
 
   perf = Perf::get_instance();
-  perf->set_cpu_rate_threshold(g_conf.target_conf.cpu_rate_threshold);
+  perf->set_cpu_rate_threshold(common_config->cpu_rate_threshold);
 
   RTPTransManager::Instance()->Init(main_base);
   RtpTcpServerManager::Instance()->Init(main_base);
   RtpUdpServerManager::Instance()->Init(main_base);
   RelayManager::Instance()->Init(main_base);
 
-  if (0 != LiveConnectionManager::Instance()->Init(main_base, &(g_conf.flv_player_config))) {
+  if (0 != LiveConnectionManager::Instance()->Init(main_base)) {
     ERR("player init failed.");
     return 1;
   }
 
-  TargetConfig* common_config = (TargetConfig*)ConfigManager::get_inst_config_module("common");
-  string pid_dir = ".";
+  std::string pid_dir = ".";
   if (common_config->config_file.dir.length() > 0) {
     pid_dir = common_config->config_file.dir;
   }
-
-  ret = util_create_pid_file(pid_dir.c_str(), PROCESS_NAME);
+  int ret = util_create_pid_file(pid_dir.c_str(), g_process_name);
   if (0 != ret) {
     if (ret > 0) {
       ERR("failed to create pid file. error = %s", strerror(errno));
@@ -438,7 +332,28 @@ static int main_proc() {
   return 0;
 }
 
+static int GetProcessName() {
+  char binary_full_path[PATH_MAX];
+  memset(binary_full_path, 0, sizeof(binary_full_path));
+  int cnt = readlink("/proc/self/exe", binary_full_path, PATH_MAX);
+  if (cnt < 0 || cnt >= PATH_MAX) {
+    fprintf(stderr, "resolve binary file path failed. \n");
+    return -1;
+  }
+  char *filename = strrchr(binary_full_path, '/');
+  if (filename == NULL) {
+    fprintf(stderr, "resolve binary file path failed. \n");
+    return -1;
+  }
+  strcpy(g_process_name, filename + 1);
+  return 0;
+}
+
 int main(int argc, char **argv) {
+  if (GetProcessName() < 0) {
+    return -1;
+  }
+
   strcpy(g_configfile, "forward.xml");
 
   memset(g_ver_str, 0, sizeof(g_ver_str));
@@ -461,7 +376,7 @@ int main(int argc, char **argv) {
         strcpy(g_configfile, optarg);
         break;
       case 'v':
-        printf("interlive %s\n", PROCESS_NAME);
+        printf("process:  %s\n", g_process_name);
         printf("version:  %s\n", g_ver_str);
         printf("build:    %s\n", BUILD);
         printf("branch:   %s\n", BRANCH);
@@ -486,7 +401,7 @@ int main(int argc, char **argv) {
   }
 
   int ret = 0;
-  ret = backtrace_init(".", PROCESS_NAME, g_ver_str);
+  ret = backtrace_init(".", g_process_name, g_ver_str);
   if (0 != ret) {
     fprintf(stderr, "backtrace init failed. ret = %d\n", ret);
     return 1;

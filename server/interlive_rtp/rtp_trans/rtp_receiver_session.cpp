@@ -7,7 +7,8 @@
 
 #include "rtp_config.h"
 
-#include "../media_manager/media_manager_state.h"
+#include "media_manager/media_manager_state.h"
+#include "../util/log.h"
 #include "math.h"
 #include <algorithm>
 #include <memory>

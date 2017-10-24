@@ -1,7 +1,7 @@
 #ifndef _RTP_BACKEND_CONFIG_H_
 #define _RTP_BACKEND_CONFIG_H_
 
-#include "config_manager.h"
+#include "config/ConfigManager.h"
 #include "../util/xml.h"
 #include "rtp_trans/rtp_config.h"
 
@@ -13,7 +13,6 @@ private:
 
 public:
   RTPTransConfig _rtp_conf;
-  char listen_ip[32];
 
 public:
   RtpRelayConfig();

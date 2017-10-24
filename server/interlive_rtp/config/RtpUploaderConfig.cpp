@@ -1,4 +1,5 @@
-#include "rtp_uploader_config.h"
+#include "config/RtpUploaderConfig.h"
+
 #include "target.h"
 #include "../util/log.h"
 #include "../util/util.h"

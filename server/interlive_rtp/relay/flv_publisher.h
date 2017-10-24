@@ -5,7 +5,7 @@
 #include "event.h"
 //#include <common/proto.h>
 #include "media_manager/cache_manager.h"
-#include "config_manager.h"
+//#include "config_manager.h"
 #include "../util/buffer.hpp"
 #include <list>
 
@@ -21,26 +21,6 @@ enum FLV_PUBLISHER_STATE {
 	FLV_PUBLISHER_STATE_STREAMING_STREAM_TAG,
 	FLV_PUBLISHER_STATE_ERROR,
 	FLV_PUBLISHER_STATE_END
-};
-
-class ModPublisherConfig : public ConfigModule
-{
-private:
-	bool inited;
-
-public:
-	char flv_receiver_ip[32];
-	uint16_t flv_receiver_port;
-
-	ModPublisherConfig();
-	virtual ~ModPublisherConfig() {}
-	ModPublisherConfig& operator=(const ModPublisherConfig& rhv);
-
-	virtual void set_default_config();
-	virtual bool load_config(xmlnode* xml_config);
-	virtual bool reload() const;
-	virtual const char* module_name() const;
-	virtual void dump_config() const;
 };
 
 class FLVPublisherManager;

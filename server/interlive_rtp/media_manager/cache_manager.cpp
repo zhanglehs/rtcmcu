@@ -2,11 +2,12 @@
 
 #include "relay/RelayManager.h"
 #include "fragment/fragment_generator.h"
-#include "media_manager/cache_manager_config.h"
+//#include "media_manager/cache_manager_config.h"
 #include "media_manager/circular_cache.h"
 #include "media_manager/media_manager_state.h"
 #include "rtp_trans/rtp_trans_manager.h"
 #include "media_manager/rtp2flv_remuxer.h"
+#include "config/CacheManagerConfig.h"
 
 namespace media_manager {
 
@@ -43,25 +44,12 @@ namespace media_manager {
 
     destroy_stream();
 
-    if (_config != NULL) {
-      delete _config;
-      _config = NULL;
-    }
-
     delete m_statistic;
     INF("~CacheManager()");
   }
 
-  void FlvCacheManager::Init(event_base* base, uint8_t module_type, CacheManagerConfig* config /*= NULL*/) {
-    _config = new CacheManagerConfig();
-    _config->init(_module_type == MODULE_TYPE_UPLOADER);
-    if (config) {
-      load_config(config);
-    }
-    else {
-      _config->load_default_config();
-    }
-
+  void FlvCacheManager::Init(event_base* base) {
+    _config = (CacheManagerConfig *)ConfigManager::get_inst_config_module("cache_manager");;
     _main_base = base;
     StartTimer();
   }

@@ -7,6 +7,7 @@
 #include "rtp_trans/rtp_sender_trans.h"
 #include "rtp_trans/rtp_receiver_trans.h"
 #include "avformat/sdp.h"
+#include "../util/log.h"
 
 using namespace std;
 

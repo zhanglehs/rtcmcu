@@ -122,7 +122,7 @@ namespace media_manager {
     static FlvCacheManager* Instance();
     static void DestroyInstance();
 
-    void Init(event_base* base, uint8_t module_type, CacheManagerConfig* config = NULL);
+    void Init(event_base* base);
     //void set_http_server(http::HTTPServer *server);
     int32_t load_config(const CacheManagerConfig* config);
 

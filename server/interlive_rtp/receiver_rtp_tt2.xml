@@ -18,7 +18,6 @@
         jitter_buffer_time='100'
         muxer_queue_threshold='500'
         cpu_rate_threshold='70'
-        process_name='receiver'
         log_ctrl_ip='101.200.47.145'
         log_ctrl_port='80'>
         <cache_manager save_stream_dir='dump_stream' live_push_timeout_sec='10' live_req_timeout_sec='-1'>

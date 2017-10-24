@@ -58,10 +58,6 @@ extern "C"
 #define __null 0
 #endif
 
-#ifndef PROCESS_NAME
-#define PROCESS_NAME "receiver"
-#endif
-
 #ifndef SVN_REV
 #define SVN_REV "0.0.0.0"
 #endif

@@ -2,13 +2,12 @@
 #include "avcodec/aac.h"
 #include "avformat/rtcp.h"
 #include "../util/access.h"
-#include "target_config.h"
 #include "avformat/FLV.h"
 #include "jitter_buffer.h"
 #include "avformat/sdp.h"
-
+#include "config/TargetConfig.h"
 #include "rtp_trans/rtp_config.h"
-#include "config.h"
+#include "../util/log.h"
 
 using namespace media_manager;
 using namespace avcodec;
