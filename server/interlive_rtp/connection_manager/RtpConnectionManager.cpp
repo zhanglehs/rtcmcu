@@ -635,9 +635,7 @@ void RtpUdpServerManager::OnRead() {
 }
 
 void RtpUdpServerManager::OnWrite() {
-  while (!m_send_queue.is_queue_empty()) {
-    m_send_queue.send(m_ev_socket.fd);
-  }
+  m_send_queue.send(m_ev_socket.fd);
   DisableWrite();
 }
 
