@@ -1,4 +1,4 @@
-Name:           receiver
+Name:           receiver_rtp
 Version:        3.2.160219.1
 Release:        1%{?dist}
 Summary:        Interlive stream %{name}
@@ -7,7 +7,7 @@ Group:          Youku
 License:        Commerical        
 URL:            http://www.youku.com            
 Source0:        %{name}-%{version}.tar.gz
-Prefix:     /opt/interlive
+Prefix:     /opt/interlive_rtp
 BuildRoot:      /root/rpmbuild/buildroot
 
 %description
@@ -19,7 +19,11 @@ The %{name} program is used in youku interlive project to %{name} live stream
 
 %build
 make cleanall
-make receiver release=%{version} 
+if [ ! -f "/usr/local/lib/libtcmalloc.so" ]; then
+       make receiver_rtp release=%{version} ptmalloc=ptmalloc
+else
+       make receiver_rtp release=%{version}
+fi
 
 
 %install
@@ -57,21 +61,27 @@ fi
 %{prefix}/%{name}/crossdomain.xml
 %{prefix}/lib64/*
 
+
 %post
 echo "%post"
 echo "/opt/interlive/lib64" > /etc/ld.so.conf.d/interlive.conf
 ldconfig
-cp -f %{prefix}/%{name}/scripts/%{name} /etc/init.d
-mkdir -p /opt/logs/interlive/%{name}
-chmod o+w /opt/logs/interlive/%{name}
-service %{name} start
-sh %{prefix}/%{name}/scripts/add_cron.sh %{name}
+#cp -f %{prefix}/%{name}/scripts/%{name} /etc/init.d
+mkdir -p /opt/logs/interlive_rtp/%{name}
+chmod o+w /opt/logs/interlive_rtp/%{name}
+#service %{name} start
+#sh %{prefix}/%{name}/scripts/add_cron_rtp.sh %{name}
+/usr/local/bin/supervisorctl -c /etc/supervisord.conf stop receiver_rtp
+/usr/local/bin/supervisorctl -c /etc/supervisord.conf reread
+/usr/local/bin/supervisorctl -c /etc/supervisord.conf update
+/usr/local/bin/supervisorctl -c /etc/supervisord.conf start receiver_rtp
 
 %preun
-chmod +x %{prefix}/%{name}/scripts/remove_cron.sh
-sh %{prefix}/%{name}/scripts/remove_cron.sh %{name}
-service %{name} stop
-rm -f /etc/init.d/%{name}
+#chmod +x %{prefix}/%{name}/scripts/remove_cron_rtp.sh
+#sh %{prefix}/%{name}/scripts/remove_cron_rtp.sh %{name}
+#service %{name} stop
+#rm -f /etc/init.d/%{name}
+/usr/local/bin/supervisorctl -c /etc/supervisord.conf stop receiver_rtp
 
 
 %changelog

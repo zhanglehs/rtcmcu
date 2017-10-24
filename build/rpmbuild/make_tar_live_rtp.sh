@@ -16,7 +16,7 @@ dst=$module-$version
 
 debug_script=$3
 
-tag_prefix="cdn"
+tag_prefix="rtp"
 
 echo $module
 if [ "$module" == "xm_ants" ]; then
@@ -40,10 +40,11 @@ else
 #	git clone ssh://duanbingnan@gforge.1verge.net:22022/gitroot/live_stream_svr
 #	git clone ssh://duanbingnan@10.10.72.167:22022/home/git/mirror_live_stream_svr.git live_stream_svr
 	
-	git clone ssh://rpmbuild@10.10.72.167:22022/home/git/mirror_live_stream_svr.git live_stream_svr
+	#git clone ssh://rpmbuild@10.10.72.167:22022/home/git/mirror_live_stream_svr.git live_stream_svr
 	cd live_stream_svr
-	git checkout master
-	git pull
+	git reset --hard
+	git checkout dev_rtp_only
+	#git pull
 
 	./generate_version.sh release $version
 	git archive -o $dst.tar $tag_prefix-$version
